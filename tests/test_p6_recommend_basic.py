@@ -275,6 +275,8 @@ def test_4_scenario_b():
     assert rec.alerts == []
     assert roles(r) == {"s11": None, "s21": None, "s22": None, "s31": None,
                         "n31": "primary", "s41": "backup", "s51": None}
+    # 예비 entry 의 도착 잔량은 원점 기준 그대로 (plan 336행은 role 만 채운다)
+    assert stations_of(r)["s41"].arrival_soc_pct == pytest.approx(20.0)
 
 
 def test_4_scenario_b_tie_broken_by_price_not_order():
@@ -368,6 +370,7 @@ def test_8_forward_rule_uses_rest_area_distance_not_detour():
 
     시나리오 B + ra4 거리 90: 1순위 n31(휴게소 81, 왕복 포함 91.8). s41 은 90 > 81 이라 앞쪽.
     s41 도착 60 − 90/2.7 ≈ 26.67, 1순위 왕복 4 를 빼도 ≈ 22.67 ≥ 15.
+    s41 점수는 c1 + m1(여유 ≈ 11.67) + f1 = 3.
     1순위의 remaining_km(91.8)로 비교하는 구현은 예비를 못 찾는다.
     """
     _, rec = run(route=make_route(ra2_down=True, ra4_distance=90.0))
@@ -430,6 +433,7 @@ def test_9_backup_reach_uses_vehicle_min_arrival():
 
     B + ra4 113.4 + 최소 잔량 10: s41 은 18 − 4 = 14 ≥ 10 → 예비. (최소 15 면 예비 없음 — 위 테스트)
     ra5 s51(도착 ≈ 10, 점수 3, 270)이 정렬상 앞이지만 10 − 4 = 6 < 10 이라 탈락.
+    s31(도착 30, 최소 10 이면 점수 3·270 으로 새 후보)은 1순위 휴게소 ra3 라 제외.
     """
     _, rec = run(route=make_route(ra2_down=True, ra4_distance=113.4), min_arrival=10.0)
     assert rec.primary.station_id == "n31"
@@ -597,8 +601,8 @@ def test_extra_full_tie_keeps_input_order():
 
 def test_extra_backup_is_best_sorted_among_eligible():
     """예비도 같은 정렬 키로 첫째 (plan 333행). n31 을 못 쓰게 하면 자격 있는 s31(2, 270)·s41(2, 360) 중
-    점수 동률 → 가격으로 s31. 남은 거리 순(앞쪽 가까운 순)으로 고르는 구현과도 구분하려고
-    s31 의 대안 s41 은 더 멀고 더 비싸게 둔 표준 데이터를 그대로 쓴다."""
+    점수 동률 → 가격으로 s31. (s31 이 가장 가깝기도 해서 남은 거리 순 구현과는 여기서 갈리지 않는다;
+    그 구분은 test_extra_backup_price_beats_distance 가 한다.)"""
     r, rec = run(route=make_route(n31_spec="FO FO FO FO"))  # n31 못 씀
     assert rec.primary.station_id == "s21"
     assert rec.backup.station_id == "s31"
@@ -622,3 +626,75 @@ def test_extra_backup_score_beats_price():
     route.rest_areas[3].stations[0].price_per_kwh = 100.0
     _, rec = run(route=route)
     assert rec.backup.station_id == "n31"
+
+
+# ---------------------------------------------------------------- 추가: 지난 검증의 고칠 점 (라운드 2)
+
+def test_extra_single_fast_charger_can_be_primary():
+    """plan 290행 is_candidate = reachable ∧ usable_fast ≥ 1, 325행. 급속 1대도 후보.
+
+    시나리오 C(잔량 30) + s11 급속A×1: 도착 20, c0 + m0(여유 5) + f1 = 1 → 1순위 s11.
+    """
+    r, rec = run(route=make_route(s11_spec="FA FC SA"), soc=30.0)
+    assert rec.status == "ok"
+    assert rec.primary.station_id == "s11"
+    assert rec.primary.score == 1
+    assert rec.backup is None
+    assert codes(rec.alerts) == [ac().NO_BACKUP]
+
+
+def test_extra_primary_detour_uses_km_per_pct_with_margin():
+    """plan 331행 primary.detour_km / km_per_pct(vehicle); driving_range.py km_per_pct 는 여유 0.10 반영 2.7.
+
+    B + ra4 111.24: s41 원점 도착 60 − 111.24/2.7 = 18.8, n31 왕복 10.8/2.7 = 4 를 빼면 14.8 < 15 → 예비 없음.
+    여유 없는 3.0 으로 빼면 18.8 − 3.6 = 15.2 로 s41 이 예비가 되어 틀림.
+    """
+    _, rec = run(route=make_route(ra2_down=True, ra4_distance=111.24))
+    assert rec.primary.station_id == "n31"
+    assert rec.backup is None
+    assert codes(rec.alerts) == [ac().NO_BACKUP]
+
+
+def test_extra_nearby_primary_and_nearby_backup_candidate():
+    """plan 331행 entry.arrival_soc_pct(나들목은 자기 왕복이 이미 들어간 값, D9 43행).
+
+    B + ra4 나들목 n41(왕복 5.4): 남은 113.4, 원점 도착 18, c2 + m0 + f1 = 3 → 정렬상 s41(2)보다 앞.
+    1순위 n31 왕복 4 를 빼면 14 < 15 → 탈락. s41 은 20 − 4 = 16 → 예비.
+    휴게소 도착 잔량(20)으로 검사하면 n41 을 예비로 고름.
+    """
+    n41 = m().NearbyStation(station=station("n41", "한빛이브이", "FA FA FA", 300.0, 11, 58), detour_km=5.4)
+    r, rec = run(route=make_route(ra2_down=True, ra4_nearby=[n41]))
+    assert stations_of(r)["n41"].arrival_soc_pct == pytest.approx(18.0)
+    assert rec.primary.station_id == "n31"
+    assert rec.backup.station_id == "s41"
+    assert roles(r)["n41"] is None
+
+
+def test_extra_same_distance_twin_after_primary_is_not_backup():
+    """plan 330행 '>' 엄격 비교. 같은 거리(54) ra2b 의 s2b 는 s21 과 완전 동률(5, 288, 54, False).
+
+    입력 순서로 1순위 s21. entries 인덱스로 앞쪽을 판정하는 구현은 s2b 를 예비로 고른다.
+    """
+    r, rec = run(route=make_route(ra2_twin=station("s2b", "한빛이브이", "FA FA FA", 320.0, 11, 45)))
+    assert rec.primary.station_id == "s21"
+    assert rec.backup.station_id == "n31"
+    assert roles(r)["s2b"] is None
+
+
+def test_extra_non_integer_price_not_rounded():
+    """plan 50행 3.1절 반올림 금지: s21 319.5원 → 그린카드 10 % → 287.55."""
+    route = make_route()
+    route.rest_areas[1].stations[0].price_per_kwh = 319.5
+    _, rec = run(route=route)
+    assert rec.primary.station_id == "s21"
+    assert rec.primary.final_price == pytest.approx(287.55)
+
+
+def test_extra_non_integer_backup_arrival_is_origin_based():
+    """B + ra4 110: s41 원점 도착 60 − 110/2.7 ≈ 19.259259, 1순위 왕복 4 를 빼도 ≈ 15.26 ≥ 15 → 예비.
+
+    Pick.arrival_soc_pct 는 원점 기준 그대로(1순위 출발 기준 값은 자격 판정에만 쓴다, 판정 [계획 보완]).
+    """
+    _, rec = run(route=make_route(ra2_down=True, ra4_distance=110.0))
+    assert rec.backup.station_id == "s41"
+    assert rec.backup.arrival_soc_pct == pytest.approx(60 - 110 / 2.7)
