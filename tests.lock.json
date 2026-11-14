@@ -7,6 +7,6 @@
     "tests/test_p4_pricing_basic.py": "f5d567a4cd2b2fcad93f879a18ba4155b629cf58a3e129334a80eec2d20acbc7",
     "tests/test_p5_route_list_basic.py": "8c2dc1286d75045ad6531dbb5435957f996c0cb8275551e09625a9917776f2e2",
     "tests/test_p6_recommend_basic.py": "e48b45ef05058fe23445defbd5c474eb9bc8de0603e9a9decc43f2f3a7e6052e",
-    "tests/test_p7_integration_basic.py": "da344d63860dfd710266824552ff1e4e27539e408aca396b9fd40def79c2a1e4"
+    "tests/test_p7_integration_basic.py": "8bc8c8db357c3afe25d586a68af5334ec874f8bbc47eea2aa44567cb27606de8"
   }
 }

@@ -119,7 +119,10 @@ def all_station_entries(result):
 # ---------------------------------------------------------------- 공개 API (기준 8)
 
 def test_public_imports_from_package():
-    """기준 8: from ev_charge_planner import plan, PlanResult, Route, Vehicle, User."""
+    """기준 8: from ev_charge_planner import plan, PlanResult, Route, Vehicle, User.
+
+    __all__ 은 잠긴 __init__ 17~20행에 있음.
+    """
     from ev_charge_planner import plan, PlanResult, Route, Vehicle, User  # noqa: F401
     assert callable(plan)
     assert "plan" in m().__all__ and "PlanResult" in m().__all__
@@ -195,6 +198,7 @@ def test_scenario_a_route_list_numbers():
 # ---------------------------------------------------------------- 시나리오 B (기준 2, 통합 흐름)
 
 def test_scenario_b_rest_area_all_unavailable():
+    """status_counts 는 dict[ChargerStatus, int](route_list.py 52·112행), operators·applicable_cards 는 list(49행)."""
     r = run(ra2_down=True)
     AC = m().AlertCode
     CS = m().ChargerStatus
@@ -292,9 +296,14 @@ def test_scenario_f_position_30_drops_passed_rest_area():
 
 
 def test_position_passed_positionally():
-    """plan 361행 시그니처: plan(route, vehicle, user, now, position_km, stale_minutes)."""
-    r = pl().plan(make_route(), make_vehicle(), make_user(), NOW, 30.0, 30)
-    assert len(r.route_list.entries) == 4
+    """plan 361행 시그니처: plan(route, vehicle, user, now, position_km, stale_minutes).
+
+    두 값을 다르게 둬 순서 뒤바뀜을 가른다(27 ≠ 60). s31 은 11:00 갱신, 정확히 60분 → 신선.
+    """
+    r = pl().plan(make_route(), make_vehicle(), make_user(), NOW, 27.0, 60)
+    assert len(r.route_list.entries) == 5
+    assert entry(r, "ra1").remaining_km == pytest.approx(0)
+    assert station_entry(r, "s31").status.is_stale is False
 
 
 def test_stale_minutes_is_passed_through():
@@ -318,6 +327,20 @@ def test_plan_equals_build_then_recommend():
         got = pl().plan(make_route(kw.get("ra2_down", False)), v, make_user(), NOW)
         assert got.recommendation == expected_rec
         assert got.route_list == expected_list
+
+
+def test_non_integer_price_passes_through_unrounded():
+    """plan 50행 3.1절 엔진은 반올림하지 않는다; p4·p6 판정 [계획 보완] 과 같은 사례.
+
+    s21(한빛이브이, 구독 없음·카드 10%) 333.33 → 299.997. ra2 최저는 s22 350×0.8 = 280 유지.
+    """
+    route = make_route()
+    route.rest_areas[1].stations[0].price_per_kwh = 333.33
+    r = pl().plan(route, make_vehicle(), make_user(), NOW)
+    assert station_entry(r, "s21").quote.final_price == pytest.approx(299.997)
+    assert r.recommendation.primary.station_id == "s21"
+    assert r.recommendation.primary.final_price == pytest.approx(299.997)
+    assert entry(r, "ra2").lowest_price == pytest.approx(280)
 
 
 # ---------------------------------------------------------------- 입력 불변 (기준 7)
@@ -362,6 +385,11 @@ def test_plan_twice_same_result_and_no_leftover_roles():
 # ---------------------------------------------------------------- 잘못된 입력 (기준 8, plan 362행)
 
 def test_invalid_vehicle_soc_101_raises():
+    """ValueError 는 make_vehicle(101.0) 즉 p1 Vehicle.__post_init__ 에서 나며 plan 본문에 닿기 전이다.
+
+    기준 8 문구 그대로. plan 안에서 그대로 올라오는지(362행)는
+    negative_position·negative_stale·naive/aware 셋이 확인한다.
+    """
     with pytest.raises(ValueError):
         pl().plan(make_route(), make_vehicle(101.0), make_user(), NOW)
 
