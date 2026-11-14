@@ -243,6 +243,17 @@ def test_9_zero_base_price():
     assert q.applied == "subscription"
 
 
+def test_9_non_integer_price_is_not_rounded():
+    """docs/plan.md 50행 3.1절: 엔진은 반올림하지 않는다(화면이 한다). 모든 계산은 float.
+    333.3 × 0.85 = 283.305 (소수 셋째 자리). round → 283, 소수 2자리 → 283.31,
+    int → 283, base 를 int 로 자름 → 333 × 0.85 = 283.05 는 모두 approx 에서 틀린다."""
+    u = m().User(cards=[card(name="카드", rate=0.15)])
+    q = quote(station("한빛이브이", 333.3), "ra2", u)
+    assert q.base_price == pytest.approx(333.3)
+    assert q.final_price == pytest.approx(283.305)
+    assert q.applied == "카드"
+
+
 @pytest.mark.parametrize("bad", ["fast", "slow", None, 1])
 def test_9_charger_type_not_enum_raises(bad):
     """ChargerType 이 아니면 ValueError (plan 268행). str Enum 이라 'fast' == FAST 지만 거부해야 한다."""
