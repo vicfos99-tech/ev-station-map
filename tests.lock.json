@@ -3,6 +3,6 @@
   "files": {
     "tests/test_p1_models_basic.py": "262639c72e5698c17ce49472d48a57c65b869b4d470dc2dfb8d8fc5a4e25d9a2",
     "tests/test_p2_range_basic.py": "b7ff039b84ddb2fa4eea8e7302b1f532f3a930ac2094a3a9b8874ed1773dc103",
-    "tests/test_p3_status_basic.py": "768d2e777204b1f852652d898a6cfa2c61304c2da6289b7a5eb745cc26ff2019"
+    "tests/test_p3_status_basic.py": "c411fa74d5ab68de22a8a83081ef5a6326ec76e2324e2c5af1135ac392663bf5"
   }
 }

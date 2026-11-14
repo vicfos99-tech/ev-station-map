@@ -206,6 +206,26 @@ def test_future_update_is_fresh():
     assert r.alerts == []
 
 
+def test_future_beyond_threshold_is_fresh():
+    """미래 시각은 기준 분을 넘게 앞서도 신선 (goal '미래 시각은 신선', 5절 p3 식 `(now - updated) > timedelta(...)`).
+    절댓값으로 비교하는 구현을 걸러 낸다."""
+    r = summarize(["FA"], at(13, 0))
+    assert r.is_stale is False
+    assert r.alerts == []
+    r = summarize(["FA"], datetime(2026, 1, 2, 12, 0))
+    assert r.is_stale is False
+    assert r.alerts == []
+    r = summarize(["FA", "FO"], at(12, 31))
+    assert codes(r.alerts) == [m().AlertCode.UNUSABLE_CHARGERS]
+
+
+def test_future_one_second_with_zero_minutes_is_fresh():
+    """stale_minutes=0 에서 now+1초도 신선 (5절 p3 식, 미래 시각은 신선)."""
+    r = summarize(["FA"], NOW + timedelta(seconds=1), stale_minutes=0)
+    assert r.is_stale is False
+    assert r.alerts == []
+
+
 def test_update_equal_now_is_fresh():
     r = summarize(["FA"], NOW)
     assert r.is_stale is False
