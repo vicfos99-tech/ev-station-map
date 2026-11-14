@@ -237,6 +237,8 @@ def test_4_ra3_stale_station():
     assert s31.station_id == "s31"
     assert s31.status.is_stale is True
     assert codes(s31.alerts) == [m().AlertCode.STALE_INFO]
+    # 오래된 정보여도 후보에서 빼지 않는다: is_candidate = reachable ∧ usable_fast ≥ 1 (plan 290행, 4.4 표 136행)
+    assert s31.is_candidate is True
     assert ra3.lowest_price == pytest.approx(270.0)  # 나들목 인근 240 은 제외
     assert ra3.subscription_applicable is False
     assert ra3.operators == ["초록전력"]  # 나들목 인근 업체는 안 넣음
@@ -343,15 +345,32 @@ def test_7_unreachable_then_rest_area_alert_order():
 
 
 def test_7_lowest_price_ignores_station_without_usable_fast():
-    """lowest_price 는 usable_fast ≥ 1 인 안 충전소만 (plan 292행). 싼 곳이 충전 중뿐이면 제외."""
+    """lowest_price 는 usable_fast ≥ 1 인 안 충전소만 (plan 292행). 싼 곳이 충전 중뿐이면 제외.
+
+    waiting_fast 는 급속 ∧ 충전 중만 센다(plan 237행, status.py 44~45행): 완속 충전 중(SC)은 안 센다.
+    충전 중 급속만 있는 x1 은 후보가 아니다(plan 290행: usable_fast ≥ 1).
+    """
     r = build(route=_single_ra_route([
-        station("x1", "한빛이브이", "FC FC", 100.0, 11, 50),
+        station("x1", "한빛이브이", "FC FC SC", 100.0, 11, 50),
         station("x2", "한빛이브이", "FA", 300.0, 11, 50),
     ]))
     e = r.entries[0]
     assert e.lowest_price == pytest.approx(270.0)
     assert e.waiting_fast == 2
     assert e.usable_fast == 1
+    assert e.stations[0].is_candidate is False
+    assert e.stations[1].is_candidate is True
+
+
+def test_7_lowest_price_not_rounded():
+    """엔진은 반올림하지 않는다 (plan 50행 3.1절). 355×0.9 = 319.5, 333.33×0.9 = 299.997."""
+    e = build(route=_single_ra_route([
+        station("x1", "한빛이브이", "FA", 355.0, 11, 50)])).entries[0]
+    assert e.lowest_price == pytest.approx(319.5)
+    e = build(route=_single_ra_route([
+        station("x1", "한빛이브이", "FA", 333.33, 11, 50)])).entries[0]
+    assert e.lowest_price == pytest.approx(299.997)
+    assert e.stations[0].quote.final_price == pytest.approx(299.997)
 
 
 def test_7_operators_dedup_in_input_order():
@@ -365,19 +384,30 @@ def test_7_operators_dedup_in_input_order():
 
 
 def test_7_applicable_cards_union_in_user_card_order():
-    """applicable_cards: 안 충전소들의 합집합, 사용자 카드 순서 (plan 292행)."""
+    """applicable_cards: 안 충전소들의 합집합, 사용자 카드 순서 (plan 292행). 나들목 인근은 안 넣는다.
+
+    '다카드' operators=frozenset() 는 어디에도 안 됨: plan 41행 D7(None = 모든 업체, 빈 집합 = 어디에도 안 됨),
+    잠긴 pricing.py 33행 `c.operators is None or station.operator in c.operators`.
+    make_user 의 '그린카드'는 operators 기본값 None(models.py DiscountCard) 이라 모든 업체에 적용된다.
+    '라카드'는 나들목 인근(초록전력)에만 맞으므로 휴게소 applicable_cards 에 들어가면 안 된다.
+    """
     mm = m()
     user = mm.User(cards=[
         mm.DiscountCard(name="가카드", rate=0.1, operators={"한빛이브이"}),
         mm.DiscountCard(name="나카드", rate=0.1, operators={"별빛차지"}),
         mm.DiscountCard(name="다카드", rate=0.1, operators=frozenset()),
+        mm.DiscountCard(name="라카드", rate=0.1, operators={"초록전력"}),
     ])
-    e = build(route=_single_ra_route([
+    near = mm.NearbyStation(station=station("n1", "초록전력", "FA", 300.0, 11, 50), detour_km=2.0)
+    route = mm.Route("경부고속도로", "부산방향", [mm.RestArea("rx", "시험 휴게소", 10.0, [
         station("x1", "별빛차지", "FA", 300.0, 11, 50),
         station("x2", "한빛이브이", "FA", 300.0, 11, 50),
-    ]), user=user).entries[0]
+    ], [near])])
+    e = build(route=route, user=user).entries[0]
     assert e.applicable_cards == ["가카드", "나카드"]
     assert e.subscription_applicable is False
+    assert e.operators == ["별빛차지", "한빛이브이"]
+    assert e.nearby[0].quote.applicable_cards == ["라카드"]
 
 
 def test_7_user_without_discounts():
@@ -396,6 +426,8 @@ def test_8_nearby_of_unreachable_rest_area_ends_with_unreachable():
     assert n51.is_candidate is False
     assert codes(n51.alerts)[-1] == m().AlertCode.UNREACHABLE
     assert codes(n51.alerts) == [m().AlertCode.UNREACHABLE]
+    # UNREACHABLE 은 entry.alerts 에만 붙고 status.alerts 는 그대로 (plan 291행: status.alerts 그대로 + 끝에 추가)
+    assert n51.status.alerts == []
 
 
 def test_8_nearby_detour_makes_unreachable():
@@ -416,14 +448,20 @@ def test_8_nearby_detour_makes_unreachable():
 
 
 def test_8_nearby_status_alerts_come_before_unreachable():
-    """nearby alerts = status.alerts 그대로 + 끝에 UNREACHABLE (plan 291행)."""
+    """nearby alerts = status.alerts 그대로 + 끝에 UNREACHABLE (plan 291행).
+
+    status.alerts 순서 STALE_INFO → UNUSABLE_CHARGERS 는 plan 240행, 잠긴 status.py 51~56행 그대로.
+    휴게소 경고는 안 충전소만 본다(plan 44행 D10·241행): 안 0개라 나들목 n9 급속A 가 있어도 ALL_UNAVAILABLE.
+    """
     mm = m()
     near = mm.NearbyStation(station=station("n9", "한빛이브이", "FA FO", 300.0, 11, 0), detour_km=5.0)
     route = mm.Route("경부고속도로", "부산방향", [
         mm.RestArea("rx", "시험 휴게소", 200.0, [], [near])])
-    n9 = build(route=route).entries[0].nearby[0]
+    entry = build(route=route).entries[0]
+    n9 = entry.nearby[0]
     assert codes(n9.alerts) == [
         mm.AlertCode.STALE_INFO, mm.AlertCode.UNUSABLE_CHARGERS, mm.AlertCode.UNREACHABLE]
+    assert codes(entry.alerts) == [mm.AlertCode.UNREACHABLE, mm.AlertCode.ALL_UNAVAILABLE]
 
 
 def test_8_nearby_reachable_boundary_detour_exact():
@@ -452,6 +490,11 @@ def test_9_position_27_all_reachable():
     # 나들목 인근 남은 거리도 위치 기준
     assert e["ra3"].nearby[0].remaining_km == pytest.approx(54 + 10.8)
     assert e["ra5"].stations[0].is_candidate is True
+    # 안 충전소도 위치 기준 (plan 290행: remaining = 휴게소 남은 거리 + detour 0)
+    assert e["ra5"].stations[0].remaining_km == pytest.approx(108.0)
+    assert e["ra5"].stations[0].arrival_soc_pct == pytest.approx(20.0)
+    assert e["ra1"].stations[0].remaining_km == pytest.approx(0.0)
+    assert e["ra1"].stations[0].arrival_soc_pct == pytest.approx(60.0)
 
 
 def test_9_position_30_drops_passed_rest_area():
@@ -482,32 +525,36 @@ def test_10_empty_route():
 
 
 def test_10_all_roles_none():
-    r = build(route=make_route(ra4_nearby_detour=30.0))
+    """s11, s21, s22, s31, n31, s41, n41, s51, n51 = 9개 (ra4·ra5 나들목 인근 포함)."""
+    r = build(route=make_route(ra4_nearby_detour=30.0, ra5_nearby=True))
     entries = list(all_station_entries(r))
     assert len(entries) == 9
     assert all(s.role is None for s in entries)
 
 
-def test_10_input_route_not_changed():
-    route = make_route()
-    before = [
-        (st.id, st.price_per_kwh, st.status_updated_at,
+def _route_snapshot(route):
+    """호출 전 값을 복사해 둔다 (같은 참조 비교는 항상 통과하므로)."""
+    stations = [
+        (st.id, st.operator, st.price_per_kwh, st.status_updated_at,
          [(c.type, c.status, c.power_kw) for c in st.chargers])
         for ra in route.rest_areas
         for st in [*ra.stations, *(n.station for n in ra.nearby)]
     ]
-    before_ra = [(ra.id, ra.distance_km, len(ra.stations), len(ra.nearby)) for ra in route.rest_areas]
+    ras = [(ra.id, ra.distance_km, len(ra.stations), [n.detour_km for n in ra.nearby])
+           for ra in route.rest_areas]
+    return stations, ras
+
+
+@pytest.mark.parametrize("route_kw", [
+    {},
+    {"ra2_down": True, "ra4_nearby_detour": 30.0, "ra5_nearby": True},
+])
+def test_10_input_route_not_changed(route_kw):
+    route = make_route(**route_kw)
+    before = _route_snapshot(route)
     build(route=route, position_km=30.0)
     build(route=route)
-    after = [
-        (st.id, st.price_per_kwh, st.status_updated_at,
-         [(c.type, c.status, c.power_kw) for c in st.chargers])
-        for ra in route.rest_areas
-        for st in [*ra.stations, *(n.station for n in ra.nearby)]
-    ]
-    after_ra = [(ra.id, ra.distance_km, len(ra.stations), len(ra.nearby)) for ra in route.rest_areas]
-    assert after == before
-    assert after_ra == before_ra
+    assert _route_snapshot(route) == before
 
 
 def test_10_vehicle_not_changed():
@@ -527,6 +574,8 @@ def test_extra_scenario_d_all_unreachable_still_listed():
         assert e.reachable is False
         assert codes(e.alerts)[0] == m().AlertCode.UNREACHABLE
     assert not any(s.is_candidate for s in all_station_entries(r))
+    # 도착 잔량은 음수여도 깎지 않는다 (plan 52행 3.1절): 20 − 135/2.7 = −30
+    assert by_id(r)["ra5"].arrival_soc_pct == pytest.approx(-30.0)
 
 
 def test_extra_scenario_e_boundary_exact_15_reachable():
@@ -540,7 +589,10 @@ def test_extra_scenario_e_boundary_exact_15_reachable():
 
 
 def test_extra_stale_minutes_passed_through():
-    """stale_minutes 인자가 summarize_station 으로 전달된다 (plan 295행, D3). 60 분이면 11:00 은 신선."""
+    """stale_minutes 인자가 summarize_station 으로 전달된다 (plan 295행, D3). 60 분이면 11:00 은 신선.
+
+    경계는 '초과'만 오래됨: plan 239·248행, 잠긴 status.py 49행 `(now − updated) > timedelta(minutes=stale_minutes)`.
+    """
     s31 = by_id(build(stale_minutes=60))["ra3"].stations[0]
     assert s31.status.is_stale is False
     assert s31.alerts == []
