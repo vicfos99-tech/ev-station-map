@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b6b45">
+<title>충전 길잡이</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="sign">
+    <div class="sign-row">
+      <label class="visually-hidden" for="route-select">노선</label>
+      <select id="route-select" class="route-select"></select>
+      <span class="demo-badge" title="실제 충전소가 아닙니다">예시 데이터</span>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge">
+        <label for="soc">배터리</label>
+        <output id="soc-out" class="big num"></output>
+        <input id="soc" type="range" min="0" max="100" step="1">
+      </div>
+      <div class="gauge">
+        <label for="pos">지금 위치</label>
+        <output id="pos-out" class="big num"></output>
+        <input id="pos" type="range" min="0" max="100" step="1">
+      </div>
+    </div>
+    <div class="range-line" id="range-line"></div>
+  </header>
+
+  <main>
+    <section class="view" id="view-route" aria-labelledby="tab-route">
+      <div id="reco"></div>
+      <h2 class="section-title">앞으로 나올 휴게소</h2>
+      <ol class="strip" id="strip"></ol>
+      <p class="small muted" id="demo-note">이 화면의 휴게소·충전소·가격·상태는 모두 지어낸 예시입니다. 실제 충전소 정보는 공공 충전소 API 를 연결한 뒤에 나옵니다.</p>
+    </section>
+
+    <section class="view" id="view-my" aria-labelledby="tab-my" hidden>
+      <form class="card stack" id="vehicle-form" autocomplete="off">
+        <h2>내 차</h2>
+        <div class="grid2">
+          <div class="field"><label for="v-battery">배터리 용량 (kWh)</label><input id="v-battery" type="number" step="0.1" min="1" inputmode="decimal"></div>
+          <div class="field"><label for="v-eff">전비 (km/kWh)</label><input id="v-eff" type="number" step="0.1" min="0.1" inputmode="decimal"></div>
+          <div class="field"><label for="v-margin">안전 여유 (%)</label><input id="v-margin" type="number" step="1" min="0" max="99" inputmode="numeric"><div class="hint">주행 가능 거리를 이만큼 줄여 잡음</div></div>
+          <div class="field"><label for="v-min">최소 도착 잔량 (%)</label><input id="v-min" type="number" step="1" min="0" max="100" inputmode="numeric"><div class="hint">이보다 적게 남으면 못 가는 곳</div></div>
+          <div class="field span2"><label for="v-stale">정보가 오래됐다고 보는 기준 (분)</label><input id="v-stale" type="number" step="1" min="0" inputmode="numeric"></div>
+        </div>
+        <div class="form-error" id="vehicle-error" hidden></div>
+      </form>
+
+      <form class="card stack" id="discount-form" autocomplete="off">
+        <h2>구독·할인</h2>
+        <div class="grid2">
+          <div class="field"><label for="d-sub-op">구독 업체</label><select id="d-sub-op"></select></div>
+          <div class="field"><label for="d-sub-rate">구독 할인 (%)</label><input id="d-sub-rate" type="number" step="1" min="1" max="99" inputmode="numeric"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="d-sub-private"> 민자 휴게소는 구독 할인 제외</label>
+        <div class="hint">구독 할인은 급속 충전에만 적용됩니다. 구독과 카드는 겹치지 않고 더 큰 쪽 하나만 적용됩니다.</div>
+        <div class="grid2">
+          <div class="field"><label for="d-card-name">할인 카드 이름</label><input id="d-card-name" placeholder="없으면 비움"></div>
+          <div class="field"><label for="d-card-rate">카드 할인 (%)</label><input id="d-card-rate" type="number" step="1" min="1" max="99" inputmode="numeric"></div>
+        </div>
+        <div class="form-error" id="discount-error" hidden></div>
+      </form>
+
+      <div class="card stack">
+        <h2>예시 데이터</h2>
+        <p class="small muted">실제로는 충전기 상태가 계속 바뀝니다. 아래 단추로 상태를 무작위로 바꿔 추천이 어떻게 달라지는지 볼 수 있습니다.</p>
+        <div class="row">
+          <button class="btn" type="button" id="btn-shuffle">충전기 상태 바꿔 보기</button>
+          <button class="btn btn-ghost" type="button" id="btn-reset">처음 상태로</button>
+        </div>
+        <p class="small muted" id="about"></p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist">
+    <button role="tab" id="tab-route" data-view="route" aria-selected="true" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 6 21M15 3l3 18M12 4v3M12 11v3M12 18v2"/></svg>
+      경로
+    </button>
+    <button role="tab" id="tab-my" data-view="my" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M19 11h2v3h-2M10 10l-2 3h4l-2 3"/></svg>
+      내 차·할인
+    </button>
+  </nav>
+</div>
+
+<script src="engine.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

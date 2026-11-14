@@ -1,0 +1,36 @@
+/*
+ * index.html + style.css + engine.js + data.js + app.js 를 한 파일로 합친다.
+ *   node web/build.js            (저장소 루트에서)
+ * 출력:
+ *   web/dist/index.html     폰에서 바로 여는 완전한 HTML 한 장
+ *   web/dist/artifact.html  Claude Artifact 용 조각(<html>/<head>/<body> 없음)
+ */
+"use strict";
+const fs = require("fs");
+const path = require("path");
+
+const dir = __dirname;
+const read = (f) => fs.readFileSync(path.join(dir, f), "utf8");
+let html = read("index.html");
+
+function inline(needle, replacement) {
+  if (!html.includes(needle)) throw new Error(`index.html 에 ${needle} 가 없다`);
+  html = html.replace(needle, () => replacement);
+}
+inline('<link rel="stylesheet" href="style.css">', `<style>\n${read("style.css")}\n</style>`);
+for (const f of ["engine.js", "data.js", "app.js"]) {
+  inline(`<script src="${f}"></script>`, `<script>\n${read(f)}\n</script>`);
+}
+
+const outDir = path.join(dir, "dist");
+fs.mkdirSync(outDir, { recursive: true });
+fs.writeFileSync(path.join(outDir, "index.html"), html, "utf8");
+
+// Artifact 조각: <head> 안 내용(title/meta/link/style)과 <body> 안 내용만
+const head = html.match(/<head>([\s\S]*?)<\/head>/)[1]
+  .replace(/<meta charset[^>]*>\s*/i, "")
+  .replace(/<meta name="viewport"[^>]*>\s*/i, "");
+const body = html.match(/<body>([\s\S]*?)<\/body>/)[1];
+fs.writeFileSync(path.join(outDir, "artifact.html"), head.trim() + "\n" + body.trim() + "\n", "utf8");
+
+console.log(`dist/index.html ${(html.length / 1024).toFixed(1)} KB, dist/artifact.html 생성`);

@@ -15,3 +15,11 @@ jobs:
         run: python tools/check_tests_lock.py .
       - name: 테스트 실행
         run: python -m pytest -q
+      # 자바스크립트 판 엔진이 파이썬 엔진과 같은 답을 내는지
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: 파이썬 기대값 생성
+        run: python tools/dump_fixtures.py
+      - name: JS 엔진 대조
+        run: node web/test/compare.js

@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b6b45">
+<title>충전 길잡이</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 충전 길잡이 — 고속도로 띠 지도(strip map): 위에 초록 표지판(노선·배터리·위치), 아래로 세로 길 하나에 휴게소가 km 순서로 걸린다.
+ * 휴게소 이름은 표지판 글씨(Do Hyeon), 나머지는 산세리프, 숫자(km·%·원)는 모노.
+ */
+:root {
+  --bg: #eef1ee;            /* 초록 기 도는 밝은 회색(콘크리트) */
+  --surface: #ffffff;
+  --surface-2: #e3e8e4;
+  --ink: #15201b;
+  --ink-2: #47554e;
+  --ink-3: #7c8a83;
+  --line: #cfd7d2;
+  --sign: #0b6b45;          /* 고속도로 표지판 초록 */
+  --sign-ink: #ffffff;
+  --sign-soft: #d6ecdf;
+  --road: #39453f;          /* 아스팔트 */
+  --good: #18794e;
+  --good-soft: #d9f0e3;
+  --warn: #8f6200;
+  --warn-soft: #f7e8c4;
+  --bad: #b3261e;
+  --bad-soft: #f9dcd9;
+  --info: #1f5fb8;
+  --info-soft: #dbe7fa;
+
+  --font-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-sign: "Do Hyeon", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Consolas", monospace;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0e1411; --surface: #17201b; --surface-2: #212c26; --ink: #ecf2ee; --ink-2: #b3c0b9; --ink-3: #7d8b84; --line: #2c3932;
+    --sign: #0f7a50; --sign-ink: #ffffff; --sign-soft: #173a2a; --road: #8b9a92;
+    --good: #63cf97; --good-soft: #153525; --warn: #e6b955; --warn-soft: #3b2f12; --bad: #f28b82; --bad-soft: #47211e; --info: #8ab4f8; --info-soft: #1c2f4d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1411; --surface: #17201b; --surface-2: #212c26; --ink: #ecf2ee; --ink-2: #b3c0b9; --ink-3: #7d8b84; --line: #2c3932;
+  --sign: #0f7a50; --sign-ink: #ffffff; --sign-soft: #173a2a; --road: #8b9a92;
+  --good: #63cf97; --good-soft: #153525; --warn: #e6b955; --warn-soft: #3b2f12; --bad: #f28b82; --bad-soft: #47211e; --info: #8ab4f8; --info-soft: #1c2f4d;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--sign); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+h2 { text-wrap: balance; }
+[hidden] { display: none !important; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-3); }
+.small { font-size: 13px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.app { min-height: 100%; display: flex; flex-direction: column; }
+
+/* ---------- 표지판 머리 ---------- */
+.sign {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--sign); color: var(--sign-ink);
+  padding-block: 10px 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sign-row { display: flex; align-items: center; gap: 8px; }
+.route-select {
+  flex: 1 1 auto; min-width: 0;
+  font-family: var(--font-sign); font-size: 20px; letter-spacing: 0.01em;
+  background: transparent; color: var(--sign-ink);
+  border: 2px solid rgba(255, 255, 255, 0.85); border-radius: 8px; padding: 6px 10px; min-height: 44px;
+}
+.route-select option { color: #15201b; background: #ffffff; font-family: var(--font-ui); }
+.demo-badge { flex: 0 0 auto; font-size: 12px; font-weight: 600; background: #ffffff; color: #0b6b45; border-radius: 999px; padding: 3px 10px; }
+.gauge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gauge { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 8px; }
+.gauge label { font-size: 12px; opacity: 0.85; }
+.gauge .big { font-size: 20px; font-weight: 500; text-align: right; }
+.gauge input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: #ffffff; min-height: 28px; margin: 0; }
+.range-line { font-size: 13px; opacity: 0.92; }
+
+main {
+  flex: 1;
+  padding-block: 16px calc(84px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 560px; width: 100%; margin: 0 auto;
+}
+.view { display: flex; flex-direction: column; gap: 16px; }
+.section-title { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--ink-3); }
+
+/* ---------- 추천 ---------- */
+.reco { display: flex; flex-direction: column; gap: 8px; }
+.pick {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline;
+}
+.pick[data-role="primary"] { border: 2px solid var(--sign); }
+.pick .role { grid-column: 1 / -1; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--ink-3); }
+.pick[data-role="primary"] .role { color: var(--sign); }
+:root[data-theme="dark"] .pick[data-role="primary"] .role { color: var(--good); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pick[data-role="primary"] .role { color: var(--good); } }
+.pick .name { font-family: var(--font-sign); font-size: 24px; line-height: 1.2; overflow-wrap: anywhere; }
+.pick .dist { font-size: 18px; text-align: right; white-space: nowrap; }
+.pick .sub { color: var(--ink-2); font-size: 14px; overflow-wrap: anywhere; }
+.pick .price { text-align: right; font-size: 14px; white-space: nowrap; }
+.pick .facts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.none { background: var(--bad-soft); color: var(--bad); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.none b { font-family: var(--font-sign); font-size: 22px; font-weight: 400; }
+.none span { color: var(--ink-2); font-size: 14px; }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; line-height: 1.6; white-space: nowrap; background: var(--surface-2); color: var(--ink-2); }
+.chip[data-tone="good"] { background: var(--good-soft); color: var(--good); }
+.chip[data-tone="warn"] { background: var(--warn-soft); color: var(--warn); }
+.chip[data-tone="bad"] { background: var(--bad-soft); color: var(--bad); }
+.chip[data-tone="info"] { background: var(--info-soft); color: var(--info); }
+.chip[data-tone="sign"] { background: var(--sign); color: var(--sign-ink); }
+.dots { letter-spacing: 2px; }
+
+/* ---------- 띠 지도 ---------- */
+.strip { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.stop { display: grid; grid-template-columns: 58px 20px 1fr; gap: 0 8px; }
+.stop .km { text-align: right; padding-top: 14px; font-size: 14px; color: var(--ink-2); line-height: 1.3; }
+.stop .km small { display: block; font-size: 11px; color: var(--ink-3); }
+.stop .rail { position: relative; }
+.stop .rail::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 4px; background: var(--road); border-radius: 2px; }
+.stop:first-child .rail::before { top: 18px; }
+.stop:last-child .rail::before { bottom: calc(100% - 26px); }
+.stop .rail::after { content: ""; position: absolute; left: 3px; top: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); border: 3px solid var(--road); }
+.stop[data-reach="false"] .rail::after { border-color: var(--bad); }
+.stop[data-role="primary"] .rail::after { background: var(--sign); border-color: var(--sign); }
+.stop[data-role="backup"] .rail::after { background: var(--info); border-color: var(--info); }
+.stop .body { padding: 8px 0 14px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.stop[data-reach="false"] .body { opacity: 0.62; }
+.stop .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.stop .head .name { font-family: var(--font-sign); font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+.stop .head .soc { font-size: 14px; white-space: nowrap; color: var(--ink-2); }
+.stop .head .soc[data-low="true"] { color: var(--bad); font-weight: 600; }
+.stop .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.station { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.station[data-role="primary"] { border: 2px solid var(--sign); }
+.station[data-role="backup"] { border: 2px solid var(--info); }
+.station .op { font-weight: 600; overflow-wrap: anywhere; }
+.station .price { text-align: right; white-space: nowrap; }
+.station .price s { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
+.station .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }
+.nearby-label { font-size: 12px; font-weight: 600; color: var(--ink-3); letter-spacing: 0.04em; }
+
+/* ---------- 내 차·할인 ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.card h2 { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid2 .span2 { grid-column: 1 / -1; }
+@media (max-width: 360px) { .grid2 { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.field .hint, .hint { font-size: 12px; color: var(--ink-3); }
+.field input, .field select { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 44px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 15px; min-height: 36px; }
+.check input { width: 20px; height: 20px; margin: 0; }
+.form-error { color: var(--bad); font-size: 14px; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 10px 16px; min-height: 44px; }
+.btn:active { transform: translateY(1px); }
+.btn-ghost { background: transparent; }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  padding-top: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+.tabbar button { background: none; border: 0; border-radius: 10px; padding: 8px 4px; color: var(--ink-3); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tabbar button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar button[aria-selected="true"] { color: var(--good); font-weight: 600; }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="sign">
+    <div class="sign-row">
+      <label class="visually-hidden" for="route-select">노선</label>
+      <select id="route-select" class="route-select"></select>
+      <span class="demo-badge" title="실제 충전소가 아닙니다">예시 데이터</span>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge">
+        <label for="soc">배터리</label>
+        <output id="soc-out" class="big num"></output>
+        <input id="soc" type="range" min="0" max="100" step="1">
+      </div>
+      <div class="gauge">
+        <label for="pos">지금 위치</label>
+        <output id="pos-out" class="big num"></output>
+        <input id="pos" type="range" min="0" max="100" step="1">
+      </div>
+    </div>
+    <div class="range-line" id="range-line"></div>
+  </header>
+
+  <main>
+    <section class="view" id="view-route" aria-labelledby="tab-route">
+      <div id="reco"></div>
+      <h2 class="section-title">앞으로 나올 휴게소</h2>
+      <ol class="strip" id="strip"></ol>
+      <p class="small muted" id="demo-note">이 화면의 휴게소·충전소·가격·상태는 모두 지어낸 예시입니다. 실제 충전소 정보는 공공 충전소 API 를 연결한 뒤에 나옵니다.</p>
+    </section>
+
+    <section class="view" id="view-my" aria-labelledby="tab-my" hidden>
+      <form class="card stack" id="vehicle-form" autocomplete="off">
+        <h2>내 차</h2>
+        <div class="grid2">
+          <div class="field"><label for="v-battery">배터리 용량 (kWh)</label><input id="v-battery" type="number" step="0.1" min="1" inputmode="decimal"></div>
+          <div class="field"><label for="v-eff">전비 (km/kWh)</label><input id="v-eff" type="number" step="0.1" min="0.1" inputmode="decimal"></div>
+          <div class="field"><label for="v-margin">안전 여유 (%)</label><input id="v-margin" type="number" step="1" min="0" max="99" inputmode="numeric"><div class="hint">주행 가능 거리를 이만큼 줄여 잡음</div></div>
+          <div class="field"><label for="v-min">최소 도착 잔량 (%)</label><input id="v-min" type="number" step="1" min="0" max="100" inputmode="numeric"><div class="hint">이보다 적게 남으면 못 가는 곳</div></div>
+          <div class="field span2"><label for="v-stale">정보가 오래됐다고 보는 기준 (분)</label><input id="v-stale" type="number" step="1" min="0" inputmode="numeric"></div>
+        </div>
+        <div class="form-error" id="vehicle-error" hidden></div>
+      </form>
+
+      <form class="card stack" id="discount-form" autocomplete="off">
+        <h2>구독·할인</h2>
+        <div class="grid2">
+          <div class="field"><label for="d-sub-op">구독 업체</label><select id="d-sub-op"></select></div>
+          <div class="field"><label for="d-sub-rate">구독 할인 (%)</label><input id="d-sub-rate" type="number" step="1" min="1" max="99" inputmode="numeric"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="d-sub-private"> 민자 휴게소는 구독 할인 제외</label>
+        <div class="hint">구독 할인은 급속 충전에만 적용됩니다. 구독과 카드는 겹치지 않고 더 큰 쪽 하나만 적용됩니다.</div>
+        <div class="grid2">
+          <div class="field"><label for="d-card-name">할인 카드 이름</label><input id="d-card-name" placeholder="없으면 비움"></div>
+          <div class="field"><label for="d-card-rate">카드 할인 (%)</label><input id="d-card-rate" type="number" step="1" min="1" max="99" inputmode="numeric"></div>
+        </div>
+        <div class="form-error" id="discount-error" hidden></div>
+      </form>
+
+      <div class="card stack">
+        <h2>예시 데이터</h2>
+        <p class="small muted">실제로는 충전기 상태가 계속 바뀝니다. 아래 단추로 상태를 무작위로 바꿔 추천이 어떻게 달라지는지 볼 수 있습니다.</p>
+        <div class="row">
+          <button class="btn" type="button" id="btn-shuffle">충전기 상태 바꿔 보기</button>
+          <button class="btn btn-ghost" type="button" id="btn-reset">처음 상태로</button>
+        </div>
+        <p class="small muted" id="about"></p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist">
+    <button role="tab" id="tab-route" data-view="route" aria-selected="true" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 6 21M15 3l3 18M12 4v3M12 11v3M12 18v2"/></svg>
+      경로
+    </button>
+    <button role="tab" id="tab-my" data-view="my" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M19 11h2v3h-2M10 10l-2 3h4l-2 3"/></svg>
+      내 차·할인
+    </button>
+  </nav>
+</div>
+
+<script>
+/*
+ * 충전소 고르기 엔진 — 자바스크립트 판.
+ * 파이썬 원본 src/ev_charge_planner/*.py 를 그대로 옮겼다(계산 순서까지 같게: 부동소수 결과가 같아야 한다).
+ *
+ * 다른 점
+ *  - 시각: datetime → 밀리초 정수. stale_minutes 는 분 그대로.
+ *  - 자료: dataclass → 보통 객체. 이름은 파이썬과 같은 snake_case (대조하기 쉽게).
+ *  - 집합(frozenset) → 배열로 받아 안에서 Set 으로 쓴다. None → null.
+ *  - ValueError → 같은 이름의 Error.
+ *
+ * 브라우저에서는 전역 EvPlanner, Node 에서는 require("./engine.js").
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) {
+    module.exports = factory();
+  } else {
+    root.EvPlanner = factory();
+  }
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  class ValueError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = "ValueError";
+    }
+  }
+  function need(cond, message) {
+    if (!cond) throw new ValueError(message);
+  }
+  function needText(value, label) {
+    need(typeof value === "string" && value !== "", `${label} 은(는) 비어 있지 않은 문자열이어야 한다`);
+  }
+  const isNum = (x) => typeof x === "number" && !Number.isNaN(x);
+
+  // ---------- p1 models ----------
+  const ChargerType = Object.freeze({ FAST: "fast", SLOW: "slow" });
+  const ChargerStatus = Object.freeze({
+    AVAILABLE: "available",
+    CHARGING: "charging",
+    OUT_OF_SERVICE: "out_of_service",
+    MAINTENANCE: "maintenance",
+    COMM_ERROR: "comm_error",
+  });
+  const STATUS_ORDER = Object.freeze(Object.values(ChargerStatus));
+  const UNUSABLE_STATUSES = new Set([ChargerStatus.OUT_OF_SERVICE, ChargerStatus.MAINTENANCE, ChargerStatus.COMM_ERROR]);
+  const AlertCode = Object.freeze({
+    UNREACHABLE: "unreachable",
+    ALL_UNAVAILABLE: "all_unavailable",
+    NO_USABLE_FAST: "no_usable_fast",
+    UNUSABLE_CHARGERS: "unusable_chargers",
+    STALE_INFO: "stale_info",
+    NO_BACKUP: "no_backup",
+    NO_SAFE_STATION: "no_safe_station",
+  });
+  const alert = (code, message) => ({ code, message });
+
+  function makeCharger(c) {
+    need(Object.values(ChargerType).includes(c.type), `충전기 종류를 알 수 없다: ${c.type}`);
+    need(STATUS_ORDER.includes(c.status), `충전기 상태를 알 수 없다: ${c.status}`);
+    need(isNum(c.power_kw) && c.power_kw > 0, `power_kw 는 0 보다 커야 한다: ${c.power_kw}`);
+    return { type: c.type, power_kw: c.power_kw, status: c.status };
+  }
+  function makeStation(s) {
+    needText(s.id, "충전소 id");
+    needText(s.operator, "충전소 업체");
+    const chargers = (s.chargers || []).map(makeCharger);
+    need(isNum(s.price_per_kwh) && s.price_per_kwh >= 0, `price_per_kwh 는 0 이상이어야 한다: ${s.price_per_kwh}`);
+    need(isNum(s.status_updated_at), `status_updated_at 은 시각(밀리초)이어야 한다: ${s.status_updated_at}`);
+    return { id: s.id, operator: s.operator, chargers, price_per_kwh: s.price_per_kwh, status_updated_at: s.status_updated_at };
+  }
+  function makeNearby(n) {
+    const station = makeStation(n.station);
+    need(isNum(n.detour_km) && n.detour_km >= 0, `detour_km 는 0 이상이어야 한다: ${n.detour_km}`);
+    return { station, detour_km: n.detour_km };
+  }
+  function makeRestArea(r) {
+    const stations = (r.stations || []).map(makeStation);
+    const nearby = (r.nearby || []).map(makeNearby);
+    needText(r.id, "휴게소 id");
+    needText(r.name, "휴게소 이름");
+    need(isNum(r.distance_km) && r.distance_km >= 0, `distance_km 는 0 이상이어야 한다: ${r.distance_km}`);
+    return { id: r.id, name: r.name, distance_km: r.distance_km, stations, nearby };
+  }
+  function makeRoute(r) {
+    const rest_areas = (r.rest_areas || []).map(makeRestArea);
+    needText(r.highway, "고속도로 이름");
+    needText(r.direction, "방향");
+    const restIds = new Set();
+    const stationIds = new Set();
+    let prev = null;
+    for (const ra of rest_areas) {
+      need(prev === null || ra.distance_km >= prev, `휴게소 거리가 줄어든다: ${ra.id}`);
+      prev = ra.distance_km;
+      need(!restIds.has(ra.id), `휴게소 id 중복: ${ra.id}`);
+      restIds.add(ra.id);
+      for (const st of [...ra.stations, ...ra.nearby.map((n) => n.station)]) {
+        need(!stationIds.has(st.id), `충전소 id 중복: ${st.id}`);
+        stationIds.add(st.id);
+      }
+    }
+    return { highway: r.highway, direction: r.direction, rest_areas };
+  }
+  function makeVehicle(v) {
+    const out = {
+      soc_pct: v.soc_pct,
+      battery_kwh: v.battery_kwh,
+      efficiency_km_per_kwh: v.efficiency_km_per_kwh,
+      safety_margin_ratio: v.safety_margin_ratio === undefined ? 0.10 : v.safety_margin_ratio,
+      min_arrival_soc_pct: v.min_arrival_soc_pct === undefined ? 15.0 : v.min_arrival_soc_pct,
+    };
+    need(isNum(out.soc_pct) && out.soc_pct >= 0 && out.soc_pct <= 100, `soc_pct 는 0~100: ${out.soc_pct}`);
+    need(isNum(out.battery_kwh) && out.battery_kwh > 0, `battery_kwh 는 0 보다 커야 한다: ${out.battery_kwh}`);
+    need(isNum(out.efficiency_km_per_kwh) && out.efficiency_km_per_kwh > 0, `efficiency_km_per_kwh 는 0 보다 커야 한다: ${out.efficiency_km_per_kwh}`);
+    need(isNum(out.safety_margin_ratio) && out.safety_margin_ratio >= 0 && out.safety_margin_ratio < 1, `safety_margin_ratio 는 0 이상 1 미만: ${out.safety_margin_ratio}`);
+    need(isNum(out.min_arrival_soc_pct) && out.min_arrival_soc_pct >= 0 && out.min_arrival_soc_pct <= 100, `min_arrival_soc_pct 는 0~100: ${out.min_arrival_soc_pct}`);
+    return out;
+  }
+  function makeCard(c) {
+    needText(c.name, "카드 이름");
+    need(isNum(c.rate) && c.rate > 0 && c.rate < 1, `rate 는 0 초과 1 미만: ${c.rate}`);
+    const operators = c.operators === undefined || c.operators === null ? null : Array.from(c.operators);
+    return { name: c.name, rate: c.rate, operators };
+  }
+  function makeSubscription(s) {
+    needText(s.operator, "구독 업체");
+    need(isNum(s.rate) && s.rate > 0 && s.rate < 1, `rate 는 0 초과 1 미만: ${s.rate}`);
+    return { operator: s.operator, rate: s.rate, excluded_rest_area_ids: Array.from(s.excluded_rest_area_ids || []) };
+  }
+  function makeUser(u) {
+    const o = u || {};
+    return {
+      subscription: o.subscription === undefined || o.subscription === null ? null : makeSubscription(o.subscription),
+      cards: (o.cards || []).map(makeCard),
+    };
+  }
+
+  // ---------- p2 driving_range ----------
+  const TOLERANCE = 1e-9;
+  function conservative_range_km(v) {
+    return v.soc_pct / 100 * v.battery_kwh * v.efficiency_km_per_kwh * (1 - v.safety_margin_ratio);
+  }
+  function km_per_pct(v) {
+    return v.battery_kwh * v.efficiency_km_per_kwh * (1 - v.safety_margin_ratio) / 100;
+  }
+  function arrival_soc_pct(v, distance_km) {
+    if (distance_km < 0) throw new ValueError(`distance_km must be >= 0, got ${distance_km}`);
+    return v.soc_pct - distance_km / km_per_pct(v);
+  }
+  function can_reach(v, distance_km) {
+    return arrival_soc_pct(v, distance_km) >= v.min_arrival_soc_pct - TOLERANCE;
+  }
+
+  // ---------- p3 status ----------
+  // 파이썬 f"{x:g}" 와 같은 모양(정수면 소수점 없이)
+  const fmtG = (x) => String(Number(Number(x).toPrecision(6)));
+  function summarize_station(station, now, stale_minutes = 30) {
+    if (stale_minutes < 0) throw new ValueError(`stale_minutes 는 0 이상이어야 한다: ${stale_minutes}`);
+    const counts = {};
+    for (const s of STATUS_ORDER) counts[s] = 0;
+    let usable_fast = 0, waiting_fast = 0, usable_slow = 0, unusable = 0;
+    for (const c of station.chargers) {
+      counts[c.status] += 1;
+      if (UNUSABLE_STATUSES.has(c.status)) {
+        unusable += 1;
+      } else if (c.type === ChargerType.FAST) {
+        if (c.status === ChargerStatus.AVAILABLE) usable_fast += 1;
+        else if (c.status === ChargerStatus.CHARGING) waiting_fast += 1;
+      } else if (c.status === ChargerStatus.AVAILABLE) {
+        usable_slow += 1;
+      }
+    }
+    const is_stale = now - station.status_updated_at > stale_minutes * 60000;
+    const alerts = [];
+    if (is_stale) alerts.push(alert(AlertCode.STALE_INFO, `충전 상태 갱신이 ${fmtG(stale_minutes)}분을 넘어 오래되었다`));
+    if (unusable >= 1) alerts.push(alert(AlertCode.UNUSABLE_CHARGERS, `사용할 수 없는 충전기가 ${unusable}대 있다`));
+    return { counts, usable_fast, waiting_fast, usable_slow, unusable, is_stale, alerts };
+  }
+  function rest_area_alerts(statuses) {
+    let usable = 0, fast = 0;
+    for (const s of statuses) { usable += s.usable_fast + s.usable_slow; fast += s.usable_fast; }
+    if (usable === 0) return [alert(AlertCode.ALL_UNAVAILABLE, "사용 가능한 충전기가 하나도 없다")];
+    if (fast === 0) return [alert(AlertCode.NO_USABLE_FAST, "사용 가능한 급속 충전기가 없다")];
+    return [];
+  }
+
+  // ---------- p4 pricing ----------
+  function quote(station, rest_area_id, user, charger_type = ChargerType.FAST) {
+    if (!Object.values(ChargerType).includes(charger_type)) throw new ValueError(`charger_type 은 ChargerType 이어야 한다: ${charger_type}`);
+    const base = station.price_per_kwh;
+    const sub = user.subscription;
+    const sub_ok = sub !== null
+      && station.operator === sub.operator
+      && charger_type === ChargerType.FAST
+      && !sub.excluded_rest_area_ids.includes(rest_area_id);
+    const cards = user.cards.filter((c) => c.operators === null || c.operators.includes(station.operator));
+    // 후보: 구독 먼저, 그다음 카드 순서. 할인율이 엄격히 더 클 때만 교체하므로 동률은 앞선 것이 남는다.
+    let best_name = null;
+    let best_rate = 0.0;
+    if (sub_ok) { best_name = "subscription"; best_rate = sub.rate; }
+    for (const c of cards) {
+      if (best_name === null || c.rate > best_rate) { best_name = c.name; best_rate = c.rate; }
+    }
+    const final = best_name === null ? base : base * (1 - best_rate);
+    return {
+      base_price: base,
+      final_price: final,
+      subscription_applicable: sub_ok,
+      applicable_cards: cards.map((c) => c.name),
+      applied: best_name,
+    };
+  }
+
+  // ---------- p5 route_list ----------
+  function station_entry(station, rest_area_id, detour_km, is_nearby, rest_remaining_km, vehicle, user, now, stale_minutes) {
+    const status = summarize_station(station, now, stale_minutes);
+    const remaining = rest_remaining_km + detour_km;
+    const reachable = can_reach(vehicle, remaining);
+    const alerts = status.alerts.slice();
+    if (is_nearby && !reachable) alerts.push(alert(AlertCode.UNREACHABLE, "남은 잔량으로 갈 수 없다"));
+    return {
+      station_id: station.id,
+      operator: station.operator,
+      is_nearby,
+      detour_km,
+      remaining_km: remaining,
+      arrival_soc_pct: arrival_soc_pct(vehicle, remaining),
+      reachable,
+      status,
+      quote: quote(station, rest_area_id, user, ChargerType.FAST),
+      is_candidate: reachable && status.usable_fast >= 1,
+      alerts,
+      role: null,
+    };
+  }
+
+  function build_route_list(route, vehicle, user, now, position_km = 0.0, stale_minutes = 30) {
+    if (position_km < 0) throw new ValueError(`position_km 는 0 이상이어야 한다: ${position_km}`);
+    const entries = [];
+    for (const ra of route.rest_areas) {
+      const remaining = ra.distance_km - position_km;
+      if (remaining < 0) continue;
+      const reachable = can_reach(vehicle, remaining);
+      const inner = ra.stations.map((s) => station_entry(s, ra.id, 0.0, false, remaining, vehicle, user, now, stale_minutes));
+      const near = ra.nearby.map((n) => station_entry(n.station, ra.id, n.detour_km, true, remaining, vehicle, user, now, stale_minutes));
+
+      const operators = [];
+      for (const e of inner) if (!operators.includes(e.operator)) operators.push(e.operator);
+      const applied_cards = new Set();
+      for (const e of inner) for (const name of e.quote.applicable_cards) applied_cards.add(name);
+      const counts = {};
+      for (const s of STATUS_ORDER) counts[s] = 0;
+      for (const e of inner) for (const s of STATUS_ORDER) counts[s] += e.status.counts[s];
+      const prices = inner.filter((e) => e.status.usable_fast >= 1).map((e) => e.quote.final_price);
+
+      const alerts = [];
+      if (!reachable) alerts.push(alert(AlertCode.UNREACHABLE, "남은 잔량으로 갈 수 없다"));
+      alerts.push(...rest_area_alerts(inner.map((e) => e.status)));
+
+      let usable_fast = 0, waiting_fast = 0;
+      for (const e of inner) { usable_fast += e.status.usable_fast; waiting_fast += e.status.waiting_fast; }
+      entries.push({
+        rest_area_id: ra.id,
+        name: ra.name,
+        distance_km: ra.distance_km,
+        remaining_km: remaining,
+        arrival_soc_pct: arrival_soc_pct(vehicle, remaining),
+        reachable,
+        stations: inner,
+        nearby: near,
+        operators,
+        subscription_applicable: inner.some((e) => e.quote.subscription_applicable),
+        applicable_cards: user.cards.filter((c) => applied_cards.has(c.name)).map((c) => c.name),
+        status_counts: counts,
+        usable_fast,
+        waiting_fast,
+        lowest_price: prices.length ? Math.min(...prices) : null,
+        alerts,
+      });
+    }
+    return { highway: route.highway, direction: route.direction, entries };
+  }
+
+  // ---------- p6 recommend ----------
+  function score_candidate(entry, vehicle) {
+    const usable = entry.status.usable_fast;
+    const c = usable <= 1 ? 0 : usable === 2 ? 1 : 2;
+    const margin = entry.arrival_soc_pct - vehicle.min_arrival_soc_pct;
+    const m = margin < 10 ? 0 : margin < 20 ? 1 : 2;
+    const f = entry.status.is_stale ? 0 : 1;
+    return c + m + f;
+  }
+  function pick(ra, entry, score) {
+    return {
+      rest_area_id: ra.rest_area_id,
+      rest_area_name: ra.name,
+      station_id: entry.station_id,
+      operator: entry.operator,
+      is_nearby: entry.is_nearby,
+      detour_km: entry.detour_km,
+      remaining_km: entry.remaining_km,
+      arrival_soc_pct: entry.arrival_soc_pct,
+      score,
+      final_price: entry.quote.final_price,
+    };
+  }
+  function recommend(route_list, vehicle) {
+    // 안 충전소 → 나들목 인근, 휴게소 순서대로 (입력 순서가 동률의 기준)
+    const all = [];
+    for (const ra of route_list.entries) for (const e of [...ra.stations, ...ra.nearby]) all.push([ra, e]);
+    for (const [, e] of all) e.role = null;
+
+    const ranked = all.filter(([, e]) => e.is_candidate).map(([ra, e]) => [ra, e, score_candidate(e, vehicle)]);
+    // Array.prototype.sort 는 안정 정렬 (파이썬 sort 와 같다)
+    ranked.sort((a, b) =>
+      (b[2] - a[2])
+      || (a[1].quote.final_price - b[1].quote.final_price)
+      || (a[1].remaining_km - b[1].remaining_km)
+      || ((a[1].is_nearby ? 1 : 0) - (b[1].is_nearby ? 1 : 0)));
+
+    if (ranked.length === 0) {
+      return { status: "no_safe_station", primary: null, backup: null, alerts: [alert(AlertCode.NO_SAFE_STATION, "안전하게 갈 수 있는 충전소가 없다")] };
+    }
+    const [p_ra, p_entry, p_score] = ranked[0];
+    p_entry.role = "primary";
+    const primary = pick(p_ra, p_entry, p_score);
+
+    const round_trip_pct = p_entry.detour_km / km_per_pct(vehicle);
+    let backup = null;
+    for (const [ra, e, score] of ranked.slice(1)) {
+      if (ra.rest_area_id === p_ra.rest_area_id) continue;
+      if (!(ra.remaining_km > p_ra.remaining_km)) continue;
+      if (e.arrival_soc_pct - round_trip_pct + TOLERANCE < vehicle.min_arrival_soc_pct) continue;
+      e.role = "backup";
+      backup = pick(ra, e, score);
+      break;
+    }
+    const alerts = backup ? [] : [alert(AlertCode.NO_BACKUP, "예비 충전소가 없다")];
+    return { status: "ok", primary, backup, alerts };
+  }
+
+  // ---------- p7 planner ----------
+  // 입력은 보통 객체(JSON). 여기서 검사하고 계산한다.
+  function plan(route, vehicle, user, now, position_km = 0.0, stale_minutes = 30) {
+    const r = makeRoute(route);
+    const v = makeVehicle(vehicle);
+    const u = makeUser(user);
+    const route_list = build_route_list(r, v, u, now, position_km, stale_minutes);
+    const recommendation = recommend(route_list, v);
+    return { route_list, recommendation };
+  }
+
+  return {
+    ValueError, ChargerType, ChargerStatus, AlertCode, STATUS_ORDER, TOLERANCE,
+    makeRoute, makeVehicle, makeUser,
+    conservative_range_km, km_per_pct, arrival_soc_pct, can_reach,
+    summarize_station, rest_area_alerts, quote,
+    build_route_list, score_candidate, recommend, plan,
+  };
+});
+
+</script>
+<script>
+/*
+ * 예시 노선 데이터 (실제 충전소가 아니다). 공공 충전소 API 를 붙이기 전까지 화면과 추천 흐름을 보는 용도.
+ * 휴게소·업체 이름은 지어낸 것이고, 고속도로 이름만 익숙한 것을 빌렸다.
+ *
+ * 충전기 표기: "FA FA FC SO" = 종류(F 급속 / S 완속) + 상태(A 사용 가능, C 충전 중, O 고장, M 점검, E 통신 오류)
+ * age: 상태가 갱신된 지 몇 분 됐는지(지금 기준).
+ *
+ * 브라우저에서는 전역 EvData, Node 에서는 require("./data.js").
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) {
+    module.exports = factory();
+  } else {
+    root.EvData = factory();
+  }
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  const STATUS = { A: "available", C: "charging", O: "out_of_service", M: "maintenance", E: "comm_error" };
+  const OPERATORS = ["별빛차지", "한빛이브이", "초록전력", "달무리충전"];
+
+  // [id, 업체, 가격(원/kWh), 충전기 표기, 급속 출력 kW, 갱신 뒤 지난 분]
+  const st = (id, operator, price, spec, kw, age) => ({ id, operator, price, spec, kw, age });
+  const near = (station, detour) => ({ station, detour });
+
+  const ROUTES = [
+    {
+      key: "gb-down", highway: "경부고속도로", direction: "부산 방향", length: 395,
+      rest_areas: [
+        { id: "gb1", name: "달빛 휴게소", km: 27, stations: [st("gb1a", "별빛차지", 347, "FA FA FC SA", 100, 4)] },
+        { id: "gb2", name: "소나무 휴게소", km: 62, stations: [st("gb2a", "한빛이브이", 320, "FA FA FA FC", 200, 2), st("gb2b", "별빛차지", 350, "FA FO", 50, 8)] },
+        { id: "gb3", name: "강바람 휴게소", km: 104, stations: [st("gb3a", "초록전력", 300, "FA FA", 100, 75)],
+          nearby: [near(st("gb3n", "별빛차지", 310, "FA FA FA FA", 350, 3), 10.8)] },
+        { id: "gb4", name: "별마루 휴게소(민자)", km: 151, stations: [st("gb4a", "별빛차지", 400, "FA FA FC", 200, 1)] },
+        { id: "gb5", name: "하늘길 휴게소", km: 196, stations: [st("gb5a", "한빛이브이", 330, "FC FC FC", 100, 5)] },
+        { id: "gb6", name: "돌담 휴게소", km: 243, stations: [st("gb6a", "달무리충전", 295, "FA FA FA", 200, 6), st("gb6b", "초록전력", 310, "FA SE", 50, 12)],
+          nearby: [near(st("gb6n", "한빛이브이", 285, "FA FA", 100, 20), 6.4)] },
+        { id: "gb7", name: "노을 휴게소", km: 297, stations: [st("gb7a", "별빛차지", 347, "FO FM", 100, 9)] },
+        { id: "gb8", name: "갈매기 휴게소", km: 348, stations: [st("gb8a", "한빛이브이", 320, "FA FA FA FA", 350, 2)] },
+      ],
+    },
+    {
+      key: "gb-up", highway: "경부고속도로", direction: "서울 방향", length: 395,
+      rest_areas: [
+        { id: "gu1", name: "갈매기 휴게소", km: 44, stations: [st("gu1a", "한빛이브이", 320, "FA FA FC", 350, 3)] },
+        { id: "gu2", name: "노을 휴게소", km: 96, stations: [st("gu2a", "별빛차지", 347, "FA FA", 100, 4)],
+          nearby: [near(st("gu2n", "초록전력", 290, "FA FA FA", 200, 6), 8.2)] },
+        { id: "gu3", name: "돌담 휴게소", km: 150, stations: [st("gu3a", "달무리충전", 295, "FA FC FC", 200, 2)] },
+        { id: "gu4", name: "하늘길 휴게소", km: 198, stations: [st("gu4a", "한빛이브이", 330, "FA FA FA", 100, 55)] },
+        { id: "gu5", name: "별마루 휴게소(민자)", km: 242, stations: [st("gu5a", "별빛차지", 400, "FA FA FA FA", 200, 1)] },
+        { id: "gu6", name: "강바람 휴게소", km: 290, stations: [st("gu6a", "초록전력", 300, "FE FE", 100, 140)] },
+        { id: "gu7", name: "소나무 휴게소", km: 332, stations: [st("gu7a", "한빛이브이", 320, "FA FA", 200, 3), st("gu7b", "별빛차지", 350, "FA FA FO", 50, 7)] },
+      ],
+    },
+    {
+      key: "yd-east", highway: "영동고속도로", direction: "강릉 방향", length: 234,
+      rest_areas: [
+        { id: "ye1", name: "들꽃 휴게소", km: 31, stations: [st("ye1a", "초록전력", 305, "FA FA SA", 100, 3)] },
+        { id: "ye2", name: "물안개 휴게소", km: 72, stations: [st("ye2a", "별빛차지", 347, "FA FC", 200, 5)],
+          nearby: [near(st("ye2n", "달무리충전", 280, "FA FA FA", 200, 4), 4.6)] },
+        { id: "ye3", name: "산마루 휴게소", km: 118, stations: [st("ye3a", "한빛이브이", 335, "FA FA FA", 350, 2)] },
+        { id: "ye4", name: "눈꽃 휴게소", km: 163, stations: [st("ye4a", "별빛차지", 347, "FA FA FA FC", 200, 1), st("ye4b", "초록전력", 300, "SA SA", 7, 30)] },
+        { id: "ye5", name: "바다빛 휴게소", km: 207, stations: [st("ye5a", "달무리충전", 290, "FA FM", 100, 11)] },
+      ],
+    },
+  ];
+
+  function chargers(spec, kw) {
+    return spec.trim().split(/\s+/).map((c) => ({
+      type: c[0] === "F" ? "fast" : "slow",
+      power_kw: c[0] === "F" ? kw : 7,
+      status: STATUS[c[1]],
+    }));
+  }
+  function station(s, now) {
+    return { id: s.id, operator: s.operator, chargers: chargers(s.spec, s.kw), price_per_kwh: s.price, status_updated_at: now - s.age * 60000 };
+  }
+  // 엔진 입력(Route) 모양으로 바꾼다. now 는 밀리초
+  function toRoute(r, now) {
+    return {
+      highway: r.highway,
+      direction: r.direction,
+      rest_areas: r.rest_areas.map((a) => ({
+        id: a.id, name: a.name, distance_km: a.km,
+        stations: a.stations.map((s) => station(s, now)),
+        nearby: (a.nearby || []).map((n) => ({ station: station(n.station, now), detour_km: n.detour })),
+      })),
+    };
+  }
+  // 충전기 상태와 갱신 시각을 무작위로 다시 뽑는다(실시간으로 상태가 바뀌는 걸 흉내). rand 는 0~1 난수 함수
+  function shuffled(r, rand) {
+    const pickStatus = () => { const x = rand(); return x < 0.55 ? "A" : x < 0.82 ? "C" : x < 0.9 ? "O" : x < 0.95 ? "M" : "E"; };
+    const reroll = (s) => Object.assign({}, s, {
+      spec: s.spec.trim().split(/\s+/).map((c) => c[0] + pickStatus()).join(" "),
+      age: rand() < 0.85 ? Math.floor(rand() * 15) : 35 + Math.floor(rand() * 120),
+    });
+    return Object.assign({}, r, {
+      rest_areas: r.rest_areas.map((a) => Object.assign({}, a, {
+        stations: a.stations.map(reroll),
+        nearby: (a.nearby || []).map((n) => ({ station: reroll(n.station), detour: n.detour })),
+      })),
+    });
+  }
+
+  return { ROUTES, OPERATORS, toRoute, shuffled };
+});
+
+</script>
+<script>
+/* 충전 길잡이 — 화면 로직. 계산은 engine.js(EvPlanner)만 쓴다. 데이터는 data.js 의 예시 노선. */
+(function () {
+  "use strict";
+  const EV = window.EvPlanner;
+  const DATA = window.EvData;
+  const KEY = "ev-charge-planner/v1";
+  const $ = (sel) => document.querySelector(sel);
+
+  // ---------- 상태 ----------
+  const DEFAULTS = {
+    routeKey: DATA.ROUTES[0].key, soc: 60, pos: 0,
+    battery: 60, eff: 5, margin: 10, minArrival: 15, stale: 30,
+    subOp: "별빛차지", subRate: 20, subPrivate: true, cardName: "그린카드", cardRate: 10,
+  };
+  let state = Object.assign({}, DEFAULTS);
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) state = Object.assign({}, DEFAULTS, JSON.parse(raw));
+  } catch (e) { /* 저장 못 읽으면 기본값 */ }
+  if (!DATA.ROUTES.some((r) => r.key === state.routeKey)) state.routeKey = DEFAULTS.routeKey;
+  let routes = DATA.ROUTES.slice(); // 상태를 바꿔 보면 여기만 바뀐다(저장 안 함)
+  let view = "route";
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 무시 */ }
+  }
+
+  // ---------- 작은 도구 ----------
+  function h(tag, attrs, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of children.flat()) {
+      if (c === null || c === undefined || c === false) continue;
+      el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+    return el;
+  }
+  const chip = (text, tone) => h("span", { class: "chip", "data-tone": tone || null, text });
+  const km = (x) => `${Math.round(x * 10) / 10}km`;
+  const pct = (x) => `${Math.round(x)}%`;
+  const won = (x) => `${Math.round(x)}원`;
+  const curRoute = () => routes.find((r) => r.key === state.routeKey) || routes[0];
+
+  // ---------- 엔진 입력 만들기 ----------
+  function inputs() {
+    const r = curRoute();
+    const now = Date.now();
+    const vehicle = {
+      soc_pct: state.soc, battery_kwh: state.battery, efficiency_km_per_kwh: state.eff,
+      safety_margin_ratio: state.margin / 100, min_arrival_soc_pct: state.minArrival,
+    };
+    const user = {
+      subscription: state.subOp ? {
+        operator: state.subOp, rate: state.subRate / 100,
+        excluded_rest_area_ids: state.subPrivate ? r.rest_areas.filter((a) => a.name.includes("민자")).map((a) => a.id) : [],
+      } : null,
+      cards: state.cardName.trim() ? [{ name: state.cardName.trim(), rate: state.cardRate / 100, operators: null }] : [],
+    };
+    return { route: DATA.toRoute(r, now), vehicle, user, now };
+  }
+
+  // ---------- 표시용 문구 ----------
+  // 엔진의 경고 코드를 운전자가 읽을 말로. "전체 사용 불가"는 충전 중인 급속이 있으면 '빈 자리 없음'으로 풀어 쓴다
+  function areaChips(e) {
+    const out = [];
+    const codes = e.alerts.map((a) => a.code);
+    if (codes.includes("unreachable")) out.push(chip("지금 잔량으로 못 감", "bad"));
+    if (codes.includes("all_unavailable")) {
+      out.push(e.waiting_fast > 0 ? chip(`빈 충전기 없음 · 충전 중 ${e.waiting_fast}대`, "warn") : chip("쓸 수 있는 충전기 없음", "bad"));
+    } else if (codes.includes("no_usable_fast")) {
+      out.push(chip(e.waiting_fast > 0 ? `빈 급속 없음 · 충전 중 ${e.waiting_fast}대` : "빈 급속 없음(완속만)", "warn"));
+    } else {
+      out.push(chip(`빈 급속 ${e.usable_fast}대`, "good"));
+      if (e.waiting_fast > 0) out.push(chip(`충전 중 ${e.waiting_fast}대`));
+    }
+    const broken = e.status_counts.out_of_service + e.status_counts.maintenance + e.status_counts.comm_error;
+    if (broken > 0) out.push(chip(`고장·점검 ${broken}대`, "warn"));
+    if (e.lowest_price !== null) out.push(chip(`최저 ${won(e.lowest_price)}/kWh`));
+    return out;
+  }
+  function priceEl(q) {
+    const el = h("div", { class: "price num" });
+    if (q.applied !== null && q.final_price !== q.base_price) el.append(h("s", { text: won(q.base_price) }));
+    el.append(`${won(q.final_price)}/kWh`);
+    return el;
+  }
+  function stationEl(s) {
+    const st = s.status;
+    const meta = [];
+    if (s.role === "primary") meta.push(chip("1순위", "sign"));
+    if (s.role === "backup") meta.push(chip("예비", "info"));
+    meta.push(chip(`빈 급속 ${st.usable_fast}`, st.usable_fast > 0 ? "good" : null));
+    if (st.waiting_fast) meta.push(chip(`충전 중 ${st.waiting_fast}`));
+    if (st.usable_slow) meta.push(chip(`빈 완속 ${st.usable_slow}`));
+    if (st.unusable) meta.push(chip(`고장·점검 ${st.unusable}`, "warn"));
+    if (st.is_stale) meta.push(chip("정보 오래됨", "warn"));
+    if (s.is_nearby) meta.push(chip(`왕복 +${km(s.detour_km)} · 도착 ${pct(s.arrival_soc_pct)}`, s.reachable ? null : "bad"));
+    if (s.quote.applied) meta.push(h("span", { text: s.quote.applied === "subscription" ? "구독 할인" : `${s.quote.applied} 할인` }));
+    return h("div", { class: "station", "data-role": s.role },
+      h("div", { class: "op", text: s.operator }), priceEl(s.quote), h("div", { class: "meta" }, meta));
+  }
+
+  // ---------- 그리기 ----------
+  function render() {
+    const r = curRoute();
+    $("#soc").value = state.soc;
+    $("#soc-out").textContent = `${state.soc}%`;
+    $("#pos").max = r.length;
+    if (state.pos > r.length) state.pos = 0;
+    $("#pos").value = state.pos;
+    $("#pos-out").textContent = `${state.pos}km`;
+
+    let result;
+    const inp = inputs();
+    try {
+      result = EV.plan(inp.route, inp.vehicle, inp.user, inp.now, state.pos, state.stale);
+    } catch (err) {
+      $("#range-line").textContent = "";
+      $("#reco").replaceChildren(h("div", { class: "none" }, h("b", { text: "설정을 확인해 주세요" }), h("span", { text: err.message })));
+      $("#strip").replaceChildren();
+      return;
+    }
+    const v = EV.makeVehicle(inp.vehicle);
+    $("#range-line").textContent = `안전하게 갈 수 있는 거리 약 ${Math.max(0, Math.round(EV.conservative_range_km(v) - v.min_arrival_soc_pct * EV.km_per_pct(v)))}km `
+      + `(여유 ${state.margin}%, 도착 때 ${state.minArrival}% 남김)`;
+    renderReco(result);
+    renderStrip(result);
+  }
+
+  function findEntry(result, stationId) {
+    for (const ra of result.route_list.entries) for (const s of [...ra.stations, ...ra.nearby]) if (s.station_id === stationId) return s;
+    return null;
+  }
+  function pickEl(p, role, result) {
+    const s = findEntry(result, p.station_id);
+    const dots = "●".repeat(p.score) + "○".repeat(5 - p.score);
+    const facts = [
+      chip(`도착 때 ${pct(p.arrival_soc_pct)}`, p.arrival_soc_pct - state.minArrival < 10 ? "warn" : "good"),
+      chip(`빈 급속 ${s.status.usable_fast}대`, "good"),
+      h("span", { class: "chip", title: "안전 점수(5점 만점)" }, "안전 ", h("span", { class: "dots", text: dots })),
+    ];
+    if (p.is_nearby) facts.push(chip(`나들목 왕복 +${km(p.detour_km)}`, "warn"));
+    if (s.status.is_stale) facts.push(chip("정보 오래됨 · 도착 전 다시 확인", "warn"));
+    if (s.status.unusable) facts.push(chip(`고장·점검 ${s.status.unusable}대`, "warn"));
+    return h("div", { class: "pick", "data-role": role },
+      h("div", { class: "role", text: role === "primary" ? "1순위 충전소" : "예비 (1순위가 안 되면)" }),
+      h("div", { class: "name", text: p.rest_area_name }),
+      h("div", { class: "dist num", text: km(p.remaining_km) }),
+      h("div", { class: "sub", text: p.operator + (p.is_nearby ? " · 나들목 인근" : "") }),
+      priceEl(s.quote),
+      h("div", { class: "facts" }, facts));
+  }
+  function renderReco(result) {
+    const rec = result.recommendation;
+    const box = h("div", { class: "reco" });
+    if (rec.status !== "ok") {
+      box.append(h("div", { class: "none" },
+        h("b", { text: "안전하게 갈 수 있는 충전소가 없습니다" }),
+        h("span", { text: "지금 잔량으로 닿는 곳에 빈 급속 충전기가 없습니다. 가까운 나들목으로 나가 충전소를 찾거나, 속도를 줄여 전비를 높이세요." })));
+    } else {
+      box.append(pickEl(rec.primary, "primary", result));
+      if (rec.backup) box.append(pickEl(rec.backup, "backup", result));
+      else box.append(h("div", { class: "none" },
+        h("b", { text: "예비 충전소가 없습니다" }),
+        h("span", { text: "1순위에서 충전하지 못하면 갈 수 있는 다음 충전소가 없습니다. 1순위에서 꼭 충전하세요." })));
+    }
+    $("#reco").replaceChildren(box);
+  }
+  function renderStrip(result) {
+    const list = $("#strip");
+    list.replaceChildren();
+    const entries = result.route_list.entries;
+    if (!entries.length) {
+      list.append(h("li", { class: "small muted", text: "이 방향으로 남은 휴게소가 없습니다. 위치를 앞으로 당겨 보세요." }));
+      return;
+    }
+    for (const e of entries) {
+      const all = [...e.stations, ...e.nearby];
+      const role = all.some((s) => s.role === "primary") ? "primary" : all.some((s) => s.role === "backup") ? "backup" : null;
+      const low = e.arrival_soc_pct < state.minArrival;
+      list.append(h("li", { class: "stop", "data-reach": String(e.reachable), "data-role": role },
+        h("div", { class: "km num" }, km(e.remaining_km), h("small", { text: `${Math.round(e.distance_km)}km 지점` })),
+        h("div", { class: "rail", "aria-hidden": "true" }),
+        h("div", { class: "body" },
+          h("div", { class: "head" },
+            h("div", { class: "name", text: e.name }),
+            h("div", { class: "soc num", "data-low": String(low), text: `도착 ${pct(e.arrival_soc_pct)}` })),
+          h("div", { class: "chips" }, areaChips(e)),
+          e.stations.map(stationEl),
+          e.nearby.length ? h("div", { class: "nearby-label", text: "나들목 인근" }) : null,
+          e.nearby.map(stationEl))));
+    }
+  }
+
+  // ---------- 내 차·할인 ----------
+  function fillForms() {
+    $("#v-battery").value = state.battery;
+    $("#v-eff").value = state.eff;
+    $("#v-margin").value = state.margin;
+    $("#v-min").value = state.minArrival;
+    $("#v-stale").value = state.stale;
+    $("#d-sub-op").value = state.subOp;
+    $("#d-sub-rate").value = state.subRate;
+    $("#d-sub-private").checked = !!state.subPrivate;
+    $("#d-card-name").value = state.cardName;
+    $("#d-card-rate").value = state.cardRate;
+  }
+  function readForms() {
+    const num = (sel) => parseFloat($(sel).value);
+    const next = Object.assign({}, state, {
+      battery: num("#v-battery"), eff: num("#v-eff"), margin: num("#v-margin"), minArrival: num("#v-min"), stale: num("#v-stale"),
+      subOp: $("#d-sub-op").value, subRate: num("#d-sub-rate"), subPrivate: $("#d-sub-private").checked,
+      cardName: $("#d-card-name").value, cardRate: num("#d-card-rate"),
+    });
+    const vErr = $("#vehicle-error"), dErr = $("#discount-error");
+    vErr.hidden = true; dErr.hidden = true;
+    const bad = (el, msg) => { el.textContent = msg; el.hidden = false; };
+    if (!(next.battery > 0)) return bad(vErr, "배터리 용량은 0보다 커야 합니다.");
+    if (!(next.eff > 0)) return bad(vErr, "전비는 0보다 커야 합니다.");
+    if (!(next.margin >= 0 && next.margin < 100)) return bad(vErr, "안전 여유는 0~99 사이로 적어 주세요.");
+    if (!(next.minArrival >= 0 && next.minArrival <= 100)) return bad(vErr, "최소 도착 잔량은 0~100 사이로 적어 주세요.");
+    if (!(next.stale >= 0)) return bad(vErr, "오래됨 기준은 0 이상으로 적어 주세요.");
+    if (next.subOp && !(next.subRate > 0 && next.subRate < 100)) return bad(dErr, "구독 할인은 1~99 사이로 적어 주세요.");
+    if (next.cardName.trim() && !(next.cardRate > 0 && next.cardRate < 100)) return bad(dErr, "카드 할인은 1~99 사이로 적어 주세요.");
+    state = next;
+    persist();
+  }
+
+  function showView(name) {
+    view = name;
+    for (const v of ["route", "my"]) {
+      $(`#view-${v}`).hidden = v !== name;
+      $(`#tab-${v}`).setAttribute("aria-selected", String(v === name));
+    }
+    if (name === "route") render();
+  }
+
+  // ---------- 연결 ----------
+  const sel = $("#route-select");
+  for (const r of DATA.ROUTES) sel.append(h("option", { value: r.key, text: `${r.highway} ${r.direction}` }));
+  sel.value = state.routeKey;
+  sel.addEventListener("change", () => { state.routeKey = sel.value; state.pos = 0; persist(); render(); });
+  $("#soc").addEventListener("input", (e) => { state.soc = Number(e.target.value); persist(); render(); });
+  $("#pos").addEventListener("input", (e) => { state.pos = Number(e.target.value); persist(); render(); });
+  const subSel = $("#d-sub-op");
+  subSel.append(h("option", { value: "", text: "구독 없음" }));
+  for (const op of DATA.OPERATORS) subSel.append(h("option", { value: op, text: op }));
+  for (const form of [$("#vehicle-form"), $("#discount-form")]) {
+    form.addEventListener("input", readForms);
+    form.addEventListener("submit", (e) => e.preventDefault());
+  }
+  for (const tab of document.querySelectorAll(".tabbar [data-view]")) tab.addEventListener("click", () => showView(tab.dataset.view));
+  $("#btn-shuffle").addEventListener("click", () => {
+    routes = routes.map((r) => DATA.shuffled(r, Math.random));
+    showView("route");
+  });
+  $("#btn-reset").addEventListener("click", () => { routes = DATA.ROUTES.slice(); showView("route"); });
+  $("#about").textContent = "계산 엔진은 파이썬 ev-charge-planner 를 자바스크립트로 옮긴 것이고, 같은 입력에 같은 답을 내는지 대조해 확인했습니다.";
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && view === "route") render(); });
+
+  fillForms();
+  showView("route");
+})();
+
+</script>
+</body>
+</html>
