@@ -1,0 +1,17 @@
+# 깃허브에 올릴 때마다 자동으로 도는 검사
+# 1) 테스트 파일이 잠금과 같은지  2) 테스트가 전부 통과하는지
+name: tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - name: 테스트 잠금 확인
+        run: python tools/check_tests_lock.py .
+      - name: 테스트 실행
+        run: python -m pytest -q
