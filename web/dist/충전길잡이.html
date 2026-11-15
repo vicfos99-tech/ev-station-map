@@ -1443,7 +1443,7 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
     if (st.usable_slow) meta.push(chip(`빈 완속 ${st.usable_slow}`));
     if (st.unusable) meta.push(chip(`고장·점검 ${st.unusable}`, "warn"));
     meta.push(chip(infoAge(s.station_id), st.is_stale ? "warn" : null));
-    if (s.is_nearby) meta.push(chip(`왕복 +${km(s.detour_km)} · 도착 ${pct(s.arrival_soc_pct)}`, s.reachable ? null : "bad"));
+    if (s.is_nearby) meta.push(chip(`왕복 +${km(s.detour_km)} · 도착 예상 ${pct(s.arrival_soc_pct)}`, s.reachable ? null : "bad"));
     if (s.quote.applied) meta.push(h("span", { text: s.quote.applied === "subscription" ? "구독 할인" : `${s.quote.applied} 할인` }));
     const ms = mineState(s.station_id, liveAtOf(curRoute()));
     const opPrice = mine.ops[s.operator] && mine.ops[s.operator].price > 0;
@@ -1553,7 +1553,7 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
     const s = findEntry(result, p.station_id);
     const dots = "●".repeat(p.score) + "○".repeat(5 - p.score);
     const facts = [
-      chip(`도착 때 ${pct(p.arrival_soc_pct)}`, p.arrival_soc_pct - state.minArrival < 10 ? "warn" : "good"),
+      chip(`도착 때 예상 ${pct(p.arrival_soc_pct)}`, p.arrival_soc_pct - state.minArrival < 10 ? "warn" : "good"),
       chip(`빈 급속 ${s.status.usable_fast}대`, "good"),
       h("span", { class: "chip", title: "안전 점수(5점 만점)" }, "안전 ", h("span", { class: "dots", text: dots })),
     ];
