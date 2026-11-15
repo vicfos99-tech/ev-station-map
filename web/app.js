@@ -61,7 +61,8 @@
   if (!DATA.ROUTES.some((r) => r.key === state.routeKey)) state.routeKey = DEFAULTS.routeKey;
   let routes = DATA.ROUTES.slice(); // 상태를 바꿔 보면 여기만 바뀐다(저장 안 함)
   let view = "route";
-  let editing = null;   // 고치는 중인 충전소 id
+  let editing = null;
+  const icOne = new Map(); // 나들목 항목을 하나씩 펼치고 접은 것(화면을 닫으면 잊음). 없으면 state.icOpen 을 따른다   // 고치는 중인 충전소 id
   let lastRoute = null; // 마지막으로 엔진에 넣은 노선(내 값 반영 뒤)
   function persist() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 무시 */ }
@@ -332,23 +333,38 @@
       list.append(h("li", { class: "small muted", text: "이 방향으로 남은 휴게소가 없습니다. 위치를 앞으로 당겨 보세요." }));
       return;
     }
+    // 나들목 인근 충전소는 접어 두고 필요할 때만 펼친다(모두 펼치기/접기 + 항목마다)
+    const ics = entries.filter(isIc);
+    const allBtn = $("#btn-ic-all");
+    allBtn.hidden = !ics.length;
+    if (ics.length) {
+      allBtn.textContent = state.icOpen ? `나들목 ${ics.length}곳 접기` : `나들목 ${ics.length}곳 펼치기`;
+      allBtn.setAttribute("aria-expanded", String(!!state.icOpen));
+    }
     for (const e of entries) {
+      const ic = isIc(e);
+      const open = !ic || (icOne.has(e.rest_area_id) ? icOne.get(e.rest_area_id) : !!state.icOpen);
+      let toggle = null;
+      if (ic) {
+        toggle = h("button", { type: "button", class: "edit-btn", "aria-expanded": String(open), text: open ? "접기" : "펼치기" });
+        toggle.addEventListener("click", () => { icOne.set(e.rest_area_id, !open); render(); });
+      }
       const all = [...e.stations, ...e.nearby];
       const role = all.some((s) => s.role === "primary") ? "primary" : all.some((s) => s.role === "backup") ? "backup" : null;
       const low = e.arrival_soc_pct < state.minArrival;
-      list.append(h("li", { class: "stop", "data-reach": String(e.reachable), "data-role": role },
+      list.append(h("li", { class: "stop", "data-reach": String(e.reachable), "data-role": role, "data-ic": ic ? "true" : null },
         h("div", { class: "km num" }, km(e.remaining_km), h("small", { text: `${Math.round(e.distance_km)}km 지점` })),
         h("div", { class: "rail", "aria-hidden": "true" }),
         h("div", { class: "body" },
           h("div", { class: "head" },
             h("div", { class: "name", text: e.name }),
             h("div", { class: "soc num", "data-low": String(low), text: `도착 ${pct(e.arrival_soc_pct)}` })),
-          h("div", { class: "chips" }, isIc(e)
-            ? [chip(`나들목 인근 급속 ${e.nearby.length}곳`, "info"), chip("왕복 거리는 대략")]
+          h("div", { class: "chips" }, ic
+            ? [chip(`나들목 인근 급속 ${e.nearby.length}곳`, "info"), open ? chip("왕복 거리는 대략") : null, toggle]
             : areaChips(e)),
-          subFirst(e.stations).map(stationEl),
-          e.nearby.length ? h("div", { class: "nearby-label", text: "나들목 인근" }) : null,
-          subFirst(e.nearby).map(stationEl))));
+          open ? subFirst(e.stations).map(stationEl) : null,
+          open && e.nearby.length ? h("div", { class: "nearby-label", text: "나들목 인근" }) : null,
+          open ? subFirst(e.nearby).map(stationEl) : null)));
     }
   }
 
@@ -758,6 +774,7 @@
   $("#btn-locate").addEventListener("click", () => doLocate());
   $("#geo-allow").addEventListener("click", () => doLocate(true));
   $("#geo-ok").addEventListener("click", closeGeoModal);
+  $("#btn-ic-all").addEventListener("click", () => { state.icOpen = !state.icOpen; icOne.clear(); persist(); render(); });
   $("#pick-close").addEventListener("click", () => { hidePick(); $("#btn-locate").focus(); });
   $("#pick-modal").addEventListener("click", (ev) => { if (ev.target === ev.currentTarget) hidePick(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) retryIfGranted(); });

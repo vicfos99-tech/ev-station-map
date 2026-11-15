@@ -168,6 +168,8 @@ main {
   max-width: 560px; width: 100%; margin: 0 auto;
 }
 .view { display: flex; flex-direction: column; gap: 16px; }
+.section-row { display: flex; align-items: center; gap: 8px; }
+.stop[data-ic="true"] .name { font-weight: 500; color: var(--ink-2); }
 .section-title { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--ink-3); }
 
 /* ---------- 추천 ---------- */

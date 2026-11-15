@@ -76,7 +76,10 @@
   <main>
     <section class="view" id="view-route" aria-labelledby="tab-route">
       <div id="reco"></div>
-      <h2 class="section-title">앞으로 나올 휴게소</h2>
+      <div class="section-row">
+        <h2 class="section-title">앞으로 나올 휴게소</h2>
+        <button type="button" class="edit-btn" id="btn-ic-all" hidden></button>
+      </div>
       <ol class="strip" id="strip"></ol>
       <div class="live-msg small" id="live-msg-route" hidden></div>
       <p class="small muted" id="demo-note">이 화면의 휴게소·충전소·가격·상태는 모두 지어낸 예시입니다. 실제 충전소 정보는 공공 충전소 API 를 연결한 뒤에 나옵니다.</p>
