@@ -21,13 +21,15 @@ inline('<link rel="stylesheet" href="style.css">', `<style>\n${read("style.css")
 // live.js(실제 충전소 데이터)는 tools/charger_api.py 로 만든 뒤에만 있다. 없으면 예시 데이터만 들어간다
 const hasLive = fs.existsSync(path.join(dir, "live.js"));
 inline('<script src="live.js"></script>', hasLive ? `<script>\n${read("live.js")}\n</script>` : "");
-for (const f of ["engine.js", "data.js", "app.js"]) {
+for (const f of ["engine.js", "live_build.js", "data.js", "app.js"]) {
   inline(`<script src="${f}"></script>`, `<script>\n${read(f)}\n</script>`);
 }
 
 const outDir = path.join(dir, "dist");
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "index.html"), html, "utf8");
+// 폰에 옮겨 바로 여는 용도(같은 내용, 알아보기 쉬운 이름)
+fs.writeFileSync(path.join(outDir, "충전길잡이.html"), html, "utf8");
 
 // Artifact 조각: <head> 안 내용(title/meta/link/style)과 <body> 안 내용만
 const head = html.match(/<head>([\s\S]*?)<\/head>/)[1]

@@ -1,0 +1,8 @@
+{
+  "appId": "com.chargeguide.test",
+  "appName": "충전 길잡이",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}

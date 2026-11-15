@@ -116,5 +116,15 @@
     }
   }
 
-  return { ROUTES, EXAMPLES, OPERATORS, LIVE, toRoute, shuffled };
+  const api = { ROUTES, EXAMPLES, OPERATORS, LIVE, toRoute, shuffled };
+  // 폰에서 새로 받은 실제 데이터로 바꾼다(예시 노선은 그대로 뒤에)
+  api.replaceLive = function (live) {
+    for (let i = ROUTES.length - 1; i >= 0; i--) if (ROUTES[i].live) ROUTES.splice(i, 1);
+    ROUTES.unshift(...live.routes);
+    for (const r of live.routes) for (const a of r.rest_areas) for (const s of a.stations) {
+      if (!OPERATORS.includes(s.operator)) OPERATORS.push(s.operator);
+    }
+    api.LIVE = live;
+  };
+  return api;
 });

@@ -44,5 +44,28 @@ node web/build.js             # live.js 를 넣어 dist/ 다시 만들기 → �
 - 가격: API 에 없어서 `TARIFFS` 추정값(환경부 급속 요금) 하나를 쓴다.
 - 시험(키 없이): `py -m pytest -q -p no:cacheprovider tools/test_charger_api.py` (18개)
 
+## 고속도로 (2026-11-15: 16개, 32개 방향)
+경부·영동·서해안·중부·통영대전·중부내륙·호남·남해·서울양양·중앙·당진영덕·평택제천·광주대구·논산천안·순천완주·동해(부산–포항)·동해(삼척–속초).
+- 선: 실제 휴게소 좌표를 잇고 나들목·분기점 대략 위치를 더함(`tools/charger_api.py` 의 `HIGHWAYS`). 거리는 대략.
+- 휴게소가 어느 노선인지: ① 주소에 적힌 고속도로 이름 다수결(`HINT_NAMES`) ② 이름으로 정한 것(`MANUAL_HINTS`) ③ 둘 다 없으면 가장 가까운 선 2km 안. 노선을 알면 10km 안이면 그 선에 올린다. 다루지 않는 고속도로는 '다른 고속도로'로 뺀다.
+- 폰의 새로 받기(`web/live_build.js`)도 같은 규칙(live.js 의 config). 대조: `py tools/dump_live_fixture.py 원본.json` → `node web/test/compare_live.js`.
+
+## 나들목 인근 충전소 (코드만, 나들목 위치 키 필요)
+`tools/ic_nearby.py`: 나들목(영업소) 위치 + 전국 충전기(휴게소 밖 급속)에서 나들목 직선 3km 안 충전소를 '○○ 나들목' 항목으로 붙인다. 왕복은 직선×2×1.3(대략).
+- 나들목 위치는 한국도로공사 '영업소 위치정보' API: 고속도로 공공데이터 포털(data.ex.co.kr)에서 키 발급 → 환경변수 `EX_API_KEY`. 실제 응답을 아직 못 봐서 처음 받을 때 `--save-ics 파일` 로 저장해 필드 이름을 확인한다.
+```
+py tools/charger_api.py        # 휴게소
+py tools/ic_nearby.py          # 나들목 인근(전국 충전기를 받아 몇 분 걸림) → web/live.js 에 덧붙임
+node web/build.js
+```
+- 폰의 새로 받기는 휴게소만 다시 받고, 나들목 인근은 PC 에서 만든 것을 옮겨 쓴다('N시간 전 정보'로 보임).
+- 시험: `py -m pytest -q -p no:cacheprovider tools/test_ic_nearby.py`
+
+## 지금 위치로 (GPS, 2026-11-15)
+화면 위 '◎ 지금 위치로': 폰 위치를 고속도로 선(live.js config 의 `highways`)에 대어 노선과 km 를 맞춘다(`live_build.js` 의 `locate`, `keepSide`).
+- 선에서 2km(`max_offset_km`) 안의 고속도로가 후보. 보던 노선이 후보에 있으면 그 방향 그대로(티맵 따라 같은 길을 가며 다시 누르는 경우), 아니면 방향 버튼으로 고른다. 분기점 근처처럼 둘 이상이면 다른 고속도로도 고를 수 있게 보여 준다.
+- 고속도로 밖이면 가장 가까운 고속도로까지 거리를 알려 주고 손으로 고르게 한다. Claude 링크 화면은 위치가 막힐 수 있어 폰에 저장한 파일로 연다.
+- 시험: `node web/test/test_locate.js` (실제 휴게소 좌표로 노선·km 확인)
+
 ## 범위 밖(아직)
-- 폰에서 바로 새로 받기(서버 필요), 실제 위치(GPS), 지도, 휴게소 없는 나들목 충전소, 업체별 실제 요금, 경부·영동 밖 노선.
+- JC 갈래별 미리 보기, 방향 자동 판단, 지도, 휴게소 없는 나들목 충전소, 업체별 실제 요금, 경부·영동 밖 노선.

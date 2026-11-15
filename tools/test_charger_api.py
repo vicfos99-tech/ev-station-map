@@ -40,7 +40,7 @@ ITEMS = [
     item("천안삼거리휴게소(부산방향)", 36.788, 127.174, "ME000020", "01", stat="5"),
     item("기흥휴게소(서울방향)", 37.231, 127.100, "ME000002", "01", stat="2"),
     item("죽전휴게소", 37.330, 127.100, "ME000030", "01"),                    # 방향 모름
-    item("동해휴게소(삼척방향)", 37.500, 129.100, "ME000040", "01"),          # 고속도로에서 멂
+    item("동부휴게소(제주방향)", 33.457, 126.704, "ME000040", "01"),          # 고속도로에서 멂(제주)
     item("서초구청", 37.480, 127.030, "ME000050", "01", kind="A001"),         # 휴게소 아님
     item("용인휴게소(강릉방향)", 37.245, 127.250, "ME000060", "01", stat="1"),
 ]
@@ -94,6 +94,7 @@ def test_fetch_pages_until_total_and_hides_key(monkeypatch):
     got = ca.fetch_zcode("secret+key/=", "41", pause=0, log=lambda *_: None)
     assert len(got) == 5 and len(urls) == 2
     assert "serviceKey=secret%2Bkey%2F%3D" in urls[0] and "pageNo=2" in urls[1]
+    assert "kindDetail=C001" in urls[0]  # 휴게소 충전기만 달라고 한다
 
     def boom(req, timeout):
         raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, None)
@@ -143,7 +144,7 @@ def test_only_highway_rest_areas_with_direction(built):
     routes, skipped = built
     assert {r["key"] for r in routes} == {"live-gb-down", "live-gb-up", "live-yd-east"}
     assert skipped["방향 모름"] == ["죽전휴게소"]
-    assert skipped["고속도로에서 멂"] == ["동해휴게소(삼척방향)"]
+    assert skipped["고속도로에서 멂"] == ["동부휴게소(제주방향)"]
     names = [a["name"] for r in routes for a in r["rest_areas"]]
     assert "서초구청" not in names
 
@@ -237,6 +238,28 @@ def test_far_apart_same_name_stays_separate_and_ids_stay_unique():
     down = route(ca.build_routes(items, NOW_MS)[0], "live-gb-down")["rest_areas"]
     assert len(down) == 2
     assert [s["id"] for a in down for s in a["stations"]] == ["S1", "S1-2"]
+
+
+def test_address_hint_puts_rest_area_on_its_own_highway():
+    # 경부 선 바로 위 좌표라도 주소가 '중부내륙고속도로'면 중부내륙으로(두 고속도로가 만나는 곳에서 섞이지 않게)
+    near_gb = (36.129, 128.164)  # 김천 부근: 경부·중부내륙이 만나는 곳
+    it = item("가상(창원) 휴게소", *near_gb, "H1", "01")
+    it["addr"] = "경상북도 김천시 어모면 중부내륙고속도로 1"
+    routes, _ = ca.build_routes([it], NOW_MS)
+    assert [r["key"] for r in routes] == ["live-jn-f"]
+    # 주소가 다루지 않는 고속도로면 '다른 고속도로'로 뺀다
+    it2 = item("가상2(일산) 휴게소", 37.627, 127.139, "H2", "01")
+    it2["addr"] = "경기도 구리시 수도권제1순환고속도로 1"
+    routes, skipped = ca.build_routes([it2], NOW_MS)
+    assert routes == [] and skipped["다른 고속도로"] == ["가상2(일산) 휴게소"]
+    # 손으로 정한 이름(신탄진 → 경부)
+    assert ca.hints_of([item("신탄진휴게소(서울)", 36.426, 127.418, "H3", "01")]) ["신탄진"] == "gb"
+
+
+def test_up_down_words_outside_parentheses():
+    hw = ca.HIGHWAYS["jb"]
+    assert ca.direction_of("마장프리미엄휴게소 하행선", hw) == "forward"
+    assert ca.direction_of("마장프리미엄휴게소 상행선", hw) == "backward"
 
 
 # ---------- 파일과 앱 ----------

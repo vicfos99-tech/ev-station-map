@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">충전 길잡이</string>
+    <string name="title_activity_main">충전 길잡이</string>
+    <string name="package_name">com.chargeguide.test</string>
+    <string name="custom_url_scheme">com.chargeguide.test</string>
+</resources>

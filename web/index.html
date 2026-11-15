@@ -4,7 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="theme-color" content="#0b6b45">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f7a50" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="충전 길잡이">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563d9'/%3E%3Cpath d='M36 8 16 36h14l-4 20 22-30H34z' fill='%23fff'/%3E%3C/svg%3E">
 <title>충전 길잡이</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="style.css">
@@ -15,7 +20,7 @@
     <div class="sign-row">
       <label class="visually-hidden" for="route-select">노선</label>
       <select id="route-select" class="route-select"></select>
-      <span class="demo-badge" title="실제 충전소가 아닙니다">예시 데이터</span>
+      <button type="button" class="demo-badge" id="btn-refresh" title="실제 충전소가 아닙니다">예시 데이터</button>
     </div>
     <div class="gauge-row">
       <div class="gauge">
@@ -29,19 +34,58 @@
         <input id="pos" type="range" min="0" max="100" step="1">
       </div>
     </div>
+    <div class="locate-row">
+      <button type="button" class="btn-locate" id="btn-locate">지금 위치로</button>
+      <span class="locate-msg" id="locate-msg" aria-live="polite"></span>
+    </div>
     <div class="range-line" id="range-line"></div>
   </header>
+  <div class="modal-back" id="pick-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pick-title" aria-describedby="pick-note">
+      <h2 id="pick-title">가까운 고속도로</h2>
+      <p id="pick-note"></p>
+      <div class="pick-list" id="locate-pick"></div>
+      <div class="row"><button type="button" class="btn btn-ghost" id="pick-close">닫기</button></div>
+    </div>
+  </div>
+  <div class="modal-back" id="rf-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rf-title" aria-describedby="rf-text">
+      <h2 id="rf-title">충전소 정보 새로 받기</h2>
+      <div class="rf-progress" id="rf-progress">
+        <div class="rf-bar" role="progressbar" aria-labelledby="rf-title" aria-valuemin="0" aria-valuemax="100" id="rf-bar"><span id="rf-fill"></span></div>
+        <div class="rf-count num"><span id="rf-pct">0%</span><span id="rf-step"></span></div>
+      </div>
+      <p id="rf-text" aria-live="polite"></p>
+      <div class="row">
+        <button type="button" class="btn btn-primary" id="rf-retry" hidden>다시 받기</button>
+        <button type="button" class="btn btn-ghost" id="rf-close">취소</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-back" id="geo-modal" hidden>
+    <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="geo-title" aria-describedby="geo-text">
+      <h2 id="geo-title">위치 권한</h2>
+      <p id="geo-text"></p>
+      <div class="row" id="geo-actions">
+        <button type="button" class="btn btn-primary" id="geo-allow" hidden>권한 허용</button>
+        <button type="button" class="btn btn-primary" id="geo-ok">닫기</button>
+      </div>
+    </div>
+  </div>
 
   <main>
     <section class="view" id="view-route" aria-labelledby="tab-route">
       <div id="reco"></div>
       <h2 class="section-title">앞으로 나올 휴게소</h2>
       <ol class="strip" id="strip"></ol>
+      <div class="live-msg small" id="live-msg-route" hidden></div>
       <p class="small muted" id="demo-note">이 화면의 휴게소·충전소·가격·상태는 모두 지어낸 예시입니다. 실제 충전소 정보는 공공 충전소 API 를 연결한 뒤에 나옵니다.</p>
     </section>
 
     <section class="view" id="view-my" aria-labelledby="tab-my" hidden>
-      <form class="card stack" id="vehicle-form" autocomplete="off">
+      <div class="form-error" id="storage-warn" hidden>이 폰에서 이 파일로 열면 설정이 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.</div>
+
+      <form class="card stack" id="vehicle-form" autocomplete="off" novalidate>
         <h2>내 차</h2>
         <div class="grid2">
           <div class="field"><label for="v-battery">배터리 용량 (kWh)</label><input id="v-battery" type="number" step="0.1" min="1" inputmode="decimal"></div>
@@ -51,9 +95,10 @@
           <div class="field span2"><label for="v-stale">정보가 오래됐다고 보는 기준 (분)</label><input id="v-stale" type="number" step="1" min="0" inputmode="numeric"></div>
         </div>
         <div class="form-error" id="vehicle-error" hidden></div>
+        <div class="row"><button class="btn btn-primary" type="submit">저장</button><span class="saved-msg small" id="vehicle-saved" aria-live="polite"></span></div>
       </form>
 
-      <form class="card stack" id="discount-form" autocomplete="off">
+      <form class="card stack" id="discount-form" autocomplete="off" novalidate>
         <h2>구독·할인</h2>
         <div class="grid2">
           <div class="field"><label for="d-sub-op">구독 업체</label><select id="d-sub-op"></select></div>
@@ -66,6 +111,25 @@
           <div class="field"><label for="d-card-rate">카드 할인 (%)</label><input id="d-card-rate" type="number" step="0.01" min="0.01" max="99" inputmode="decimal"></div>
         </div>
         <div class="form-error" id="discount-error" hidden></div>
+        <div class="row"><button class="btn btn-primary" type="submit">저장</button><span class="saved-msg small" id="discount-saved" aria-live="polite"></span></div>
+      </form>
+
+      <form class="card stack" id="live-form" autocomplete="off" novalidate>
+        <h2>공공 데이터 새로 받기</h2>
+        <p class="small muted">공공데이터포털 충전소 정보 키로 지금 상태를 받아 옵니다. 키는 이 폰에만 저장되고 파일에는 들어가지 않습니다.</p>
+        <div class="field"><label for="k-key">인증키 (일반 인증키)</label><input id="k-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="처음 한 번만 넣으면 됩니다"></div>
+        <div class="row">
+          <button class="btn btn-primary" type="submit" id="btn-live">새로 받기</button>
+          <button class="btn btn-ghost" type="button" id="btn-key-clear">키 지우기</button>
+        </div>
+        <div class="live-msg small" id="live-msg" aria-live="polite"></div>
+      </form>
+
+      <form class="card stack" id="ops-form" autocomplete="off" novalidate>
+        <h2>업체 이름·요금 (내가 확인한 값)</h2>
+        <p class="small muted">알아보기 쉬운 이름과 실제로 확인한 요금을 넣으면 화면과 추천에 반영됩니다. 비워 두면 공공 데이터 값을 씁니다. 새로 받아도 지워지지 않습니다.</p>
+        <div class="ops-list" id="ops-list"></div>
+        <div class="row"><button class="btn btn-primary" type="submit">저장</button><span class="saved-msg small" id="ops-saved" aria-live="polite"></span></div>
       </form>
 
       <div class="card stack">
@@ -94,6 +158,7 @@
 
 <script src="engine.js"></script>
 <script src="live.js"></script>
+<script src="live_build.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

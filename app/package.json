@@ -1,0 +1,17 @@
+{
+  "name": "charge-guide-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "충전 길잡이 안드로이드 앱 (web/dist/index.html 을 Capacitor 로 감쌈)",
+  "scripts": {
+    "copy-web": "node copy-web.js",
+    "sync": "node copy-web.js && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/core": "^7.6.10"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.10"
+  }
+}
