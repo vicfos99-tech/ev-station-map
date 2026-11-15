@@ -23,3 +23,6 @@ jobs:
         run: python tools/dump_fixtures.py
       - name: JS 엔진 대조
         run: node web/test/compare.js
+      # 공공 충전소 API 연결 (키 없이 가짜 응답으로)
+      - name: 충전소 API 연결 시험
+        run: python -m pytest -q tools/test_charger_api.py

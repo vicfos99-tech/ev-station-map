@@ -1,51 +1,84 @@
 /* 충전 길잡이 — 고속도로 띠 지도(strip map): 위에 초록 표지판(노선·배터리·위치), 아래로 세로 길 하나에 휴게소가 km 순서로 걸린다.
  * 휴게소 이름은 표지판 글씨(Do Hyeon), 나머지는 산세리프, 숫자(km·%·원)는 모노.
  */
+/* 밝은 화면: 흰 바탕, 연한 파랑·초록 타일, 회색 판, 각진 배지, 파란 강조(공공 포털 현황판 느낌).
+ * 어두운 화면: 초록 고속도로 표지판 머리 그대로. */
 :root {
-  --bg: #eef1ee;            /* 초록 기 도는 밝은 회색(콘크리트) */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #e3e8e4;
-  --ink: #15201b;
-  --ink-2: #47554e;
-  --ink-3: #7c8a83;
-  --line: #cfd7d2;
-  --sign: #0b6b45;          /* 고속도로 표지판 초록 */
+  --surface-2: #f2f4f7;
+  --ink: #1b1f2a;
+  --ink-2: #4a5263;
+  --ink-3: #7d8594;
+  --line: #dfe3ea;
+  --sign: #2563d9;          /* 1순위 강조 */
   --sign-ink: #ffffff;
-  --sign-soft: #d6ecdf;
-  --road: #39453f;          /* 아스팔트 */
-  --good: #18794e;
-  --good-soft: #d9f0e3;
+  --sign-soft: #e8f0fd;
+  --backup: #2f9e58;        /* 예비 강조 */
+  --road: #a3abb8;
+  --good: #23793f;
+  --good-soft: #e6f5ea;
   --warn: #8f6200;
-  --warn-soft: #f7e8c4;
-  --bad: #b3261e;
-  --bad-soft: #f9dcd9;
-  --info: #1f5fb8;
-  --info-soft: #dbe7fa;
+  --warn-soft: #fdf3dc;
+  --bad: #c93636;
+  --bad-soft: #fdecec;
+  --info: #2563d9;
+  --info-soft: #e8f0fd;
+
+  --head-bg: #ffffff;
+  --head-ink: #1b1f2a;
+  --head-ink-2: #4a5263;
+  --head-line: #dfe3ea;
+  --select-line: #c9d0dc;
+  --badge-bg: #e8f0fd;
+  --badge-ink: #2563d9;
+  --badge-line: #c8d9fb;
+  --range-accent: #2563d9;
+  --tile1-bg: #eef4ff; --tile1-line: #c8d9fb; --tile1-ink: #1f4fb3;
+  --tile2-bg: #ecf8ef; --tile2-line: #c3e6cc; --tile2-ink: #23793f;
+  --panel: #f3f5f8;
+  --panel-line: #e4e8ee;
 
   --font-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --font-sign: "Do Hyeon", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
+  --font-sign: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --sign-weight: 700;
   --font-mono: "IBM Plex Mono", ui-monospace, "Consolas", monospace;
-  --radius: 12px;
+  --radius: 8px;
+  --chip-radius: 4px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #0e1411; --surface: #17201b; --surface-2: #212c26; --ink: #ecf2ee; --ink-2: #b3c0b9; --ink-3: #7d8b84; --line: #2c3932;
-    --sign: #0f7a50; --sign-ink: #ffffff; --sign-soft: #173a2a; --road: #8b9a92;
+    --sign: #0f7a50; --sign-ink: #ffffff; --sign-soft: #173a2a; --backup: #8ab4f8; --road: #8b9a92;
     --good: #63cf97; --good-soft: #153525; --warn: #e6b955; --warn-soft: #3b2f12; --bad: #f28b82; --bad-soft: #47211e; --info: #8ab4f8; --info-soft: #1c2f4d;
+    --head-bg: #0f7a50; --head-ink: #ffffff; --head-ink-2: rgba(255, 255, 255, 0.88); --head-line: transparent; --select-line: rgba(255, 255, 255, 0.85);
+    --badge-bg: #ffffff; --badge-ink: #0b6b45; --badge-line: transparent; --range-accent: #ffffff;
+    --tile1-bg: rgba(255, 255, 255, 0.08); --tile1-line: rgba(255, 255, 255, 0.2); --tile1-ink: #ffffff;
+    --tile2-bg: rgba(255, 255, 255, 0.08); --tile2-line: rgba(255, 255, 255, 0.2); --tile2-ink: #ffffff;
+    --panel: rgba(0, 0, 0, 0.16); --panel-line: transparent;
+    --font-sign: "Do Hyeon", "IBM Plex Sans KR", "Malgun Gothic", sans-serif; --sign-weight: 400;
+    --radius: 12px; --chip-radius: 999px;
   }
 }
 :root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0e1411; --surface: #17201b; --surface-2: #212c26; --ink: #ecf2ee; --ink-2: #b3c0b9; --ink-3: #7d8b84; --line: #2c3932;
-  --sign: #0f7a50; --sign-ink: #ffffff; --sign-soft: #173a2a; --road: #8b9a92;
-  --good: #63cf97; --good-soft: #153525; --warn: #e6b955; --warn-soft: #3b2f12; --bad: #f28b82; --bad-soft: #47211e; --info: #8ab4f8; --info-soft: #1c2f4d;
+    color-scheme: dark;
+    --bg: #0e1411; --surface: #17201b; --surface-2: #212c26; --ink: #ecf2ee; --ink-2: #b3c0b9; --ink-3: #7d8b84; --line: #2c3932;
+    --sign: #0f7a50; --sign-ink: #ffffff; --sign-soft: #173a2a; --backup: #8ab4f8; --road: #8b9a92;
+    --good: #63cf97; --good-soft: #153525; --warn: #e6b955; --warn-soft: #3b2f12; --bad: #f28b82; --bad-soft: #47211e; --info: #8ab4f8; --info-soft: #1c2f4d;
+    --head-bg: #0f7a50; --head-ink: #ffffff; --head-ink-2: rgba(255, 255, 255, 0.88); --head-line: transparent; --select-line: rgba(255, 255, 255, 0.85);
+    --badge-bg: #ffffff; --badge-ink: #0b6b45; --badge-line: transparent; --range-accent: #ffffff;
+    --tile1-bg: rgba(255, 255, 255, 0.08); --tile1-line: rgba(255, 255, 255, 0.2); --tile1-ink: #ffffff;
+    --tile2-bg: rgba(255, 255, 255, 0.08); --tile2-line: rgba(255, 255, 255, 0.2); --tile2-ink: #ffffff;
+    --panel: rgba(0, 0, 0, 0.16); --panel-line: transparent;
+    --font-sign: "Do Hyeon", "IBM Plex Sans KR", "Malgun Gothic", sans-serif; --sign-weight: 400;
+    --radius: 12px; --chip-radius: 999px;
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--sign); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--head-bg); }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
@@ -62,7 +95,7 @@ h2 { text-wrap: balance; }
 /* ---------- 표지판 머리 ---------- */
 .sign {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
-  background: var(--sign); color: var(--sign-ink);
+  background: var(--head-bg); color: var(--head-ink); border-bottom: 1px solid var(--head-line);
   padding-block: 10px 12px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -71,18 +104,22 @@ h2 { text-wrap: balance; }
 .sign-row { display: flex; align-items: center; gap: 8px; }
 .route-select {
   flex: 1 1 auto; min-width: 0;
-  font-family: var(--font-sign); font-size: 20px; letter-spacing: 0.01em;
-  background: transparent; color: var(--sign-ink);
-  border: 2px solid rgba(255, 255, 255, 0.85); border-radius: 8px; padding: 6px 10px; min-height: 44px;
+  font-family: var(--font-sign); font-weight: var(--sign-weight); font-size: 20px; letter-spacing: 0.01em;
+  background: transparent; color: var(--head-ink);
+  border: 1px solid var(--select-line); border-radius: 6px; padding: 6px 10px; min-height: 44px;
 }
 .route-select option { color: #15201b; background: #ffffff; font-family: var(--font-ui); }
-.demo-badge { flex: 0 0 auto; font-size: 12px; font-weight: 600; background: #ffffff; color: #0b6b45; border-radius: 999px; padding: 3px 10px; }
-.gauge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.gauge { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 8px; }
-.gauge label { font-size: 12px; opacity: 0.85; }
-.gauge .big { font-size: 20px; font-weight: 500; text-align: right; }
-.gauge input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: #ffffff; min-height: 28px; margin: 0; }
-.range-line { font-size: 13px; opacity: 0.92; }
+.demo-badge { flex: 0 0 auto; font-size: 12px; font-weight: 600; background: var(--badge-bg); color: var(--badge-ink); border: 1px solid var(--badge-line); border-radius: var(--chip-radius); padding: 2px 8px; }
+.gauge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gauge { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0 8px; padding: 8px 10px 4px; border-radius: 6px; background: var(--tile1-bg); border: 1px solid var(--tile1-line); }
+.gauge + .gauge { background: var(--tile2-bg); border-color: var(--tile2-line); }
+.gauge label { font-size: 12px; font-weight: 600; color: var(--head-ink-2); }
+.gauge .big { font-size: 22px; font-weight: 600; text-align: right; color: var(--tile1-ink); }
+.gauge + .gauge .big { color: var(--tile2-ink); }
+.gauge input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--range-accent); min-height: 28px; margin: 0; }
+.gauge + .gauge input[type="range"] { accent-color: var(--tile2-ink); }
+.range-line { font-size: 13px; color: var(--head-ink-2); background: var(--panel); border: 1px solid var(--panel-line); border-radius: 6px; padding: 6px 10px; }
+.range-line:empty { display: none; }
 
 main {
   flex: 1;
@@ -105,21 +142,22 @@ main {
 .pick[data-role="primary"] .role { color: var(--sign); }
 :root[data-theme="dark"] .pick[data-role="primary"] .role { color: var(--good); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pick[data-role="primary"] .role { color: var(--good); } }
-.pick .name { font-family: var(--font-sign); font-size: 24px; line-height: 1.2; overflow-wrap: anywhere; }
+.pick .name { font-family: var(--font-sign); font-weight: var(--sign-weight); font-size: 22px; line-height: 1.2; overflow-wrap: anywhere; }
 .pick .dist { font-size: 18px; text-align: right; white-space: nowrap; }
 .pick .sub { color: var(--ink-2); font-size: 14px; overflow-wrap: anywhere; }
 .pick .price { text-align: right; font-size: 14px; white-space: nowrap; }
 .pick .facts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .none { background: var(--bad-soft); color: var(--bad); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
-.none b { font-family: var(--font-sign); font-size: 22px; font-weight: 400; }
+.none b { font-family: var(--font-sign); font-size: 20px; font-weight: var(--sign-weight); }
 .none span { color: var(--ink-2); font-size: 14px; }
 
-.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; line-height: 1.6; white-space: nowrap; background: var(--surface-2); color: var(--ink-2); }
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--chip-radius); padding: 2px 10px; font-size: 12px; font-weight: 600; line-height: 1.6; white-space: nowrap; background: var(--surface-2); color: var(--ink-2); }
 .chip[data-tone="good"] { background: var(--good-soft); color: var(--good); }
 .chip[data-tone="warn"] { background: var(--warn-soft); color: var(--warn); }
 .chip[data-tone="bad"] { background: var(--bad-soft); color: var(--bad); }
 .chip[data-tone="info"] { background: var(--info-soft); color: var(--info); }
 .chip[data-tone="sign"] { background: var(--sign); color: var(--sign-ink); }
+.chip[data-tone="backup"] { background: var(--backup); color: var(--surface); }
 .dots { letter-spacing: 2px; }
 
 /* ---------- 띠 지도 ---------- */
@@ -134,17 +172,17 @@ main {
 .stop .rail::after { content: ""; position: absolute; left: 3px; top: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); border: 3px solid var(--road); }
 .stop[data-reach="false"] .rail::after { border-color: var(--bad); }
 .stop[data-role="primary"] .rail::after { background: var(--sign); border-color: var(--sign); }
-.stop[data-role="backup"] .rail::after { background: var(--info); border-color: var(--info); }
+.stop[data-role="backup"] .rail::after { background: var(--backup); border-color: var(--backup); }
 .stop .body { padding: 8px 0 14px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .stop[data-reach="false"] .body { opacity: 0.62; }
 .stop .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.stop .head .name { font-family: var(--font-sign); font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+.stop .head .name { font-family: var(--font-sign); font-weight: var(--sign-weight); font-size: 18px; line-height: 1.25; overflow-wrap: anywhere; }
 .stop .head .soc { font-size: 14px; white-space: nowrap; color: var(--ink-2); }
 .stop .head .soc[data-low="true"] { color: var(--bad); font-weight: 600; }
 .stop .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.station { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.station { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
 .station[data-role="primary"] { border: 2px solid var(--sign); }
-.station[data-role="backup"] { border: 2px solid var(--info); }
+.station[data-role="backup"] { border: 2px solid var(--backup); }
 .station .op { font-weight: 600; overflow-wrap: anywhere; }
 .station .price { text-align: right; white-space: nowrap; }
 .station .price s { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
@@ -162,11 +200,11 @@ main {
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field label { font-size: 13px; color: var(--ink-2); font-weight: 600; }
 .field .hint, .hint { font-size: 12px; color: var(--ink-3); }
-.field input, .field select { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 44px; }
+.field input, .field select { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 10px 12px; width: 100%; min-height: 44px; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 15px; min-height: 36px; }
 .check input { width: 20px; height: 20px; margin: 0; }
 .form-error { color: var(--bad); font-size: 14px; }
-.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 10px 16px; min-height: 44px; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 10px 16px; min-height: 44px; }
 .btn:active { transform: translateY(1px); }
 .btn-ghost { background: transparent; }
 
@@ -178,4 +216,6 @@ main {
 }
 .tabbar button { background: none; border: 0; border-radius: 10px; padding: 8px 4px; color: var(--ink-3); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .tabbar button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.tabbar button[aria-selected="true"] { color: var(--good); font-weight: 600; }
+.tabbar button[aria-selected="true"] { color: var(--sign); font-weight: 600; }
+:root[data-theme="dark"] .tabbar button[aria-selected="true"] { color: var(--good); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabbar button[aria-selected="true"] { color: var(--good); } }

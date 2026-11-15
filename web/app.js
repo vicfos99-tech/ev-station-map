@@ -10,13 +10,23 @@
   const DEFAULTS = {
     routeKey: DATA.ROUTES[0].key, soc: 60, pos: 0,
     battery: 60, eff: 5, margin: 10, minArrival: 15, stale: 30,
-    subOp: "별빛차지", subRate: 20, subPrivate: true, cardName: "그린카드", cardRate: 10,
+    // 묘성의 채비 구독: 고속도로 329원/kWh = 391원 대비 15.86% 할인 (2026-11-15). 카드는 없음
+    subOp: "채비", subRate: 15.86, subPrivate: true, cardName: "", cardRate: 10,
   };
   let state = Object.assign({}, DEFAULTS);
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) state = Object.assign({}, DEFAULTS, JSON.parse(raw));
   } catch (e) { /* 저장 못 읽으면 기본값 */ }
+  // 예전 판의 예시 할인(별빛차지 구독 20%, 그린카드 10%)이 그대로 저장돼 있으면 지운다. 직접 바꾼 값은 둔다
+  if (state.subOp === "별빛차지" && state.subRate === 20) state.subOp = "";
+  if (state.cardName === "그린카드" && state.cardRate === 10) state.cardName = "";
+  // 채비 구독을 한 번 넣는다(구독이 비어 있던 폰에만). 그 뒤에 바꾼 값은 그대로 둔다
+  if (!state.chaeviSet) {
+    if (!state.subOp) { state.subOp = "채비"; state.subRate = 15.86; }
+    state.chaeviSet = true;
+    persist();
+  }
   if (!DATA.ROUTES.some((r) => r.key === state.routeKey)) state.routeKey = DEFAULTS.routeKey;
   let routes = DATA.ROUTES.slice(); // 상태를 바꿔 보면 여기만 바뀐다(저장 안 함)
   let view = "route";
@@ -92,7 +102,7 @@
     const st = s.status;
     const meta = [];
     if (s.role === "primary") meta.push(chip("1순위", "sign"));
-    if (s.role === "backup") meta.push(chip("예비", "info"));
+    if (s.role === "backup") meta.push(chip("예비", "backup"));
     meta.push(chip(`빈 급속 ${st.usable_fast}`, st.usable_fast > 0 ? "good" : null));
     if (st.waiting_fast) meta.push(chip(`충전 중 ${st.waiting_fast}`));
     if (st.usable_slow) meta.push(chip(`빈 완속 ${st.usable_slow}`));
@@ -104,6 +114,22 @@
       h("div", { class: "op", text: s.operator }), priceEl(s.quote), h("div", { class: "meta" }, meta));
   }
 
+  // 실제 데이터인지 예시인지 표시
+  function showSource(r) {
+    const badge = $(".demo-badge"), note = $("#demo-note");
+    if (r.live && DATA.LIVE) {
+      const t = new Date(DATA.LIVE.fetched_at);
+      const hhmm = `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
+      badge.textContent = `공공 ${hhmm.split(" ")[1]}`;
+      badge.title = "받은 시각 기준 상태입니다";
+      note.textContent = `${DATA.LIVE.source}에서 ${hhmm}에 받은 상태입니다. 그 뒤로 바뀌었을 수 있으니 도착 전에 다시 확인하세요. 휴게소 거리는 대략값이고, ${DATA.LIVE.price_note}입니다.`;
+    } else {
+      badge.textContent = "예시 데이터";
+      badge.title = "실제 충전소가 아닙니다";
+      note.textContent = "이 노선의 휴게소·충전소·가격·상태는 모두 지어낸 예시입니다.";
+    }
+  }
+
   // ---------- 그리기 ----------
   function render() {
     const r = curRoute();
@@ -113,6 +139,7 @@
     if (state.pos > r.length) state.pos = 0;
     $("#pos").value = state.pos;
     $("#pos-out").textContent = `${state.pos}km`;
+    showSource(r);
 
     let result;
     const inp = inputs();
@@ -241,7 +268,7 @@
 
   // ---------- 연결 ----------
   const sel = $("#route-select");
-  for (const r of DATA.ROUTES) sel.append(h("option", { value: r.key, text: `${r.highway} ${r.direction}` }));
+  for (const r of DATA.ROUTES) sel.append(h("option", { value: r.key, text: `${r.highway} ${r.direction}${r.live || !DATA.LIVE ? "" : " (예시)"}` }));
   sel.value = state.routeKey;
   sel.addEventListener("change", () => { state.routeKey = sel.value; state.pos = 0; persist(); render(); });
   $("#soc").addEventListener("input", (e) => { state.soc = Number(e.target.value); persist(); render(); });

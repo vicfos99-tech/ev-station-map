@@ -9,11 +9,13 @@
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
-    module.exports = factory();
+    let live = null;
+    try { live = require("./live.js"); } catch (e) { /* 실제 데이터 없음 */ }
+    module.exports = factory(live);
   } else {
-    root.EvData = factory();
+    root.EvData = factory(root.EvLive || null);
   }
-})(typeof self !== "undefined" ? self : this, function () {
+})(typeof self !== "undefined" ? self : this, function (LIVE) {
   "use strict";
 
   const STATUS = { A: "available", C: "charging", O: "out_of_service", M: "maintenance", E: "comm_error" };
@@ -73,6 +75,9 @@
     }));
   }
   function station(s, now) {
+    if (s.chargers) { // 실제 데이터(live.js): 충전기 목록과 받은 시각이 들어 있다
+      return { id: s.id, operator: s.operator, chargers: s.chargers.map((c) => Object.assign({}, c)), price_per_kwh: s.price, status_updated_at: s.updated };
+    }
     return { id: s.id, operator: s.operator, chargers: chargers(s.spec, s.kw), price_per_kwh: s.price, status_updated_at: now - s.age * 60000 };
   }
   // 엔진 입력(Route) 모양으로 바꾼다. now 는 밀리초
@@ -90,7 +95,7 @@
   // 충전기 상태와 갱신 시각을 무작위로 다시 뽑는다(실시간으로 상태가 바뀌는 걸 흉내). rand 는 0~1 난수 함수
   function shuffled(r, rand) {
     const pickStatus = () => { const x = rand(); return x < 0.55 ? "A" : x < 0.82 ? "C" : x < 0.9 ? "O" : x < 0.95 ? "M" : "E"; };
-    const reroll = (s) => Object.assign({}, s, {
+    const reroll = (s) => s.chargers ? s : Object.assign({}, s, { // 실제 데이터는 그대로 둔다
       spec: s.spec.trim().split(/\s+/).map((c) => c[0] + pickStatus()).join(" "),
       age: rand() < 0.85 ? Math.floor(rand() * 15) : 35 + Math.floor(rand() * 120),
     });
@@ -102,5 +107,14 @@
     });
   }
 
-  return { ROUTES, OPERATORS, toRoute, shuffled };
+  // 실제 데이터가 있으면 노선 목록 앞에 붙이고, 그 업체들도 구독 목록에 더한다
+  const EXAMPLES = ROUTES.slice();
+  if (LIVE && Array.isArray(LIVE.routes)) {
+    ROUTES.unshift(...LIVE.routes);
+    for (const r of LIVE.routes) for (const a of r.rest_areas) for (const s of a.stations) {
+      if (!OPERATORS.includes(s.operator)) OPERATORS.push(s.operator);
+    }
+  }
+
+  return { ROUTES, EXAMPLES, OPERATORS, LIVE, toRoute, shuffled };
 });

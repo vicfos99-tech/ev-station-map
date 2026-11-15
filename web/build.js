@@ -18,6 +18,9 @@ function inline(needle, replacement) {
   html = html.replace(needle, () => replacement);
 }
 inline('<link rel="stylesheet" href="style.css">', `<style>\n${read("style.css")}\n</style>`);
+// live.js(실제 충전소 데이터)는 tools/charger_api.py 로 만든 뒤에만 있다. 없으면 예시 데이터만 들어간다
+const hasLive = fs.existsSync(path.join(dir, "live.js"));
+inline('<script src="live.js"></script>', hasLive ? `<script>\n${read("live.js")}\n</script>` : "");
 for (const f of ["engine.js", "data.js", "app.js"]) {
   inline(`<script src="${f}"></script>`, `<script>\n${read(f)}\n</script>`);
 }
@@ -33,4 +36,4 @@ const head = html.match(/<head>([\s\S]*?)<\/head>/)[1]
 const body = html.match(/<body>([\s\S]*?)<\/body>/)[1];
 fs.writeFileSync(path.join(outDir, "artifact.html"), head.trim() + "\n" + body.trim() + "\n", "utf8");
 
-console.log(`dist/index.html ${(html.length / 1024).toFixed(1)} KB, dist/artifact.html 생성`);
+console.log(`dist/index.html ${(html.length / 1024).toFixed(1)} KB, dist/artifact.html 생성, 실제 데이터 ${hasLive ? "포함" : "없음(예시만)"}`);
