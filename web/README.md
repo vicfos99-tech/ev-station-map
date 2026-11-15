@@ -50,7 +50,20 @@ node web/build.js             # live.js 를 넣어 dist/ 다시 만들기 → �
 - 휴게소가 어느 노선인지: ① 주소에 적힌 고속도로 이름 다수결(`HINT_NAMES`) ② 이름으로 정한 것(`MANUAL_HINTS`) ③ 둘 다 없으면 가장 가까운 선 2km 안. 노선을 알면 10km 안이면 그 선에 올린다. 다루지 않는 고속도로는 '다른 고속도로'로 뺀다.
 - 폰의 새로 받기(`web/live_build.js`)도 같은 규칙(live.js 의 config). 대조: `py tools/dump_live_fixture.py 원본.json` → `node web/test/compare_live.js`.
 
-## 나들목 인근 충전소 (코드만, 나들목 위치 키 필요)
+## 나들목 인근 충전소 (2026-11-15: 오픈스트리트맵 나들목으로 연결)
+도로공사 키가 없어서 나들목 위치는 오픈스트리트맵(© OpenStreetMap contributors, ODbL)의 `highway=motorway_junction` 을 쓴다.
+```
+py tools/fetch_near_highway.py 저장.json   # 전국 충전기(약 50만 건, 20~30분) → 고속도로 6km 안 휴게소 밖 급속만 저장. 지역별로 이어 받기
+py tools/charger_api.py                    # 휴게소
+py tools/ic_nearby.py --osm 나들목.json --osm-ways 고속도로길.json --chargers 저장.json
+node web/build.js
+```
+- 나들목.json: Overpass 로 `node["highway"="motorway_junction"](33.0,124.5,38.7,131.0)`, 고속도로길.json: `way["highway"="motorway"]["ref"](같은 범위)` (`out body`). 윈도우 curl 은 overpass-api.de 와 TLS 가 안 맞아 파이썬 urllib 로 받는다.
+- 어느 고속도로의 나들목인지는 노드가 놓인 길의 노선 번호(ref: 경부 1, 영동 50 …, `HW_REFS`)로 가린다. 분기점·휴게소 진출입·이름 없는 노드는 뺀다.
+- 공동주택(kindDetail H…), 이용 제한(limitYn=Y), 이름에 전용·입주민·전기버스·차고지·택배가 든 곳은 뺀다. 그래도 일반 차가 못 쓰는 곳이 남을 수 있다.
+- 화면: 나들목 항목은 접어 두고 필요할 때 펼친다. 장소 이름·업체·요금·왕복 거리.
+
+### (예전 설명) 도로공사 영업소 위치로 붙이기
 `tools/ic_nearby.py`: 나들목(영업소) 위치 + 전국 충전기(휴게소 밖 급속)에서 나들목 직선 3km 안 충전소를 '○○ 나들목' 항목으로 붙인다. 왕복은 직선×2×1.3(대략).
 - 나들목 위치는 한국도로공사 '영업소 위치정보' API: 고속도로 공공데이터 포털(data.ex.co.kr)에서 키 발급 → 환경변수 `EX_API_KEY`. 실제 응답을 아직 못 봐서 처음 받을 때 `--save-ics 파일` 로 저장해 필드 이름을 확인한다.
 ```

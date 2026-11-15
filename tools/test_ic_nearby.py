@@ -141,3 +141,85 @@ def test_main_without_key_or_file_says_how(monkeypatch, tmp_path, capsys):
     monkeypatch.delenv(icn.EX_KEY_ENV, raising=False)
     assert icn.main(["--live", str(tmp_path / "x.js")]) == 2
     assert icn.EX_KEY_ENV in capsys.readouterr().out
+
+
+def test_parse_osm_keeps_only_real_interchanges():
+    raw = {"elements": [
+        {"type": "node", "lat": OSM_LAT, "lon": 127.115, "tags": {"highway": "motorway_junction", "name": "오산 나들목", "ref": "5"}},
+        {"type": "node", "lat": 36.8, "lon": 127.176, "tags": {"name": "천안IC"}},
+        {"type": "node", "lat": 36.5, "lon": 127.4, "tags": {"name": "서대전"}},            # 꼬리말 없는 이름도 나들목
+        {"type": "node", "lat": 37.28, "lon": 127.1, "tags": {"name": "신갈 분기점"}},       # 분기점: 나갈 수 없음
+        {"type": "node", "lat": 37.2, "lon": 127.1, "tags": {"name": "용인 휴게소 (강릉 방향)"}},
+        {"type": "node", "lat": 37.1, "lon": 127.1, "tags": {"highway": "motorway_junction"}},  # 이름 없음
+        {"type": "node", "lat": 33.9, "lon": 130.9, "tags": {"name": "新門司IC"}},           # 일본
+        {"type": "node", "lat": 35.8, "lon": 128.6, "tags": {"name": "성북교지하차도"}},
+        {"type": "node", "lon": 127.0, "tags": {"name": "좌표없음 나들목"}},
+    ]}
+    got = icn.parse_osm(raw)
+    assert [g["name"] for g in got] == ["오산", "천안", "서대전"]
+    assert all(g["route"] == "" for g in got) and got[0]["lat"] == OSM_LAT
+    assert icn.parse_osm({}) == [] and icn.parse_osm([]) == []
+
+
+OSM_LAT = OSAN_IC[0]
+
+
+def test_main_with_osm_file_uses_charger_fetch_time(tmp_path, capsys):
+    items = [ch("기흥휴게소(부산방향)", "R1", *GIHEUNG, kind="C001")]
+    routes, skipped = ca.build_routes(items, NOW)
+    live = tmp_path / "live.js"
+    ca.write_live_js(routes, NOW, live, skipped)
+    (tmp_path / "osm.json").write_text(json.dumps({"elements": [
+        {"type": "node", "lat": OSAN_IC[0], "lon": OSAN_IC[1], "tags": {"name": "오산IC"}},
+        {"type": "node", "lat": OSAN_IC[0] + 0.002, "lon": OSAN_IC[1], "tags": {"name": "오산IC"}},  # 반대 방향 차로의 같은 나들목
+        {"type": "node", "lat": 37.28, "lon": 127.105, "tags": {"name": "신갈JC"}},
+    ]}, ensure_ascii=False), encoding="utf-8")
+    later = NOW + 3_600_000
+    (tmp_path / "near.json").write_text(json.dumps({"fetched_ms": later, "items": {"item": [
+        ch("오산충전소", "N1", OSAN_IC[0] + 0.009, OSAN_IC[1])]}}, ensure_ascii=False), encoding="utf-8")
+    assert icn.main(["--osm", str(tmp_path / "osm.json"), "--chargers", str(tmp_path / "near.json"), "--live", str(live)]) == 0
+    text = live.read_text(encoding="utf-8")
+    data = json.loads(text[text.index("var d = ") + 8:text.index(";\n  if (typeof module")])
+    down = next(r for r in data["routes"] if r["key"] == "live-gb-down")
+    ics = [a for a in down["rest_areas"] if a.get("kind") == "ic"]
+    assert [a["name"] for a in ics] == ["오산 나들목"]                      # 두 노드는 하나로, 분기점은 빠짐
+    assert ics[0]["nearby"][0]["station"]["updated"] == later              # 충전기 상태를 받은 시각
+    assert "OpenStreetMap" in data["ic_note"]
+    assert "OpenStreetMap" in capsys.readouterr().out
+
+
+def test_osm_refs_keep_only_this_highways_interchanges():
+    # 오산(경부 길 위, ref 1), 옆 도로의 나들목(ref 171), 번호 없는 길의 나들목
+    raw = {"elements": [
+        {"type": "node", "id": 1, "lat": OSAN_IC[0], "lon": OSAN_IC[1], "tags": {"name": "오산 나들목"}},
+        {"type": "node", "id": 2, "lat": OSAN_IC[0] + 0.004, "lon": OSAN_IC[1] + 0.004, "tags": {"name": "서오산IC"}},
+        {"type": "node", "id": 3, "lat": OSAN_IC[0] - 0.004, "lon": OSAN_IC[1], "tags": {"name": "어딘가 나들목"}},
+        {"type": "node", "id": 4, "lat": OSAN_IC[0] + 0.03, "lon": OSAN_IC[1], "tags": {"name": "오산 나들목"}},  # 같은 이름, 3km 남짓 떨어짐
+        {"type": "node", "id": 5, "lat": 36.8, "lon": 127.176, "tags": {"name": "삼성IC(하이패스)"}},
+    ]}
+    ways = {"elements": [
+        {"type": "way", "id": 10, "nodes": [1, 4, 99], "tags": {"highway": "motorway", "ref": "1"}},
+        {"type": "way", "id": 11, "nodes": [2], "tags": {"highway": "motorway", "ref": "171"}},
+        {"type": "way", "id": 12, "nodes": [5], "tags": {"highway": "motorway", "ref": "1;AH1"}},
+        {"type": "way", "id": 13, "nodes": [3], "tags": {"highway": "motorway"}},
+    ]}
+    ics = icn.parse_osm(raw, ways)
+    assert {i["name"]: i["refs"] for i in ics if i["name"] != "오산"} == {"서오산": ["171"], "어딘가": [], "삼성": ["1", "AH1"]}
+    on = icn.ics_on_highway(ics, "gb")
+    assert [i["name"] for i in on] == ["오산", "삼성"]          # 다른 번호·번호 없는 것은 빠지고, 같은 이름은 하나로
+    assert icn.ics_on_highway(ics, "yd") == []                 # 영동(50)의 나들목이 아님
+    # 길 목록을 안 주면 예전처럼 거리로만(옆 도로 것도 섞임)
+    assert len(icn.ics_on_highway(icn.parse_osm(raw), "gb")) >= 3
+
+
+def test_private_chargers_are_not_offered():
+    base = (OSAN_IC[0] + 0.005, OSAN_IC[1])
+    items = [
+        ch("공영주차장", "P1", *base),
+        ch("한빛아파트 지하2층", "P2", *base, kind="H001"),            # 공동주택
+        ch("기숙사 급속", "P3", *base, kind="H003"),
+        ch("군인공제회관 급속충전소(직원전용)", "P4", *base, kind="G001"),
+        {**ch("제한 있는 곳", "P5", *base), "limitYn": "Y"},
+        {**ch("제한 없는 곳", "P6", *base), "limitYn": "N"},
+    ]
+    assert sorted(s["id"] for s in icn.stations_from_items(items, NOW)) == ["P1", "P6"]

@@ -225,6 +225,7 @@ main {
 .station[data-role="primary"] { border: 2px solid var(--sign); }
 .station[data-role="backup"] { border: 2px solid var(--backup); }
 .station .op { font-weight: 600; overflow-wrap: anywhere; }
+.station .op-sub { display: block; font-weight: 400; font-size: 12px; color: var(--ink-3); }
 .station .price { text-align: right; white-space: nowrap; }
 .station .price s { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
 .station .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }

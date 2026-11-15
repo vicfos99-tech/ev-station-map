@@ -170,8 +170,14 @@
     el.append(`${won(q.final_price)}/kWh`);
     return el;
   }
+  // 나들목 인근 충전소의 장소 이름(찾아가려면 업체 이름만으로는 모자란다). 휴게소 안 충전소는 휴게소 이름으로 충분해 빈 글
+  function placeName(id) {
+    for (const a of curRoute().rest_areas) for (const n of a.nearby || []) if (n.station.id === id) return n.station.name || "";
+    return "";
+  }
   function stationEl(s) {
     const st = s.status;
+    const place = s.is_nearby ? placeName(s.station_id) : "";
     const meta = [];
     if (s.role === "primary") meta.push(chip("1순위", "sign"));
     if (s.role === "backup") meta.push(chip("예비", "backup"));
@@ -190,7 +196,8 @@
     editBtn.addEventListener("click", () => { editing = editing === s.station_id ? null : s.station_id; render(); });
     meta.push(editBtn);
     return h("div", { class: "station", "data-role": s.role },
-      h("div", { class: "op", text: opLabel(s.operator) }), priceEl(s.quote), h("div", { class: "meta" }, meta),
+      h("div", { class: "op" }, place ? [place, h("small", { class: "op-sub", text: opLabel(s.operator) })] : opLabel(s.operator)),
+      priceEl(s.quote), h("div", { class: "meta" }, meta),
       editing === s.station_id ? editorEl(s.station_id) : null);
   }
 
@@ -245,7 +252,8 @@
       badge.title = `${when}에 받음. 눌러서 새로 받기`;
       badge.dataset.old = String(Date.now() - DATA.LIVE.fetched_at > state.stale * 60000);
       badge.setAttribute("aria-label", `공공 데이터 ${when}에 받음, ${age}. 눌러서 새로 받기`);
-      note.textContent = `${DATA.LIVE.source}에서 ${when}(${age})에 받은 상태입니다. 그 뒤로 바뀌었을 수 있으니 도착 전에 다시 확인하세요. 휴게소 거리는 대략값이고, ${DATA.LIVE.price_note}입니다. 위의 '공공 … ↻'을 누르면 새로 받습니다.`;
+      note.textContent = `${DATA.LIVE.source}에서 ${when}(${age})에 받은 상태입니다. 그 뒤로 바뀌었을 수 있으니 도착 전에 다시 확인하세요. 휴게소 거리는 대략값이고, ${DATA.LIVE.price_note}입니다. 위의 '공공 … ↻'을 누르면 새로 받습니다.`
+        + (DATA.LIVE.ic_note ? ` ${DATA.LIVE.ic_note}. 나들목 인근 충전소는 '새로 받기'로 갱신되지 않고, 일반 차가 못 쓰는 곳이 섞여 있을 수 있으니 가기 전에 확인하세요.` : "");
     } else {
       badge.textContent = "예시 데이터";
       badge.title = "실제 충전소가 아닙니다";
@@ -301,7 +309,7 @@
       h("div", { class: "role", text: role === "primary" ? "1순위 충전소" : "예비 (1순위가 안 되면)" }),
       h("div", { class: "name", text: p.rest_area_name }),
       h("div", { class: "dist num", text: km(p.remaining_km) }),
-      h("div", { class: "sub", text: opLabel(p.operator) + (p.is_nearby ? " · 나들목 인근" : "") }),
+      h("div", { class: "sub", text: p.is_nearby ? `${placeName(p.station_id) || "나들목 인근"} · ${opLabel(p.operator)}` : opLabel(p.operator) }),
       priceEl(s.quote),
       h("div", { class: "facts" }, facts));
   }
@@ -769,6 +777,22 @@
     // 창 안에 있던 초점은 '지금 위치로' 버튼으로(위치를 찾는 중이라 잠겨 있으면 창 밖으로만 뺀다)
     if (hadFocus) { document.activeElement.blur(); $("#btn-locate").focus(); }
   }
+
+  // ---------- 화면 꺼짐 방지 ----------
+  // 이 화면이 떠 있는 동안에는 폰 화면이 꺼지지 않게 한다(웹: Screen Wake Lock, 앱: 안드로이드 쪽에서도 켬).
+  // 다른 앱으로 갔다 오면 브라우저가 풀어 버리므로 돌아올 때 다시 건다. 못 쓰는 브라우저에서는 조용히 넘어간다.
+  let wakeLock = null;
+  async function keepAwake() {
+    if (wakeLock || document.hidden || !navigator.wakeLock || !navigator.wakeLock.request) return;
+    try {
+      const lock = await navigator.wakeLock.request("screen");
+      wakeLock = lock;
+      lock.addEventListener("release", () => { if (wakeLock === lock) wakeLock = null; });
+    } catch (e) { /* 절전 모드 등으로 거절되면 그대로 둔다 */ }
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) keepAwake(); });
+  document.addEventListener("pointerdown", keepAwake); // 처음 열자마자는 막는 브라우저가 있어, 화면을 누를 때도 건다
+  keepAwake();
 
   // ---------- 연결 ----------
   $("#btn-locate").addEventListener("click", () => doLocate());

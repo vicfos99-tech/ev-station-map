@@ -34,6 +34,8 @@ MAX_PER_IC = 3         # 나들목마다 가까운 충전소 몇 곳까지
 IC_ON_LINE_KM = 2.0    # 나들목이 고속도로 선에서 이만큼 안이어야 그 노선의 나들목으로 본다
 MIN_GAP_KM = 1.0       # 같은 노선에서 이보다 가까운 두 나들목은 하나로(같은 영업소의 입구·출구 등)
 
+SAME_NAME_KM = 5.0     # 같은 이름의 나들목이 이 안에 또 있으면 하나로
+
 NAME_KEYS = ["unitName", "unitNm", "name", "영업소명", "officeName", "icName"]
 ROUTE_KEYS = ["routeName", "routeNm", "노선명", "route"]
 LAT_KEYS = ["yValue", "lat", "latitude", "위도", "y", "yCrdnt"]
@@ -70,6 +72,59 @@ def parse_ics(raw):
     return out
 
 
+OSM_SKIP = re.compile(r"분기점|JC|JCT|휴게소|쉼터|SA|PA|지하차도|터널")  # 나갈 수 없거나 나들목이 아닌 것
+OSM_SUFFIX = re.compile(r"\s*(나들목|인터체인지|교차로|IC|I\.C\.?)\s*$", re.I)
+
+
+# 고속도로 노선 번호(오픈스트리트맵 ref). 나들목 노드가 올라앉은 도로의 번호로 '어느 고속도로의 나들목인지' 가린다.
+HW_REFS = {"gb": {"1"}, "yd": {"50"}, "sh": {"15"}, "jb": {"35"}, "jn": {"45"}, "hn": {"25"}, "nh": {"10"}, "sy": {"60"},
+           "ja": {"55"}, "dy": {"30"}, "pj": {"40"}, "gd": {"12"}, "nc": {"25"}, "sw": {"27"}, "dhs": {"65"}, "dhn": {"65"}}
+REF_ON_LINE_KM = 5.0   # 노선 번호가 맞는 나들목은 우리 선(대략 그림)에서 이만큼까지 받아 준다
+
+
+def osm_node_refs(ways):
+    """고속도로 길(way) 목록 → {노드 id: 그 노드를 지나는 길들의 노선 번호 집합}."""
+    refs = {}
+    for w in (ways.get("elements") or []) if isinstance(ways, dict) else []:
+        mine = {r.strip() for r in str((w.get("tags") or {}).get("ref") or "").split(";") if r.strip()}
+        if not mine:
+            continue
+        for nid in w.get("nodes") or []:
+            refs.setdefault(nid, set()).update(mine)
+    return refs
+
+
+def parse_osm(raw, ways=None):
+    """오픈스트리트맵(Overpass)의 highway=motorway_junction 노드 → [{name, route, lat, lng[, refs]}].
+
+    도로공사 키가 없을 때 쓰는 나들목 위치. 노선 이름이 없어서(route="") ways(고속도로 길 목록)를 주면 노드가 놓인
+    길의 노선 번호(refs)를 달아 준다. ways 가 없으면 고속도로 선까지 거리로만 노선을 정한다(옆 도로 나들목이 섞일 수 있다).
+    분기점·휴게소 진출입·이름 없는 노드는 뺀다. 이름 끝의 '나들목/IC'는 뗀다(붙일 때 '○○ 나들목'으로 다시 붙임).
+    """
+    node_refs = osm_node_refs(ways) if ways is not None else None
+    out = []
+    for e in (raw.get("elements") or []) if isinstance(raw, dict) else []:
+        tags = e.get("tags") or {}
+        name = str(tags.get("name") or "").strip()
+        if not name or OSM_SKIP.search(name) or re.search(r"[぀-ヿ一-鿿]", name):  # 일본(한자·가나) 노드 제외
+            continue
+        try:
+            lat, lng = float(e["lat"]), float(e["lon"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if not (33 <= lat <= 39 and 124 <= lng <= 132):
+            continue
+        name = re.sub(r"\s*\(?하이패스\)?\s*$", "", OSM_SUFFIX.sub("", name)).strip()  # '삼성IC(하이패스)' → '삼성'
+        name = OSM_SUFFIX.sub("", name).strip()
+        if not name:
+            continue
+        ic = {"name": name, "route": "", "lat": lat, "lng": lng}
+        if node_refs is not None:
+            ic["refs"] = sorted(node_refs.get(e.get("id"), ()))
+        out.append(ic)
+    return out
+
+
 def _route_word(s):
     """'경부선', '경부고속도로', '경부' → '경부'"""
     return re.sub(r"(고속도로|고속국도|선|\s)", "", s or "")
@@ -82,7 +137,11 @@ def ics_on_highway(ics, hk):
     found = []
     for ic in ics:
         along, off = ca.project((ic["lat"], ic["lng"]), hw["points"])
-        named = ic["route"] and _route_word(ic["route"]) and _route_word(ic["route"]) in word
+        if "refs" in ic:  # 노선 번호를 아는 나들목: 번호가 이 고속도로 것일 때만(옆을 지나는 다른 도로의 나들목은 뺀다)
+            if set(ic["refs"]) & HW_REFS.get(hk, set()) and off <= REF_ON_LINE_KM:
+                found.append({**ic, "along": along})
+            continue
+        named =ic["route"] and _route_word(ic["route"]) and _route_word(ic["route"]) in word
         if off <= IC_ON_LINE_KM and (named or not ic["route"]):
             found.append({**ic, "along": along})
         elif named and off <= ca.HINT_MAX_KM:
@@ -91,6 +150,9 @@ def ics_on_highway(ics, hk):
     merged = []
     for ic in found:
         if merged and ic["along"] - merged[-1]["along"] < MIN_GAP_KM:
+            continue
+        # 같은 이름이 가까이 또 나오면(방향별 진출 지점이 따로 찍힌 것) 앞의 것 하나만
+        if merged and ic["name"] == merged[-1]["name"] and ic["along"] - merged[-1]["along"] < SAME_NAME_KM:
             continue
         merged.append(ic)
     return merged
@@ -107,11 +169,26 @@ def nearby_stations(ic, stations):
     return [{"station": {k: v for k, v in st.items() if k != "pt"}, "detour": detour} for detour, _, st in near[:MAX_PER_IC]]
 
 
+PRIVATE_NAME = re.compile(r"전용|입주민|임직원|관계자|전기버스|버스 ?충전|차고지|택배")
+
+
+def open_to_public(it):
+    """지나가다 들러 쓸 수 있는 곳인가. 공동주택(아파트·연립·기숙사, kindDetail H…), 이용 제한(limitYn=Y),
+    이름에 '직원전용·입주민' 등이 든 곳은 뺀다. 그래도 남는 제한(영업시간·주차비)은 못 거른다."""
+    if str(it.get("kindDetail") or "").upper().startswith("H"):
+        return False
+    if str(it.get("limitYn") or "N").upper() == "Y":
+        return False
+    return not PRIVATE_NAME.search(str(it.get("statNm") or ""))
+
+
 def stations_from_items(items, fetched_ms, tariffs=ca.TARIFFS):
     """휴게소가 아닌 충전기 → 급속이 하나라도 있는 충전소 목록(좌표 포함)."""
     by = {}
     for it in items:
         if ca.is_rest_area(it) or str(it.get("delYn", "N")).upper() == "Y":
+            continue
+        if not open_to_public(it):
             continue
         try:
             pt = (float(it["lat"]), float(it["lng"]))
@@ -191,12 +268,20 @@ def fetch_all_chargers(key, log=print):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--ics", type=Path, help="나들목 목록 파일(JSON). 없으면 EX_API_KEY 로 받는다")
+    ap.add_argument("--osm", type=Path, help="오픈스트리트맵 motorway_junction 파일(Overpass JSON). 도로공사 키가 없을 때")
+    ap.add_argument("--osm-ways", type=Path, help="오픈스트리트맵 고속도로 길 목록(way, ref 포함). 주면 노선 번호로 나들목의 고속도로를 가린다")
     ap.add_argument("--save-ics", type=Path, help="받은 나들목 원본을 저장(필드 확인용)")
     ap.add_argument("--chargers", type=Path, help="전국 충전기 원본(JSON, items.item). 없으면 키로 받는다")
     ap.add_argument("--live", type=Path, default=ca.ROOT / "web" / "live.js", help="나들목 항목을 붙일 live.js")
     a = ap.parse_args(argv)
 
-    if a.ics:
+    source = "한국도로공사 영업소 위치정보"
+    if a.osm:
+        ways = json.loads(a.osm_ways.read_text(encoding="utf-8")) if a.osm_ways else None
+        ics = parse_osm(json.loads(a.osm.read_text(encoding="utf-8")), ways)
+        source = "© OpenStreetMap contributors"
+        raw_ics = None
+    elif a.ics:
         raw_ics = json.loads(a.ics.read_text(encoding="utf-8"))
     else:
         key = os.environ.get(EX_KEY_ENV, "").strip()
@@ -204,26 +289,30 @@ def main(argv=None):
             print(f"나들목 위치가 없다. 고속도로 공공데이터 포털(data.ex.co.kr) 키를 환경변수 {EX_KEY_ENV} 로 넣거나 --ics 파일을 준다.")
             return 2
         raw_ics = fetch_ics(key)
-    if a.save_ics:
-        a.save_ics.write_text(json.dumps(raw_ics, ensure_ascii=False), encoding="utf-8")
-    ics = parse_ics(raw_ics)
-    print(f"나들목 {len(ics)}곳")
+    if raw_ics is not None:
+        if a.save_ics:
+            a.save_ics.write_text(json.dumps(raw_ics, ensure_ascii=False), encoding="utf-8")
+        ics = parse_ics(raw_ics)
+    print(f"나들목 {len(ics)}곳 ({source})")
 
     text = a.live.read_text(encoding="utf-8")
     live = json.loads(text[text.index("var d = ") + 8:text.index(";\n  if (typeof module")])
+    status_ms = live["fetched_at"]
     if a.chargers:
-        items = json.loads(a.chargers.read_text(encoding="utf-8"))["items"]["item"]
+        data = json.loads(a.chargers.read_text(encoding="utf-8"))
+        items = data["items"]["item"]
+        status_ms = data.get("fetched_ms", status_ms)  # 충전기 상태를 받은 시각(tools/fetch_near_highway.py 가 적어 둠)
     else:
         key = os.environ.get(ca.KEY_ENV, "").strip()
         if not key:
             print(f"환경변수 {ca.KEY_ENV} 가 없다.")
             return 2
         items = fetch_all_chargers(key)
-    stations = stations_from_items(items, live["fetched_at"])
+    stations = stations_from_items(items, status_ms)
     for r in live["routes"]:  # 다시 돌려도 겹치지 않게 예전 나들목 항목은 지운다
         r["rest_areas"] = [x for x in r["rest_areas"] if x.get("kind") != "ic"]
     added = attach(live["routes"], ics, stations)
-    live["ic_note"] = f"나들목 인근 충전소는 직선 {NEAR_KM:g}km 안, 왕복 거리는 직선×2×{ROAD_FACTOR:g} 대략"
+    live["ic_note"] = f"나들목 인근 충전소는 직선 {NEAR_KM:g}km 안, 왕복 거리는 직선×2×{ROAD_FACTOR:g} 대략. 나들목 위치: {source}"
     ca.write_live_js(live["routes"], live["fetched_at"], a.live, live.get("skipped"))
     # write_live_js 는 ic_note 를 모르므로 덧붙인다
     t = a.live.read_text(encoding="utf-8")
