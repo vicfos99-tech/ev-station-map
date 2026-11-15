@@ -480,8 +480,9 @@ def build_routes(items, fetched_ms, tariffs=TARIFFS):
             skipped["방향 모름"].add(name)
             continue
         km = along if side == "forward" else line_length_km(hw["points"]) - along
-        area = buckets.setdefault((hk, side), {}).setdefault(base_name(name), {"km": [], "stations": {}})
+        area = buckets.setdefault((hk, side), {}).setdefault(base_name(name), {"km": [], "pts": [], "stations": {}})
         area["km"].append(km)
+        area["pts"].append(pt)
         sid = str(it.get("statId", "")) or name
         operator = str(it.get("busiNm") or it.get("bnm") or "").strip() or "알 수 없음"  # "SK시그넷 " 처럼 끝 공백이 있다
         st = area["stations"].setdefault(sid, {
@@ -506,9 +507,10 @@ def build_routes(items, fetched_ms, tariffs=TARIFFS):
                 if merged and km - merged[-1]["last"] <= MERGE_KM:
                     m = merged[-1]
                 else:
-                    m = {"kms": [], "bases": [], "stations": {}, "last": km}
+                    m = {"kms": [], "pts": [], "bases": [], "stations": {}, "last": km}
                     merged.append(m)
                 m["kms"] += a["km"]
+                m["pts"] += a["pts"]
                 m["bases"].append(base)
                 m["last"] = km
                 for sid, st in a["stations"].items():
@@ -516,7 +518,10 @@ def build_routes(items, fetched_ms, tariffs=TARIFFS):
             rest = []
             for m in merged:
                 name = max(m["bases"], key=lambda b: (len(b), b)) + "휴게소"  # 가장 긴(정식) 이름
-                rest.append({"name": name, "km": round(sum(m["kms"]) / len(m["kms"]), 1),
+                # loc: 이 휴게소 충전기 좌표의 평균(위도, 경도). 길찾기에서 경로 위 km 를 구하는 데 쓴다
+                loc = [round(sum(p[0] for p in m["pts"]) / len(m["pts"]), 5),
+                       round(sum(p[1] for p in m["pts"]) / len(m["pts"]), 5)]
+                rest.append({"name": name, "km": round(sum(m["kms"]) / len(m["kms"]), 1), "loc": loc,
                              "stations": sorted(m["stations"].values(), key=lambda s: s["id"])})
             rest.sort(key=lambda r: (r["km"], r["name"]))
             for i, r in enumerate(rest, 1):

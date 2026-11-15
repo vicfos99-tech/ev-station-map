@@ -8,6 +8,8 @@
   const MINE_KEY = "ev-charge-planner/mine";     // 내가 확인한 값(업체 이름·요금, 충전소 요금·상태)
   const LIVE_KEY = "ev-charge-planner/live";     // 폰에서 새로 받은 공공 데이터
   const APIKEY_KEY = "ev-charge-planner/apikey"; // 공공데이터포털 키(이 폰에만)
+  const KAKAO_KEY = "ev-charge-planner/kakaokey"; // 카카오 REST 키(이 폰에만. 파일·저장소에는 들어가지 않는다)
+  const NAVI_KEY = "ev-charge-planner/navi";      // 마지막으로 받은 길(도로 조각)
 
   const storageOk = (() => {
     try { localStorage.setItem("ev-charge-planner/test", "1"); return localStorage.getItem("ev-charge-planner/test") === "1"; } catch (e) { return false; }
@@ -15,7 +17,14 @@
   // 폰에서 새로 받은 데이터가 파일에 든 것보다 새로우면 그걸 쓴다
   try {
     const saved = JSON.parse(localStorage.getItem(LIVE_KEY) || "null");
-    if (saved && saved.routes && (!DATA.LIVE || saved.fetched_at > DATA.LIVE.fetched_at)) DATA.replaceLive(saved);
+    if (saved && saved.routes && (!DATA.LIVE || saved.fetched_at > DATA.LIVE.fetched_at)) {
+      if (DATA.LIVE) { // 예전에 받아 둔 데이터에는 휴게소 위치(loc)가 없다 → 파일의 것으로 채운다(길찾기에 쓴다)
+        const locs = new Map();
+        for (const r of DATA.LIVE.routes) for (const a of r.rest_areas) if (a.loc) locs.set(`${r.key}|${a.name}`, a.loc);
+        for (const r of saved.routes) for (const a of r.rest_areas) if (!a.loc && locs.has(`${r.key}|${a.name}`)) a.loc = locs.get(`${r.key}|${a.name}`);
+      }
+      DATA.replaceLive(saved);
+    }
   } catch (e) { /* 못 읽으면 파일 데이터 */ }
 
   // ---------- 내가 확인한 값 ----------
@@ -59,7 +68,9 @@
     state.chaeviSet = true;
     persist();
   }
-  if (!DATA.ROUTES.some((r) => r.key === state.routeKey)) state.routeKey = DEFAULTS.routeKey;
+  if (state.routeKey !== "navi" && !DATA.ROUTES.some((r) => r.key === state.routeKey)) state.routeKey = DEFAULTS.routeKey;
+  let navi = null; // 길찾기로 만든 노선: { dest, fetched_at, pieces, result, route }
+  const allRoutes = () => (navi ? [navi.route] : []).concat(DATA.ROUTES);
   let routes = DATA.ROUTES.slice(); // 상태를 바꿔 보면 여기만 바뀐다(저장 안 함)
   let view = "route";
   let editing = null;
@@ -524,8 +535,8 @@
   function fillRouteOptions() {
     const sel = $("#route-select");
     sel.replaceChildren();
-    for (const r of DATA.ROUTES) sel.append(h("option", { value: r.key, text: `${r.highway} ${r.direction}${r.live || !DATA.LIVE ? "" : " (예시)"}` }));
-    if (!DATA.ROUTES.some((r) => r.key === state.routeKey)) state.routeKey = DATA.ROUTES[0].key;
+    for (const r of allRoutes()) sel.append(h("option", { value: r.key, text: r.navi ? `▶ ${r.highway}` : `${r.highway} ${r.direction}${r.live || !DATA.LIVE ? "" : " (예시)"}` }));
+    if (!allRoutes().some((r) => r.key === state.routeKey)) state.routeKey = DATA.ROUTES[0].key;
     sel.value = state.routeKey;
   }
   function savedMsg(el, ok) {
@@ -638,7 +649,8 @@
     $("#rf-modal").hidden = true;
     DATA.replaceLive(live);
     try { localStorage.setItem(LIVE_KEY, JSON.stringify(live)); } catch (e) { /* 저장 못 해도 이번 화면엔 씀 */ }
-    routes = DATA.ROUTES.slice();
+    if (navi) navi = buildNavi(navi) || navi; // 새로 받은 충전소 상태로 길 위 노선을 다시 만든다
+    routes = allRoutes();
     fillRouteOptions(); fillSubOptions(); fillOps();
     liveMsg(`새로 받았어요 ${hhmm(live.fetched_at)} · 휴게소 충전기 ${countChargers(live)}대`, "good");
     render();
@@ -660,6 +672,164 @@
       $(`#tab-${v}`).setAttribute("aria-selected", String(v === name));
     }
     if (name === "route") render();
+  }
+
+  // ---------- 길찾기(카카오) → 길 위 충전소: 내비 방식 ----------
+  // 카카오 길찾기 응답의 도로 조각을 같은 고속도로끼리 구간으로 합치고(web/navi.js), 길 위 휴게소·나들목만 한 노선으로 보여 준다.
+  const NV = window.EvNavi;
+  const PLACES = [ // 장소 찾기가 안 될 때 고르는 곳. [이름, 위도, 경도] — 역·시청 근처의 대략 위치
+    ["서울시청", 37.5665, 126.9780], ["부산역", 35.1151, 129.0403], ["동대구역", 35.8797, 128.6286], ["대전역", 36.3323, 127.4346],
+    ["광주송정역", 35.1378, 126.7916], ["울산시청", 35.5384, 129.3114], ["강릉역", 37.7644, 128.8996], ["목포역", 34.7913, 126.3866],
+    ["여수엑스포역", 34.7528, 127.7494], ["포항시청", 36.0190, 129.3435], ["창원시청", 35.2281, 128.6811], ["전주시청", 35.8242, 127.1480],
+    ["청주시청", 36.6424, 127.4890], ["춘천역", 37.8847, 127.7170], ["속초시청", 38.2070, 128.5918],
+  ];
+  const kakaoKey = () => { try { return localStorage.getItem(KAKAO_KEY) || ""; } catch (e) { return ""; } };
+  function naviMsg(text, tone) { const el = $("#navi-msg"); el.textContent = text; el.dataset.tone = tone || ""; el.hidden = !text; }
+  function naviKeyMsg(text, tone) { const el = $("#navi-key-msg"); el.textContent = text; el.dataset.tone = tone || ""; }
+  // 실제 데이터의 고속도로 선과 휴게소·나들목을 엔진 입력 모양으로
+  function naviSource() {
+    const cfg = DATA.LIVE && DATA.LIVE.config;
+    if (!cfg || !cfg.highways || !NV) return null;
+    const highways = [], sideOf = new Map();
+    for (const [hk, hw] of Object.entries(cfg.highways)) {
+      highways.push({ id: hk, name: hw.name, points: hw.points, forward_name: hw.forward.direction, backward_name: hw.backward.direction });
+      sideOf.set(hw.forward.key, [hk, "forward"]);
+      sideOf.set(hw.backward.key, [hk, "backward"]);
+    }
+    const sites = [], seenIc = new Set();
+    let withLoc = 0;
+    for (const side of ["forward", "backward"]) for (const r of DATA.LIVE.routes) {
+      const hs = sideOf.get(r.key);
+      if (!hs || hs[1] !== side) continue;
+      for (const a of r.rest_areas) {
+        const ic = a.kind === "ic";
+        if (ic) { // 나들목은 양쪽 방향 노선에 다 들어 있다 → 한 번만
+          const k = `${hs[0]}|${a.name}`;
+          if (seenIc.has(k)) continue;
+          seenIc.add(k);
+        }
+        if (a.loc) withLoc += 1;
+        sites.push({ id: a.id, name: a.name, kind: ic ? "ic" : "rest", highway_id: hs[0], direction: ic ? null : side, loc: a.loc || null, data: a });
+      }
+    }
+    return { highways, sites, withLoc };
+  }
+  // 받아 둔 길(조각)과 지금 충전소 데이터로 '길 위 충전소' 노선을 만든다. 충전소 데이터를 새로 받으면 다시 만든다
+  function buildNavi(saved) {
+    const src = naviSource();
+    if (!src || !saved || !Array.isArray(saved.pieces)) return null;
+    const res = NV.matchRoute(saved.dest, saved.pieces, src.highways, src.sites);
+    const used = new Set(), rest = [];
+    for (const s of res.stops) { // 경로 위 km 순. 같은 충전소가 두 번 들어가지 않게 한다(엔진이 거부한다)
+      const a = s.data;
+      const stations = a.stations.filter((st) => !used.has(st.id));
+      for (const st of stations) used.add(st.id);
+      const nearby = (a.nearby || []).filter((n) => !used.has(n.station.id));
+      for (const n of nearby) used.add(n.station.id);
+      if (!stations.length && !nearby.length) continue;
+      rest.push(Object.assign({}, a, { id: `navi-${a.id}`, km: Math.round(s.route_km * 10) / 10, stations, nearby }));
+    }
+    const route = { key: "navi", highway: `${saved.dest} 가는 길`, direction: "길찾기", length: Math.ceil(res.total_km), live: true, navi: true, rest_areas: rest };
+    return { dest: saved.dest, fetched_at: saved.fetched_at, pieces: saved.pieces, result: res, route, noLoc: src.withLoc === 0 };
+  }
+  function naviSummary(n) {
+    const res = n.result;
+    if (n.noLoc) return ["휴게소 위치 정보가 없어요. '내 차·할인'에서 공공 데이터를 한 번 새로 받아 주세요.", "bad"];
+    const roads = res.sections.map((s) => `${s.highway_name.replace("고속도로", "")} ${s.direction_name}`).join(" → ");
+    const nRest = n.route.rest_areas.filter((a) => a.kind !== "ic").length, nIc = n.route.rest_areas.length - nRest;
+    let text = `${n.dest}까지 ${Math.round(res.total_km)}km (${hhmm(n.fetched_at)}에 받음). `
+      + (res.sections.length ? `${roads}. 길 위 휴게소 ${nRest}곳, 나들목 ${nIc}곳.` : "아는 고속도로를 지나지 않아요.");
+    if (res.unmatched_highway_names.length) text += ` ${res.unmatched_highway_names.join(", ")}는 아직 자료가 없어 그 구간 충전소는 안 나와요.`;
+    return [text, res.sections.length ? (res.unmatched_highway_names.length ? "warn" : "good") : "warn"];
+  }
+  const getPosition = () => new Promise((ok, no) => navigator.geolocation.getCurrentPosition(ok, no, { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }));
+  async function kakaoGet(url, key) {
+    const res = await fetch(url, { headers: { Authorization: `KakaoAK ${key}` } });
+    let body = null;
+    try { body = await res.json(); } catch (e) { /* 본문 없음 */ }
+    return { status: res.status, body };
+  }
+  // 목적지 글자 → [이름, 위도, 경도]. 목록에 있으면 그것, 없으면 카카오 장소 찾기
+  async function findPlace(q, key) {
+    const norm = (s) => s.replace(/\s+/g, "");
+    const hit = PLACES.find((p) => norm(p[0]) === norm(q));
+    if (hit) return hit;
+    const r = await kakaoGet(`https://dapi.kakao.com/v2/local/search/keyword.json?size=1&query=${encodeURIComponent(q)}`, key);
+    if (r.status === 403) throw new Error("이름으로 장소 찾기가 카카오 앱 설정에서 꺼져 있어요(카카오맵 사용 설정). 지금은 목록에 있는 곳만 고를 수 있어요.");
+    if (r.status === 401) throw new Error("카카오 키가 맞지 않아요. '내 차·할인'에서 다시 넣어 주세요.");
+    const d = r.body && r.body.documents && r.body.documents[0];
+    if (!d) throw new Error(`'${q}'를 찾지 못했어요. 다른 이름으로 넣어 보세요.`);
+    return [d.place_name || q, Number(d.y), Number(d.x)];
+  }
+  let naviBusy = false;
+  async function doNavi() {
+    if (naviBusy) return;
+    const key = kakaoKey();
+    if (!key) {
+      showView("my");
+      naviKeyMsg("카카오 REST API 키를 넣고 저장한 뒤 다시 길 찾기를 누르세요.", "warn");
+      $("#kk-key").focus();
+      return;
+    }
+    const q = $("#navi-dest").value.trim();
+    if (!q) { naviMsg("목적지를 넣으세요. 예: 부산역", "warn"); $("#navi-dest").focus(); return; }
+    if (!naviSource()) { naviMsg("실제 고속도로 데이터가 든 파일에서만 됩니다.", "bad"); return; }
+    if (!navigator.geolocation || window.isSecureContext === false) { naviMsg("이 화면에서는 지금 위치를 알 수 없어 길을 찾지 못해요.", "bad"); return; }
+    naviBusy = true;
+    $("#btn-navi").disabled = true;
+    try {
+      naviMsg("지금 위치 찾는 중…", "");
+      let p;
+      try { p = await getPosition(); } catch (e) { throw new Error(e && e.code === 1 ? DENIED_SHORT : "지금 위치를 받지 못했어요. 폰의 위치(GPS)를 켜고 다시 눌러 주세요."); }
+      try { localStorage.setItem(GEO_OK_KEY, "1"); } catch (e) { /* 무시 */ }
+      naviMsg("길 찾는 중…", "");
+      const place = await findPlace(q, key);
+      const lat = p.coords.latitude, lng = p.coords.longitude;
+      const r = await kakaoGet(`https://apis-navi.kakaomobility.com/v1/directions?origin=${lng},${lat}&destination=${place[2]},${place[1]}&priority=RECOMMEND`, key);
+      if (r.status === 401 || r.status === 403) throw new Error("카카오 키가 맞지 않거나 길찾기를 쓸 수 없는 키예요. '내 차·할인'에서 확인해 주세요.");
+      if (r.status === 429) throw new Error("카카오 길찾기 하루 한도를 다 썼어요.");
+      if (r.status !== 200 || !r.body) throw new Error(`카카오 길찾기가 답하지 않았어요(${r.status}).`);
+      const kr = NV.piecesFromKakao(r.body);
+      const saved = { dest: place[0], fetched_at: Date.now(), pieces: kr.pieces };
+      const built = buildNavi(saved);
+      if (!built) throw new Error("길을 만들지 못했어요.");
+      navi = built;
+      try { localStorage.setItem(NAVI_KEY, JSON.stringify(saved)); } catch (e) { /* 저장 못 해도 이번 화면엔 씀 */ }
+      routes = allRoutes();
+      state.routeKey = "navi";
+      const pos = NV.locate(navi.result.route, [lat, lng], null);
+      state.naviKm = pos.route_km;
+      state.pos = Math.round(pos.route_km * 10) / 10;
+      editing = null;
+      persist();
+      fillRouteOptions();
+      naviMsg(...naviSummary(navi));
+      locateMsg("");
+      render();
+    } catch (e) {
+      const net = e instanceof TypeError; // fetch 가 연결 자체를 못 함
+      naviMsg(net ? "카카오에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요." : e.message, "bad");
+    } finally {
+      naviBusy = false;
+      $("#btn-navi").disabled = false;
+    }
+  }
+  // 받아 둔 길 위에서 지금 위치 맞추기: 경로 위 km 로 바꾸고, 그보다 앞에 있는 것만 남는다
+  function applyNaviFix(lat, lng, note) {
+    const last = typeof state.naviKm === "number" && Math.abs(state.naviKm - state.pos) < 0.06 ? state.naviKm : null; // 손으로 옮겼으면 지난 위치를 버린다
+    let pos;
+    try { pos = NV.locate(navi.result.route, [lat, lng], last); } catch (e) { pos = NV.locate(navi.result.route, [lat, lng], null); }
+    if (pos.off_route && last !== null) pos = NV.locate(navi.result.route, [lat, lng], null); // 지난 위치가 낡았을 수 있다 → 처음부터 다시 찾는다
+    hidePick();
+    if (pos.off_route) {
+      locateMsg(`받아 둔 길에서 ${pos.offset_km.toFixed(1)}km 벗어났어요. '길 찾기'를 다시 누르세요${note}`, "bad");
+      return;
+    }
+    state.naviKm = pos.route_km;
+    state.pos = Math.round(pos.route_km * 10) / 10;
+    persist();
+    locateMsg(`${navi.dest} 가는 길 ${state.pos}km 지점으로 맞췄어요${note}`, "good");
+    render();
   }
 
   // ---------- 지금 위치(GPS) → 노선·km ----------
@@ -710,6 +880,7 @@
     const { candidates, ranked } = L.locate([lat, lng], DATA.LIVE.config);
     const acc = accuracy ? ` · 오차 약 ${accuracy < 1000 ? `${Math.round(accuracy)}m` : `${(accuracy / 1000).toFixed(1)}km`}` : "";
     const note = ` (${hhmm(Date.now())}${acc})`;
+    if (state.routeKey === "navi" && navi) { applyNaviFix(lat, lng, note); return; }
     const list = ranked.slice(0, PICK_COUNT);
     // 보던 고속도로 위(2km 안)를 계속 달리는 중이면 km 는 바로 맞추고, 목록은 다른 길로 바꿀 수 있게 그대로 보여 준다
     const kept = L.keepSide(candidates, state.routeKey);
@@ -895,13 +1066,38 @@
     liveMsg("키를 지웠어요.", "");
   });
   if (storedKey()) $("#k-key").placeholder = "저장된 키 있음";
+  // 길찾기: 카카오 키(이 폰에만)와 목적지
+  if (kakaoKey()) $("#kk-key").placeholder = "저장된 키 있음";
+  $("#navi-key-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const typed = $("#kk-key").value.trim();
+    if (!typed) { naviKeyMsg(kakaoKey() ? "저장된 키가 있어요." : "키를 넣으세요.", kakaoKey() ? "" : "warn"); return; }
+    let ok = true;
+    try { localStorage.setItem(KAKAO_KEY, typed); } catch (err) { ok = false; }
+    $("#kk-key").value = "";
+    if (ok) $("#kk-key").placeholder = "저장된 키 있음";
+    naviKeyMsg(ok ? `저장했어요 ${hhmm(Date.now())}. '충전소' 화면에서 목적지를 넣고 길 찾기를 누르세요.` : "이 화면에서는 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.", ok ? "good" : "bad");
+  });
+  $("#btn-kk-clear").addEventListener("click", () => {
+    try { localStorage.removeItem(KAKAO_KEY); } catch (e) { /* 무시 */ }
+    $("#kk-key").value = ""; $("#kk-key").placeholder = "처음 한 번만 넣으면 됩니다";
+    naviKeyMsg("키를 지웠어요.", "");
+  });
+  for (const p of PLACES) $("#navi-places").append(h("option", { value: p[0] }));
+  $("#navi-form").addEventListener("submit", (e) => { e.preventDefault(); doNavi(); });
+  try { // 받아 둔 길이 있으면 다시 만든다(충전소 상태는 지금 데이터로)
+    const savedNavi = JSON.parse(localStorage.getItem(NAVI_KEY) || "null");
+    if (savedNavi) navi = buildNavi(savedNavi);
+  } catch (e) { navi = null; }
+  if (navi) { routes = allRoutes(); $("#navi-dest").value = navi.dest; if (state.routeKey === "navi") naviMsg(...naviSummary(navi)); }
+  else if (state.routeKey === "navi") state.routeKey = DEFAULTS.routeKey;
   $("#storage-warn").hidden = storageOk;
   for (const tab of document.querySelectorAll(".tabbar [data-view]")) tab.addEventListener("click", () => showView(tab.dataset.view));
   $("#btn-shuffle").addEventListener("click", () => {
     routes = routes.map((r) => DATA.shuffled(r, Math.random));
     showView("route");
   });
-  $("#btn-reset").addEventListener("click", () => { routes = DATA.ROUTES.slice(); showView("route"); });  $("#about").textContent = "계산 엔진은 파이썬 ev-charge-planner 를 자바스크립트로 옮긴 것이고, 같은 입력에 같은 답을 내는지 대조해 확인했습니다.";
+  $("#btn-reset").addEventListener("click", () => { routes = allRoutes(); showView("route"); });  $("#about").textContent = "계산 엔진은 파이썬 ev-charge-planner 를 자바스크립트로 옮긴 것이고, 같은 입력에 같은 답을 내는지 대조해 확인했습니다.";
   document.addEventListener("visibilitychange", () => { if (!document.hidden && view === "route") render(); });
   // '몇 분 전'이 시간이 지나며 바뀌도록 1분마다 다시 그린다(고치는 중엔 건드리지 않음)
   setInterval(() => { if (!document.hidden && view === "route" && editing === null && !busy) render(); }, 60000);

@@ -174,9 +174,10 @@
       if (!buckets.has(bk)) buckets.set(bk, new Map());
       const areas = buckets.get(bk);
       const base = baseName(name);
-      if (!areas.has(base)) areas.set(base, { km: [], stations: new Map() });
+      if (!areas.has(base)) areas.set(base, { km: [], pts: [], stations: new Map() });
       const area = areas.get(base);
       area.km.push(km);
+      area.pts.push(pt);
       const sid = pyStr(it.statId ?? "") || name;
       const operator = String(it.busiNm || it.bnm || "").trim() || "알 수 없음";
       if (!area.stations.has(sid)) {
@@ -202,8 +203,9 @@
         for (const [km, base, a] of groups) {
           let m;
           if (merged.length && km - merged[merged.length - 1].last <= cfg.merge_km) m = merged[merged.length - 1];
-          else { m = { kms: [], bases: [], stations: new Map(), last: km }; merged.push(m); }
+          else { m = { kms: [], pts: [], bases: [], stations: new Map(), last: km }; merged.push(m); }
           m.kms.push(...a.km);
+          m.pts.push(...a.pts);
           m.bases.push(base);
           m.last = km;
           for (const [sid, st] of a.stations) {
@@ -218,6 +220,9 @@
           return {
             name: best + "휴게소",
             km: pyRound(m.kms.reduce((s, x) => s + x, 0) / m.kms.length, 1),
+            // 이 휴게소 충전기 좌표의 평균(위도, 경도). 길찾기에서 경로 위 km 를 구하는 데 쓴다
+            loc: [Number((m.pts.reduce((s, p) => s + p[0], 0) / m.pts.length).toFixed(5)),
+              Number((m.pts.reduce((s, p) => s + p[1], 0) / m.pts.length).toFixed(5))],
             stations: [...m.stations.values()].sort((x, y) => cmp(x.id, y.id)),
           };
         });

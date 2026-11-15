@@ -272,7 +272,8 @@ def attach(routes, ics, stations):
                     used.add(n["station"]["id"])
                 km = ic["along"] if side == "forward" else length - ic["along"]
                 r["rest_areas"].append({"id": f"{r['key']}-ic{i + 1}", "name": f"{ic['name']} 나들목", "km": round(km, 1),
-                                        "kind": "ic", "stations": [], "nearby": near})
+                                        "kind": "ic", "loc": [round(ic["lat"], 5), round(ic["lng"], 5)],
+                                        "stations": [], "nearby": near})
                 added += 1
             r["rest_areas"].sort(key=lambda a: (a["km"], a["name"]))
     return added

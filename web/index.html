@@ -75,6 +75,13 @@
 
   <main>
     <section class="view" id="view-route" aria-labelledby="tab-route">
+      <form class="navi-row" id="navi-form" autocomplete="off" novalidate>
+        <label class="visually-hidden" for="navi-dest">목적지</label>
+        <input id="navi-dest" type="search" list="navi-places" placeholder="목적지 (예: 부산역)" enterkeyhint="search" autocapitalize="off" spellcheck="false">
+        <datalist id="navi-places"></datalist>
+        <button class="btn btn-primary" type="submit" id="btn-navi">길 찾기</button>
+      </form>
+      <div class="live-msg small" id="navi-msg" aria-live="polite" hidden></div>
       <div id="reco"></div>
       <div class="section-row">
         <h2 class="section-title">앞으로 나올 휴게소</h2>
@@ -129,6 +136,17 @@
         <div class="live-msg small" id="live-msg" aria-live="polite"></div>
       </form>
 
+      <form class="card stack" id="navi-key-form" autocomplete="off" novalidate>
+        <h2>길찾기 (카카오)</h2>
+        <p class="small muted">목적지를 넣으면 카카오 길찾기로 받은 길 위의 휴게소·나들목 충전소만 보여 줍니다. 길을 찾을 때 지금 위치와 목적지를 카카오에 보냅니다. 키는 이 폰에만 저장되고 파일에는 들어가지 않습니다.</p>
+        <div class="field"><label for="kk-key">카카오 REST API 키</label><input id="kk-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="처음 한 번만 넣으면 됩니다"></div>
+        <div class="row">
+          <button class="btn btn-primary" type="submit">저장</button>
+          <button class="btn btn-ghost" type="button" id="btn-kk-clear">키 지우기</button>
+        </div>
+        <div class="live-msg small" id="navi-key-msg" aria-live="polite"></div>
+      </form>
+
       <form class="card stack" id="ops-form" autocomplete="off" novalidate>
         <h2>업체 이름·요금 (내가 확인한 값)</h2>
         <p class="small muted">알아보기 쉬운 이름과 실제로 확인한 요금을 넣으면 화면과 추천에 반영됩니다. 비워 두면 공공 데이터 값을 씁니다. 새로 받아도 지워지지 않습니다.</p>
@@ -164,6 +182,7 @@
 <script src="live.js"></script>
 <script src="live_build.js"></script>
 <script src="data.js"></script>
+<script src="navi.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

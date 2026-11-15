@@ -118,6 +118,9 @@ h2 { text-wrap: balance; }
 .gauge + .gauge .big { color: var(--tile2-ink); }
 .gauge input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--range-accent); min-height: 28px; margin: 0; }
 .gauge + .gauge input[type="range"] { accent-color: var(--tile2-ink); }
+.navi-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
+.navi-row input { flex: 1 1 8em; min-width: 0; font: inherit; font-size: 16px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.navi-row .btn { flex: 0 0 auto; }
 .locate-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .btn-locate { flex: 0 0 auto; font: inherit; font-size: 14px; font-weight: 600; min-height: 36px; padding: 4px 12px; border-radius: 6px; cursor: pointer;
   background: var(--badge-bg); color: var(--badge-ink); border: 1px solid var(--badge-line); }

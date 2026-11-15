@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 
-SECRET_ENVS = ("EV_CHARGER_API_KEY", "EX_API_KEY", "TELEGRAM_BOT_TOKEN", "KAKAO_REST_API_KEY", "OPENAI_API_KEY")
+SECRET_ENVS = ("EV_CHARGER_API_KEY", "EX_API_KEY", "TELEGRAM_BOT_TOKEN", "KAKAO_REST_API_KEY", "KAKAO_REST_KEY", "OPENAI_API_KEY")
 PATTERN = re.compile(rb"(serviceKey=[A-Za-z0-9%+/=]{20,}|bot\d{6,}:[A-Za-z0-9_-]{20,}|KakaoAK [A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY)")
 
 
