@@ -73,11 +73,26 @@
     const t = pyStr(item.chgerType ?? "").padStart(2, "0");
     const kind = cfg.slow_types.includes(t) ? "slow" : "fast";
     const kw = pyFloat(item.output || 0) || 0;
-    return {
+    const out = {
       type: kind,
       power_kw: kw > 0 ? kw : cfg.default_kw[kind],
       status: cfg.status[pyStr(item.stat ?? "")] || "comm_error",
     };
+    const last = lastEndMs(item.lastTedt);
+    if (last !== null) out.last_end = last; // 기록이 있을 때만 넣는다(파이썬 charger_of 와 같게)
+    return out;
+  }
+  // API 의 lastTedt(마지막 충전 종료, 한국 시각 'YYYYMMDDHHMMSS') → 1970 년부터의 밀리초. 못 읽으면 null (파이썬 last_end_ms)
+  function lastEndMs(value) {
+    const s = pyStr(value || "").trim();
+    if (s.length !== 14 || !/^[0-9]{14}$/.test(s)) return null;
+    const n = (a, b) => Number(s.slice(a, b));
+    const y = n(0, 4), mo = n(4, 6), d = n(6, 8), hh = n(8, 10), mi = n(10, 12), ss = n(12, 14);
+    if (y < 2000 || mo < 1 || mo > 12 || d < 1 || hh > 23 || mi > 59 || ss > 59) return null;
+    const ms = Date.UTC(y, mo - 1, d, hh - 9, mi, ss);
+    const back = new Date(ms + 9 * 3600000); // 2월 30일처럼 없는 날은 넘어가 버리므로 되돌려 확인한다
+    if (back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) return null;
+    return ms;
   }
   const isRestArea = (item) => pyStr(item.kindDetail ?? "") === "C001" || pyStr(item.statNm ?? "").includes("휴게소");
 

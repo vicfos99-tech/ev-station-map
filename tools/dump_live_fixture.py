@@ -16,7 +16,7 @@ import charger_api as ca  # noqa: E402
 
 OUT = HERE.parent / "web" / "test" / "live_fixture.json"
 FIELDS = ["statNm", "statId", "chgerId", "chgerType", "lat", "lng", "stat", "output", "busiNm", "bnm",
-          "kindDetail", "delYn", "addr", "addrDetail", "location"]
+          "kindDetail", "delYn", "addr", "addrDetail", "location", "lastTedt"]
 FETCHED = 1_763_164_000_000
 
 
@@ -51,6 +51,9 @@ def tricky(rng):
             "addr": rng.choice(["", "", None, "경기도 어딘가 경부고속도로 12", "중부내륙고속도로 3", "충북 서해안 고속도로",
                                 "수도권제1순환고속도로 9", "서울양양고속도로", "영동고속도로 1 경부고속도로 2", "통영대전중부고속도로"]),
             "addrDetail": rng.choice(["", None, "중앙고속도로 상행"]),
+            # 마지막 충전 종료 시각: 정상, 자정, 없는 날, 글자, 짧은 것, 빈 것, 0 만, 공백 붙은 것
+            "lastTedt": rng.choice(["20261115221312", "20261116000000", "20260230120000", "abc", "2026111522", "", None,
+                                    "00000000000000", " 20261114093000 ", "20261301000000", "20261115246000", 20261115101010]),
         }
         out.append(it)
     return out

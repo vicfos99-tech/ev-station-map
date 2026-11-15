@@ -368,8 +368,29 @@ def charger_of(item):
         kw = float(item.get("output") or 0)
     except ValueError:
         kw = 0.0
-    return {"type": kind, "power_kw": kw if kw > 0 else DEFAULT_KW[kind],
-            "status": STATUS.get(str(item.get("stat", "")), "comm_error")}
+    out = {"type": kind, "power_kw": kw if kw > 0 else DEFAULT_KW[kind],
+           "status": STATUS.get(str(item.get("stat", "")), "comm_error")}
+    last = last_end_ms(item.get("lastTedt"))
+    if last is not None:  # 기록이 있을 때만 넣는다(없으면 칸 자체가 없다)
+        out["last_end"] = last
+    return out
+
+
+KST = timezone(timedelta(hours=9))
+
+
+def last_end_ms(value):
+    """API 의 lastTedt(마지막 충전 종료, 한국 시각 'YYYYMMDDHHMMSS') → 1970 년부터의 밀리초. 못 읽으면 None."""
+    s = str(value or "").strip()
+    if len(s) != 14 or not s.isdigit() or not s.isascii():
+        return None
+    try:
+        t = datetime(int(s[:4]), int(s[4:6]), int(s[6:8]), int(s[8:10]), int(s[10:12]), int(s[12:14]), tzinfo=KST)
+    except ValueError:
+        return None
+    if t.year < 2000:
+        return None
+    return int(t.timestamp()) * 1000
 
 
 def is_rest_area(item):

@@ -168,6 +168,27 @@
       st.status_updated_at = m.at;
     }
   }
+  // 마지막으로 누가 충전을 끝낸 시각(공공 데이터의 충전기별 기록). 최근에 충전됐으면 살아 있다는 가장 확실한 증거다
+  const LAST_OLD_DAYS = 7; // 이보다 오래 기록이 없으면 고장을 의심하라고 알린다
+  function rawChargers(id) {
+    for (const a of curRoute().rest_areas) {
+      for (const st of [...(a.stations || []), ...(a.nearby || []).map((n) => n.station)]) if (st.id === id) return st.chargers || [];
+    }
+    return [];
+  }
+  // 급속 충전기 가운데 가장 최근 기록. 기록이 하나도 없으면 null(옛 데이터이거나 한 번도 안 쓴 곳)
+  function lastCharged(id) {
+    const ends = rawChargers(id).filter((c) => c.type === "fast" && c.last_end > 0).map((c) => c.last_end);
+    return ends.length ? Math.max(...ends) : null;
+  }
+  function lastChargedChip(id) {
+    const at = lastCharged(id);
+    if (at === null) return null;
+    const days = (Date.now() - at) / 86400000;
+    if (days >= LAST_OLD_DAYS) return chip(`${Math.floor(days)}일째 충전 기록 없음`, "warn");
+    const a = ago(at);
+    return chip(a === "방금" ? "방금 충전됨" : `${a} 충전됨`, "good");
+  }
   function findStation(route, id) {
     if (!route) return null;
     for (const a of route.rest_areas) for (const st of [...a.stations, ...a.nearby.map((n) => n.station)]) if (st.id === id) return st;
@@ -219,6 +240,8 @@
     if (isBlocked) meta.push(chip(`높이 제한 ${limit}m · 내 차 ${state.height}m 못 들어감`, "bad"));
     else if (limit > 0) meta.push(chip(`높이 제한 ${limit}m (내가 확인)`, "info"));
     if (st.unusable && !isBlocked) meta.push(chip(`고장·점검 ${st.unusable}`, "warn"));
+    const lastChip = lastChargedChip(s.station_id);
+    if (lastChip) meta.push(lastChip);
     meta.push(chip(infoAge(s.station_id), st.is_stale ? "warn" : null));
     if (s.is_nearby) meta.push(chip(`왕복 +${km(s.detour_km)} · 도착 예상 ${pct(s.arrival_soc_pct)}`, s.reachable ? null : "bad"));
     if (s.quote.applied) meta.push(h("span", { text: s.quote.applied === "subscription" ? "구독 할인" : `${s.quote.applied} 할인` }));
@@ -245,11 +268,13 @@
     const safe = id.replace(/[^A-Za-z0-9_-]/g, "_");
     const priceIn = h("input", { id: `e-price-${safe}`, type: "number", step: "0.1", min: "0", inputmode: "decimal", placeholder: "비우면 공공 데이터 값", value: m.price > 0 ? m.price : null });
     const heightIn = h("input", { id: `e-height-${safe}`, type: "number", step: "0.1", min: "0", inputmode: "decimal", placeholder: "없거나 모르면 비움", value: m.height > 0 ? m.height : null });
+    const raw = rawChargers(id);
     const rows = st.chargers.map((c, i) => {
+      const last = raw.length === st.chargers.length && raw[i].last_end > 0 ? ` · ${ago(raw[i].last_end)} 충전` : "";
       const sel = h("select", { id: `e-st-${safe}-${i}` }, h("option", { value: "", text: "공공 데이터대로" }),
         Object.entries(STATUS_TEXT).map(([v, t]) => h("option", { value: v, text: t })));
       sel.value = active.status && m.statuses[i] ? m.statuses[i] : "";
-      return h("div", { class: "field" }, h("label", { for: sel.id, text: `${i + 1}번 ${c.type === "fast" ? "급속" : "완속"} ${Math.round(c.power_kw)}kW` }), sel);
+      return h("div", { class: "field" }, h("label", { for: sel.id, text: `${i + 1}번 ${c.type === "fast" ? "급속" : "완속"} ${Math.round(c.power_kw)}kW${last}` }), sel);
     });
     const msg = h("span", { class: "saved-msg small", "aria-live": "polite" });
     const save = h("button", { type: "button", class: "btn btn-primary", text: "저장" });
