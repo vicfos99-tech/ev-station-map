@@ -41,6 +41,7 @@
   const DEFAULTS = {
     routeKey: DATA.ROUTES[0].key, soc: 60, pos: 0,
     battery: 60, eff: 5, margin: 10, minArrival: 15, stale: 30,
+    height: 0, // 차 높이(m). 탑차·윙바디만 넣는다. 0 이면 높이로 거르지 않는다
     // 묘성의 채비 구독: 고속도로 329원/kWh = 391원 대비 15.86% 할인 (2026-11-15). 카드는 없음
     subOp: "채비", subRate: 15.86, subPrivate: true, cardName: "", cardRate: 10,
   };
@@ -123,11 +124,39 @@
     };
     const route = DATA.toRoute(r, now);
     const liveAt = liveAtOf(r);
-    for (const a of route.rest_areas) for (const st of [...a.stations, ...a.nearby.map((n) => n.station)]) applyMine(st, liveAt);
+    const tall = state.height > 0;
+    const indoor = indoorIds = new Set();
+    for (const a of r.rest_areas) for (const n of a.nearby || []) if (n.station.indoor) indoor.add(n.station.id);
+    blocked = new Set();
+    hiddenIndoor = 0;
+    for (const a of route.rest_areas) {
+      if (tall) { // 탑차·윙바디: 건물 안·지하 충전소는 보이지 않게
+        const before = a.nearby.length;
+        a.nearby = a.nearby.filter((n) => !indoor.has(n.station.id));
+        hiddenIndoor += before - a.nearby.length;
+      }
+      a.nearby = a.nearby.slice(0, NEARBY_SHOW); // 가까운 순으로 들어 있다
+      for (const st of [...a.stations, ...a.nearby.map((n) => n.station)]) {
+        applyMine(st, liveAt);
+        const limit = heightLimit(st.id);
+        if (tall && limit > 0 && limit < state.height) { // 내 차가 못 들어가는 곳: 추천에서 빠지게 못 쓰는 것으로 둔다
+          blocked.add(st.id);
+          for (const c of st.chargers) c.status = "out_of_service";
+        }
+      }
+    }
+    // 인근 충전소가 하나도 안 남은 나들목은 뺀다
+    const icIds = new Set(r.rest_areas.filter((a) => a.kind === "ic").map((a) => a.id));
+    route.rest_areas = route.rest_areas.filter((a) => !(icIds.has(a.id) && a.nearby.length === 0));
     lastRoute = route;
     return { route, vehicle, user, now };
   }
   // 내가 확인한 값 덮어쓰기: 업체 요금 → 충전소 요금 → 충전기 상태(받은 뒤에 확인한 것만)
+  const NEARBY_SHOW = 3; // 나들목마다 보여 줄 인근 충전소 수(데이터에는 야외 후보까지 더 들어 있다)
+  let blocked = new Set(); // 높이 제한 때문에 내 차가 못 들어가는 충전소
+  let indoorIds = new Set(); // 이 노선에서 건물 안·지하인 충전소
+  let hiddenIndoor = 0;    // 높은 차라서 숨긴 건물 안·지하 충전소 수
+  const heightLimit = (id) => { const m = mine.stations[id]; return m && m.height > 0 ? m.height : 0; };
   function applyMine(st, liveAt) {
     const op = mine.ops[st.operator];
     if (op && op.price > 0) st.price_per_kwh = op.price;
@@ -184,7 +213,12 @@
     meta.push(chip(`빈 급속 ${st.usable_fast}`, st.usable_fast > 0 ? "good" : null));
     if (st.waiting_fast) meta.push(chip(`충전 중 ${st.waiting_fast}`));
     if (st.usable_slow) meta.push(chip(`빈 완속 ${st.usable_slow}`));
-    if (st.unusable) meta.push(chip(`고장·점검 ${st.unusable}`, "warn"));
+    const isBlocked = blocked.has(s.station_id);
+    if (indoorIds.has(s.station_id)) meta.push(chip("건물 안·지하", "warn"));
+    const limit = heightLimit(s.station_id);
+    if (isBlocked) meta.push(chip(`높이 제한 ${limit}m · 내 차 ${state.height}m 못 들어감`, "bad"));
+    else if (limit > 0) meta.push(chip(`높이 제한 ${limit}m (내가 확인)`, "info"));
+    if (st.unusable && !isBlocked) meta.push(chip(`고장·점검 ${st.unusable}`, "warn"));
     meta.push(chip(infoAge(s.station_id), st.is_stale ? "warn" : null));
     if (s.is_nearby) meta.push(chip(`왕복 +${km(s.detour_km)} · 도착 예상 ${pct(s.arrival_soc_pct)}`, s.reachable ? null : "bad"));
     if (s.quote.applied) meta.push(h("span", { text: s.quote.applied === "subscription" ? "구독 할인" : `${s.quote.applied} 할인` }));
@@ -210,6 +244,7 @@
     const active = mineState(id, liveAtOf(curRoute()));
     const safe = id.replace(/[^A-Za-z0-9_-]/g, "_");
     const priceIn = h("input", { id: `e-price-${safe}`, type: "number", step: "0.1", min: "0", inputmode: "decimal", placeholder: "비우면 공공 데이터 값", value: m.price > 0 ? m.price : null });
+    const heightIn = h("input", { id: `e-height-${safe}`, type: "number", step: "0.1", min: "0", inputmode: "decimal", placeholder: "없거나 모르면 비움", value: m.height > 0 ? m.height : null });
     const rows = st.chargers.map((c, i) => {
       const sel = h("select", { id: `e-st-${safe}-${i}` }, h("option", { value: "", text: "공공 데이터대로" }),
         Object.entries(STATUS_TEXT).map(([v, t]) => h("option", { value: v, text: t })));
@@ -222,17 +257,21 @@
     save.addEventListener("click", () => {
       const price = parseFloat(priceIn.value);
       const statuses = rows.map((r) => r.querySelector("select").value || null);
+      const height = parseFloat(heightIn.value);
       if (priceIn.value.trim() && !(price > 0)) { msg.textContent = "요금은 0보다 큰 숫자로 적어 주세요."; return; }
-      if (!(price > 0) && !statuses.some(Boolean)) delete mine.stations[id];
-      else mine.stations[id] = { price: price > 0 ? price : undefined, statuses, at: Date.now() };
+      if (heightIn.value.trim() && !(height > 0 && height < 10)) { msg.textContent = "높이 제한은 미터로 적어 주세요. 예: 2.3"; return; }
+      if (!(price > 0) && !statuses.some(Boolean) && !(height > 0)) delete mine.stations[id];
+      else mine.stations[id] = { price: price > 0 ? price : undefined, height: height > 0 ? height : undefined, statuses, at: Date.now() };
       editing = null;
       if (!saveMine()) alertMsg("이 화면에서는 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.");
       render();
     });
     clear.addEventListener("click", () => { delete mine.stations[id]; saveMine(); editing = null; render(); });
     return h("div", { class: "editor" },
-      h("div", { class: "small muted", text: "실제로 확인한 값만 넣으세요. 상태는 이보다 새 공공 데이터를 받으면 그 값으로 돌아가고, 요금은 지울 때까지 남습니다." }),
-      h("div", { class: "field" }, h("label", { for: priceIn.id, text: "요금 (원/kWh, 할인 전)" }), priceIn),
+      h("div", { class: "small muted", text: "실제로 확인한 값만 넣으세요. 상태는 이보다 새 공공 데이터를 받으면 그 값으로 돌아가고, 요금과 높이 제한은 지울 때까지 남습니다. 높이 제한은 캐노피·입구 높이처럼 차가 지나갈 수 있는 높이입니다." }),
+      h("div", { class: "grid2" },
+        h("div", { class: "field" }, h("label", { for: priceIn.id, text: "요금 (원/kWh, 할인 전)" }), priceIn),
+        h("div", { class: "field" }, h("label", { for: heightIn.id, text: "높이 제한 (m)" }), heightIn)),
       h("div", { class: "grid2" }, rows),
       h("div", { class: "row" }, save, clear, msg));
   }
@@ -285,7 +324,8 @@
     }
     const v = EV.makeVehicle(inp.vehicle);
     $("#range-line").textContent = `안전하게 갈 수 있는 거리 약 ${Math.max(0, Math.round(EV.conservative_range_km(v) - v.min_arrival_soc_pct * EV.km_per_pct(v)))}km `
-      + `(여유 ${state.margin}%, 도착 때 ${state.minArrival}% 남김)`;
+      + `(여유 ${state.margin}%, 도착 때 ${state.minArrival}% 남김)`
+      + (state.height > 0 ? ` · 차 높이 ${state.height}m: 건물 안·지하 충전소 ${hiddenIndoor}곳 숨김` + (blocked.size ? `, 높이 제한으로 못 가는 곳 ${blocked.size}곳` : "") : "");
     renderReco(result);
     renderStrip(result);
   }
@@ -383,6 +423,7 @@
     $("#v-margin").value = state.margin;
     $("#v-min").value = state.minArrival;
     $("#v-stale").value = state.stale;
+    $("#v-height").value = state.height > 0 ? state.height : "";
     $("#d-sub-op").value = state.subOp;
     $("#d-sub-rate").value = state.subRate;
     $("#d-sub-private").checked = !!state.subPrivate;
@@ -393,6 +434,7 @@
     const num = (sel) => parseFloat($(sel).value);
     const next = Object.assign({}, state, {
       battery: num("#v-battery"), eff: num("#v-eff"), margin: num("#v-margin"), minArrival: num("#v-min"), stale: num("#v-stale"),
+      height: $("#v-height").value.trim() ? num("#v-height") : 0,
       subOp: $("#d-sub-op").value, subRate: num("#d-sub-rate"), subPrivate: $("#d-sub-private").checked,
       cardName: $("#d-card-name").value, cardRate: num("#d-card-rate"),
     });
@@ -404,6 +446,7 @@
     if (!(next.margin >= 0 && next.margin < 100)) return bad(vErr, "안전 여유는 0~99 사이로 적어 주세요.");
     if (!(next.minArrival >= 0 && next.minArrival <= 100)) return bad(vErr, "최소 도착 잔량은 0~100 사이로 적어 주세요.");
     if (!(next.stale >= 0)) return bad(vErr, "오래됨 기준은 0 이상으로 적어 주세요.");
+    if (!(next.height >= 0 && next.height < 10)) return bad(vErr, "차 높이는 미터로 적어 주세요. 예: 3.4 (일반 차·카고는 비워 둡니다)");
     if (next.subOp && !(next.subRate > 0 && next.subRate < 100)) return bad(dErr, "구독 할인은 1~99 사이로 적어 주세요.");
     if (next.cardName.trim() && !(next.cardRate > 0 && next.cardRate < 100)) return bad(dErr, "카드 할인은 1~99 사이로 적어 주세요.");
     state = next;

@@ -20,7 +20,7 @@ import charger_api as ca  # noqa: E402
 
 NEAR_LINE_KM = 6.0   # 나들목은 선에서 2km 안, 충전소는 나들목에서 3km 안 → 넉넉히 6km
 ROWS = 5000          # 한 번에 받는 건수(9999 는 큰 지역에서 서버 시간 초과가 잦다)
-FIELDS = ["statNm", "statId", "chgerId", "chgerType", "lat", "lng", "stat", "output", "busiNm", "bnm", "kindDetail", "delYn", "addr", "limitYn", "limitDetail", "useTime"]
+FIELDS = ["statNm", "statId", "chgerId", "chgerType", "lat", "lng", "stat", "output", "busiNm", "bnm", "kindDetail", "delYn", "addr", "limitYn", "limitDetail", "useTime", "floorNum", "floorType", "location", "note", "kind", "parkingFree"]
 
 
 def key_from_env():

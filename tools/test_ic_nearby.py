@@ -223,3 +223,84 @@ def test_private_chargers_are_not_offered():
         {**ch("제한 없는 곳", "P6", *base), "limitYn": "N"},
     ]
     assert sorted(s["id"] for s in icn.stations_from_items(items, NOW)) == ["P1", "P6"]
+
+
+def ex_unit(name, no, route, lat, lng):
+    """도로공사 실제 응답 모양(2026-11-15 확인)."""
+    return {"unitName": name, "pageNo": None, "numOfRows": None, "unitCode": "101 ", "routeNo": no, "routeName": route,
+            "xValue": "" if lng is None else f"{lng:.6f}", "yValue": "" if lat is None else f"{lat:.6f}"}
+
+
+def test_ex_units_real_shape_route_numbers_and_mainline_tollgates():
+    raw = {"list": [
+        ex_unit("오산", "001", "경부선", *OSAN_IC),
+        ex_unit("서울", "001", "경부선", 37.365046, 127.102077),          # 본선 요금소: 나갈 수 없음
+        ex_unit("금강휴게소", "001", "경부선", None, None),               # 좌표 없음
+        ex_unit("옥산", "001", "경부선", None, None),
+        ex_unit("밀양출구JC", "160", "대구-부산선", 35.5, 128.7),
+        ex_unit("동김천(테스트)", "001", "경부선", 36.1, 128.1),
+        ex_unit("용인", "050", "영동선", OSAN_IC[0] + 0.004, OSAN_IC[1]),  # 경부 선 가까이 있어도 영동(050)의 영업소
+    ], "count": 7, "code": "SUCCESS"}
+    ics = icn.parse_ics(raw)
+    assert [(i["name"], i["route_no"]) for i in ics] == [("오산", "001"), ("용인", "050")]
+    assert [i["name"] for i in icn.ics_on_highway(ics, "gb")] == ["오산"]
+
+
+def test_ex_and_osm_together_merge_same_name_and_fill_gaps(tmp_path, capsys):
+    items = [ch("기흥휴게소(부산방향)", "R1", *GIHEUNG, kind="C001")]
+    routes, skipped = ca.build_routes(items, NOW)
+    live = tmp_path / "live.js"
+    ca.write_live_js(routes, NOW, live, skipped)
+    (tmp_path / "ex.json").write_text(json.dumps({"list": [
+        ex_unit("오산", "001", "경부선", OSAN_IC[0] + 0.004, OSAN_IC[1]),       # 요금소 위치(나들목에서 조금 떨어짐)
+        ex_unit("천안", "001", "경부선", *CHEONAN_IC),                           # 오픈스트리트맵에는 없는 곳
+    ]}, ensure_ascii=False), encoding="utf-8")
+    (tmp_path / "osm.json").write_text(json.dumps({"elements": [
+        {"type": "node", "id": 1, "lat": OSAN_IC[0], "lon": OSAN_IC[1], "tags": {"name": "오산 나들목"}},
+        {"type": "node", "id": 2, "lat": 37.46, "lon": 127.042, "tags": {"name": "양재IC"}},   # 요금소가 없어 도로공사에는 없는 곳
+    ]}, ensure_ascii=False), encoding="utf-8")
+    (tmp_path / "ways.json").write_text(json.dumps({"elements": [
+        {"type": "way", "id": 9, "nodes": [1, 2], "tags": {"highway": "motorway", "ref": "1"}}]}), encoding="utf-8")
+    (tmp_path / "near.json").write_text(json.dumps({"fetched_ms": NOW, "items": {"item": [
+        ch("오산충전소", "N1", OSAN_IC[0] + 0.009, OSAN_IC[1]),
+        ch("천안충전소", "N2", CHEONAN_IC[0] + 0.005, CHEONAN_IC[1]),
+        ch("양재충전소", "N3", 37.463, 127.042)]}}, ensure_ascii=False), encoding="utf-8")
+    assert icn.main(["--ics", str(tmp_path / "ex.json"), "--osm", str(tmp_path / "osm.json"), "--osm-ways", str(tmp_path / "ways.json"),
+                     "--chargers", str(tmp_path / "near.json"), "--live", str(live)]) == 0
+    text = live.read_text(encoding="utf-8")
+    data = json.loads(text[text.index("var d = ") + 8:text.index(";\n  if (typeof module")])
+    down = next(r for r in data["routes"] if r["key"] == "live-gb-down")
+    names = [a["name"] for a in down["rest_areas"] if a.get("kind") == "ic"]
+    assert names == ["양재 나들목", "오산 나들목", "천안 나들목"]          # 오산은 두 자료에 있어도 하나, 나머지는 서로 채움
+    assert "한국도로공사" in data["ic_note"] and "OpenStreetMap" in data["ic_note"]
+
+
+def test_indoor_flag_from_floor_fields_and_names():
+    base = (OSAN_IC[0] + 0.005, OSAN_IC[1])
+    items = [
+        {**ch("공영주차장", "O1", *base), "floorType": "F", "floorNum": "1"},
+        {**ch("지하 충전소", "I1", *base), "floorType": "B", "floorNum": "1"},
+        {**ch("주차장 3층", "I2", *base), "floorType": "F", "floorNum": "3"},
+        ch("이마트 오산점 B2", "I3", *base),
+        ch("오산역 환승주차타워", "I4", *base),
+        {**ch("시청", "I5", *base), "location": "지하 1층 주차장"},
+        ch("오산휴게텔 1층 야외", "O2", *base),
+        ch("12층짜리 빌딩 앞 노상", "O3", *base),      # '12층'의 2층에 걸리지 않는다
+    ]
+    st = {s["id"]: s.get("indoor", False) for s in icn.stations_from_items(items, NOW)}
+    assert st == {"O1": False, "I1": True, "I2": True, "I3": True, "I4": True, "I5": True, "O2": False, "O3": False}
+
+
+def test_nearby_keeps_outdoor_candidates_when_nearest_are_indoor():
+    ic = {"name": "오산", "route": "경부선", "lat": OSAN_IC[0], "lng": OSAN_IC[1]}
+    def at(km_n):  # 북쪽으로 대략 km_n km
+        return (OSAN_IC[0] + 0.009 * km_n, OSAN_IC[1])
+    items = [{**ch("안1", "A", *at(0.3)), "floorType": "B"}, {**ch("안2", "B", *at(0.6)), "floorType": "B"},
+             {**ch("안3", "C", *at(0.9)), "floorType": "B"}, {**ch("안4", "D", *at(1.2)), "floorType": "B"},
+             ch("밖1", "E", *at(1.5)), ch("밖2", "F", *at(1.8)), ch("밖3", "G", *at(2.1)), ch("밖4", "H", *at(2.4))]
+    near = icn.nearby_stations(ic, icn.stations_from_items(items, NOW))
+    assert [n["station"]["id"] for n in near] == ["A", "B", "C", "E", "F", "G"]     # 가까운 3곳 + 야외 가까운 3곳, 가까운 순
+    assert [bool(n["station"].get("indoor")) for n in near] == [True, True, True, False, False, False]
+    # 야외만 있으면 예전처럼 3곳
+    only_out = icn.nearby_stations(ic, icn.stations_from_items(items[4:], NOW))
+    assert [n["station"]["id"] for n in only_out] == ["E", "F", "G"]

@@ -68,8 +68,24 @@ def parse_ics(raw):
             continue
         if not name or not (33 <= lat <= 39 and 124 <= lng <= 132):  # 우리나라 밖 좌표(뒤바뀐 것 등)는 뺀다
             continue
-        out.append({"name": name, "route": str(_first(it, ROUTE_KEYS) or "").strip(), "lat": lat, "lng": lng})
+        ic = {"name": name, "route": str(_first(it, ROUTE_KEYS) or "").strip(), "lat": lat, "lng": lng}
+        no = str(it.get("routeNo") or "").strip()
+        if no:  # 도로공사 실제 응답: 노선 번호가 있다 → 번호로 고속도로를 가린다(EX_ROUTE_NOS)
+            if EX_SKIP.search(name) or name in EX_MAINLINE:
+                continue
+            ic["route_no"] = no
+        out.append(ic)
     return out
+
+
+# 도로공사 '영업소 위치정보'(2026-11-15 실제 응답 확인: unitName, routeNo, routeName, xValue=경도, yValue=위도, 590곳 중 192곳은 좌표 없음)
+EX_SKIP = re.compile(r"휴게소|JC|분기점|테스트|\(개\)")
+# 본선 위 요금소: 여기서는 고속도로를 빠져나갈 수 없어 '나들목'이 아니다
+EX_MAINLINE = {"서울", "서서울", "동서울", "군자", "북부산", "남양주", "동산", "목포", "광주", "동광주", "대동", "서부산"}
+# 도로공사 노선 번호(오픈스트리트맵 ref 와 다른 곳이 있다: 순천완주 627, 당진영덕 030+032, 동해 065+066)
+EX_ROUTE_NOS = {"gb": {"001"}, "yd": {"050"}, "sh": {"015"}, "jb": {"035"}, "jn": {"045"}, "hn": {"025"}, "nh": {"010"}, "sy": {"060"},
+                "ja": {"055"}, "dy": {"030", "032"}, "pj": {"040"}, "gd": {"012"}, "nc": set(), "sw": {"627"},
+                "dhs": {"065", "066"}, "dhn": {"065"}}
 
 
 OSM_SKIP = re.compile(r"분기점|JC|JCT|휴게소|쉼터|SA|PA|지하차도|터널")  # 나갈 수 없거나 나들목이 아닌 것
@@ -137,6 +153,10 @@ def ics_on_highway(ics, hk):
     found = []
     for ic in ics:
         along, off = ca.project((ic["lat"], ic["lng"]), hw["points"])
+        if "route_no" in ic:  # 도로공사 영업소: 도로공사 노선 번호가 이 고속도로 것일 때만
+            if ic["route_no"] in EX_ROUTE_NOS.get(hk, set()) and off <= REF_ON_LINE_KM:
+                found.append({**ic, "along": along})
+            continue
         if "refs" in ic:  # 노선 번호를 아는 나들목: 번호가 이 고속도로 것일 때만(옆을 지나는 다른 도로의 나들목은 뺀다)
             if set(ic["refs"]) & HW_REFS.get(hk, set()) and off <= REF_ON_LINE_KM:
                 found.append({**ic, "along": along})
@@ -151,22 +171,30 @@ def ics_on_highway(ics, hk):
     for ic in found:
         if merged and ic["along"] - merged[-1]["along"] < MIN_GAP_KM:
             continue
-        # 같은 이름이 가까이 또 나오면(방향별 진출 지점이 따로 찍힌 것) 앞의 것 하나만
-        if merged and ic["name"] == merged[-1]["name"] and ic["along"] - merged[-1]["along"] < SAME_NAME_KM:
+        # 같은 이름이 가까이 또 나오면(방향별 진출 지점이 따로 찍혔거나, 두 자료에 다 있는 것) 앞의 것 하나만
+        key = ic["name"].replace(" ", "")
+        if any(m["name"].replace(" ", "") == key and ic["along"] - m["along"] < SAME_NAME_KM for m in merged):
             continue
         merged.append(ic)
     return merged
 
 
 def nearby_stations(ic, stations):
-    """나들목에서 직선 NEAR_KM 안의 급속 충전소, 왕복 거리 짧은 순 MAX_PER_IC 곳."""
+    """나들목에서 직선 NEAR_KM 안의 급속 충전소, 왕복 거리 짧은 순.
+
+    가까운 MAX_PER_IC 곳 + 야외(건물 안·지하가 아닌) 가까운 MAX_PER_IC 곳을 합쳐 준다(최대 2×MAX_PER_IC).
+    탑차·윙바디처럼 높은 차는 화면에서 건물 안 충전소를 숨기므로, 가까운 곳이 모두 건물 안이어도 야외 후보가 남게 한다.
+    화면은 걸러 낸 뒤 가까운 MAX_PER_IC 곳만 쓴다.
+    """
     near = []
     for st in stations:
         d = ca.haversine_km((ic["lat"], ic["lng"]), st["pt"])
         if d <= NEAR_KM:
             near.append((round(d * 2 * ROAD_FACTOR, 1), st["id"], st))
     near.sort(key=lambda x: (x[0], x[1]))
-    return [{"station": {k: v for k, v in st.items() if k != "pt"}, "detour": detour} for detour, _, st in near[:MAX_PER_IC]]
+    outdoor = [n for n in near if not n[2].get("indoor")][:MAX_PER_IC]
+    picked = sorted({n[1]: n for n in near[:MAX_PER_IC] + outdoor}.values(), key=lambda x: (x[0], x[1]))
+    return [{"station": {k: v for k, v in st.items() if k != "pt"}, "detour": detour} for detour, _, st in picked]
 
 
 PRIVATE_NAME = re.compile(r"전용|입주민|임직원|관계자|전기버스|버스 ?충전|차고지|택배")
@@ -180,6 +208,23 @@ def open_to_public(it):
     if str(it.get("limitYn") or "N").upper() == "Y":
         return False
     return not PRIVATE_NAME.search(str(it.get("statNm") or ""))
+
+
+INDOOR_NAME = re.compile(r"지하|(?<![A-Za-z])[Bb]\s?[1-9](?![0-9A-Za-z])|주차타워|주차빌딩|주차동|옥내|실내|건물 ?[내안]|옥상|(?<![0-9])[2-9]층")
+
+
+def is_indoor(it):
+    """건물 안·지하 충전기인가(탑차·윙바디처럼 높은 차가 못 들어갈 수 있는 곳).
+
+    공공 데이터의 지상/지하 구분(floorType: F 지상, B 지하)과 층(floorNum), 이름·상세 위치의 글자로 본다.
+    높이 제한 수치는 데이터에 없다. 야외인데 높이 제한이 있는 곳은 이걸로 못 거른다(화면에서 사람이 적는다).
+    """
+    if str(it.get("floorType") or "").strip().upper() == "B":
+        return True
+    m = re.match(r"\s*-?\d+", str(it.get("floorNum") or ""))
+    if m and (int(m.group()) >= 2 or int(m.group()) < 0):
+        return True
+    return bool(INDOOR_NAME.search(f"{it.get('statNm') or ''} {it.get('location') or ''}"))
 
 
 def stations_from_items(items, fetched_ms, tariffs=ca.TARIFFS):
@@ -202,6 +247,8 @@ def stations_from_items(items, fetched_ms, tariffs=ca.TARIFFS):
                                  "price": tariffs.get(operator, tariffs["default"]), "updated": fetched_ms,
                                  "chargers": [], "pt": pt})
         st["chargers"].append(ca.charger_of(it))
+        if is_indoor(it):
+            st["indoor"] = True  # 충전기 하나라도 건물 안·지하면 그 충전소는 건물 안으로 본다
     return [s for s in by.values() if any(c["type"] == "fast" for c in s["chargers"])]
 
 
@@ -231,7 +278,7 @@ def attach(routes, ics, stations):
     return added
 
 
-def fetch_ics(key, rows=1000, log=print):
+def fetch_ics(key, rows=100, log=print):  # 한 번에 100건까지만 준다(2026-11-15 확인)
     out, page = [], 1
     while True:
         q = urllib.parse.urlencode({"key": key, "type": "json", "numOfRows": rows, "pageNo": page})
@@ -275,24 +322,32 @@ def main(argv=None):
     ap.add_argument("--live", type=Path, default=ca.ROOT / "web" / "live.js", help="나들목 항목을 붙일 live.js")
     a = ap.parse_args(argv)
 
-    source = "한국도로공사 영업소 위치정보"
-    if a.osm:
-        ways = json.loads(a.osm_ways.read_text(encoding="utf-8")) if a.osm_ways else None
-        ics = parse_osm(json.loads(a.osm.read_text(encoding="utf-8")), ways)
-        source = "© OpenStreetMap contributors"
-        raw_ics = None
-    elif a.ics:
+    # 나들목 위치: 도로공사 영업소(--ics 파일 또는 키)와 오픈스트리트맵(--osm)을 같이 줄 수 있다. 둘 다 주면 합친다
+    # (도로공사는 좌표가 빈 곳·요금소 없는 나들목이 빠지고, 오픈스트리트맵은 일부 나들목이 빠진다. 같은 이름은 하나로).
+    ics, sources = [], []
+    raw_ics = None
+    if a.ics:
         raw_ics = json.loads(a.ics.read_text(encoding="utf-8"))
-    else:
+    elif not a.osm:
         key = os.environ.get(EX_KEY_ENV, "").strip()
         if not key:
-            print(f"나들목 위치가 없다. 고속도로 공공데이터 포털(data.ex.co.kr) 키를 환경변수 {EX_KEY_ENV} 로 넣거나 --ics 파일을 준다.")
+            print(f"나들목 위치가 없다. 고속도로 공공데이터 포털(data.ex.co.kr) 키를 환경변수 {EX_KEY_ENV} 로 넣거나 --ics / --osm 파일을 준다.")
             return 2
         raw_ics = fetch_ics(key)
     if raw_ics is not None:
         if a.save_ics:
             a.save_ics.write_text(json.dumps(raw_ics, ensure_ascii=False), encoding="utf-8")
-        ics = parse_ics(raw_ics)
+        ex = parse_ics(raw_ics)
+        ics += ex
+        sources.append("한국도로공사 영업소 위치정보")
+        print(f"도로공사 영업소 {len(ex)}곳")
+    if a.osm:
+        ways = json.loads(a.osm_ways.read_text(encoding="utf-8")) if a.osm_ways else None
+        osm = parse_osm(json.loads(a.osm.read_text(encoding="utf-8")), ways)
+        ics += osm
+        sources.append("© OpenStreetMap contributors")
+        print(f"오픈스트리트맵 나들목 {len(osm)}곳")
+    source = ", ".join(sources)
     print(f"나들목 {len(ics)}곳 ({source})")
 
     text = a.live.read_text(encoding="utf-8")
