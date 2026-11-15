@@ -282,3 +282,5 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
 .tabbar button[aria-selected="true"] { color: var(--sign); font-weight: 600; }
 :root[data-theme="dark"] .tabbar button[aria-selected="true"] { color: var(--good); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabbar button[aria-selected="true"] { color: var(--good); } }
+.ic-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stop[data-ic="true"] .chips .edit-btn { min-height: 40px; padding: 6px 14px; font-size: 13px; }

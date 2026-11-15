@@ -292,6 +292,8 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
 .tabbar button[aria-selected="true"] { color: var(--sign); font-weight: 600; }
 :root[data-theme="dark"] .tabbar button[aria-selected="true"] { color: var(--good); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabbar button[aria-selected="true"] { color: var(--good); } }
+.ic-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stop[data-ic="true"] .chips .edit-btn { min-height: 40px; padding: 6px 14px; font-size: 13px; }
 
 </style>
 <div class="app">
@@ -2150,8 +2152,10 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
       let toggle = null;
       if (ic) {
         toggle = h("button", { type: "button", class: "edit-btn", "aria-expanded": String(open), text: open ? "접기" : "펼치기" });
-        toggle.addEventListener("click", () => { icOne.set(e.rest_area_id, !open); render(); });
       }
+      // 나들목은 단추만이 아니라 이름·줄 어디를 눌러도 펼치고 접는다(작은 단추는 운전 중에 누르기 어렵다)
+      const flip = ic ? () => { icOne.set(e.rest_area_id, !open); render(); } : null;
+      const tap = (el) => { if (flip) { el.classList.add("ic-tap"); el.addEventListener("click", flip); } return el; };
       const all = [...e.stations, ...e.nearby];
       const role = all.some((s) => s.role === "primary") ? "primary" : all.some((s) => s.role === "backup") ? "backup" : null;
       const low = e.arrival_soc_pct < state.minArrival;
@@ -2159,12 +2163,12 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
         h("div", { class: "km num" }, km(e.remaining_km), h("small", { text: `${Math.round(e.distance_km)}km 지점` })),
         h("div", { class: "rail", "aria-hidden": "true" }),
         h("div", { class: "body" },
-          h("div", { class: "head" },
+          tap(h("div", { class: "head" },
             h("div", { class: "name", text: e.name }),
-            h("div", { class: "soc num", "data-low": String(low), text: `도착 ${pct(e.arrival_soc_pct)}` })),
-          h("div", { class: "chips" }, ic
+            h("div", { class: "soc num", "data-low": String(low), text: `도착 ${pct(e.arrival_soc_pct)}` }))),
+          tap(h("div", { class: "chips" }, ic
             ? [chip(`나들목 인근 급속 ${e.nearby.length}곳`, "info"), open ? chip("왕복 거리는 대략") : null, toggle]
-            : areaChips(e)),
+            : areaChips(e))),
           open ? subFirst(e.stations).map(stationEl) : null,
           open && e.nearby.length ? h("div", { class: "nearby-label", text: "나들목 인근" }) : null,
           open ? subFirst(e.nearby).map(stationEl) : null)));
@@ -2765,6 +2769,12 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
   $("#rf-retry").addEventListener("click", () => doRefresh());
   $("#rf-close").addEventListener("click", rfClose);
   const sel = $("#route-select");
+  try { // 받아 둔 길이 있으면 다시 만든다(충전소 상태는 지금 데이터로)
+    const savedNavi = JSON.parse(localStorage.getItem(NAVI_KEY) || "null");
+    if (savedNavi) navi = buildNavi(savedNavi);
+  } catch (e) { navi = null; }
+  if (navi) { routes = allRoutes(); $("#navi-dest").value = navi.dest; if (state.routeKey === "navi") naviMsg(...naviSummary(navi)); }
+  else if (state.routeKey === "navi") state.routeKey = DEFAULTS.routeKey;
   fillRouteOptions();
   sel.addEventListener("change", () => { state.routeKey = sel.value; state.pos = 0; editing = null; hidePick(); locateMsg(""); persist(); render(); });
   $("#soc").addEventListener("input", (e) => { state.soc = Number(e.target.value); persist(); render(); });
@@ -2804,12 +2814,6 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
   });
   for (const p of PLACES) $("#navi-places").append(h("option", { value: p[0] }));
   $("#navi-form").addEventListener("submit", (e) => { e.preventDefault(); doNavi(); });
-  try { // 받아 둔 길이 있으면 다시 만든다(충전소 상태는 지금 데이터로)
-    const savedNavi = JSON.parse(localStorage.getItem(NAVI_KEY) || "null");
-    if (savedNavi) navi = buildNavi(savedNavi);
-  } catch (e) { navi = null; }
-  if (navi) { routes = allRoutes(); $("#navi-dest").value = navi.dest; if (state.routeKey === "navi") naviMsg(...naviSummary(navi)); }
-  else if (state.routeKey === "navi") state.routeKey = DEFAULTS.routeKey;
   $("#storage-warn").hidden = storageOk;
   for (const tab of document.querySelectorAll(".tabbar [data-view]")) tab.addEventListener("click", () => showView(tab.dataset.view));
   $("#btn-shuffle").addEventListener("click", () => {
