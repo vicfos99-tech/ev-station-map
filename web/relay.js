@@ -532,6 +532,28 @@
     return { changed, status_at: region.status_at, source: "relay", failed: true, replaced: null, note };
   }
 
+  // ---------- r6 글자 안전 ----------
+  const esc = (s) => (s === null || s === undefined ? "" : String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]));
+  const numTxt = (x) => (fin(x) ? String(x) : "?");
+  const toneOk = (t) => (t === "good" || t === "busy" ? t : "bad");
+  function bubbleHtml(o) {
+    o = o || {};
+    const role = o.role === "primary" || o.role === "backup" ? o.role : "", dx = fin(o.dx) ? Math.round(o.dx) : 0;
+    return `<div class="mk" data-tone="${toneOk(o.tone)}"${role ? ` data-role="${role}"` : ""}${o.far ? ' data-far="true"' : ""}${o.around ? ' data-around="true"' : ""}${dx ? ` style="margin-left:${dx}px"` : ""}>`
+      + `<span class="mk-top">${esc(o.top)}</span><b class="num">${numTxt(o.free)}<i>/${numTxt(o.total)}</i></b>`
+      + (o.sub ? `<span class="mk-sub">${esc(o.sub)}</span>` : "") + "</div>";
+  }
+  const lineHtml = (o) => { o = o || {}; return `<div class="mk mk-line" data-around="true" data-tone="${toneOk(o.tone)}"><span class="mk-top">${esc(o.top)}</span><b class="num">${numTxt(o.free)}<i>/${numTxt(o.total)}</i></b></div>`; };
+  const dotHtml = (o) => { o = o || {}; return `<div class="mk-dot num" data-tone="${toneOk(o.tone)}"${o.far ? ' data-far="true"' : ""}>${numTxt(o.free)}</div>`; };
+  function popupHtml(lines) {
+    const out = [];
+    for (const l of Array.isArray(lines) ? lines : []) {
+      if (l === null || l === undefined || l === "" || l === false) continue;
+      out.push(isObj(l) ? `<b>${esc(l.b)}</b>` : esc(l));
+    }
+    return `<div class="mk-pop">${out.join("<br>")}</div>`;
+  }
+
   return {
     ANDROID_BASE, NOTE_MIN, DROP_MIN, FUTURE_MIN, POOL, KEY_ON, KEY_BASE, NOTE_FALLBACK, NOTE_SUSPECT, RelayError,
     defaultBase, checkBase, loadSettings, saveOn, saveBase, baseOf,
@@ -539,5 +561,6 @@
     urlOf, getJson, parseMeta, parseRoutes, parseStations, parseStatus, parseRest,
     wantedIds, buildLive, expire, expireLive, routeHint, refreshRest,
     overlayRegion, regionStations, loadRegion, refreshRegion,
+    esc, bubbleHtml, lineHtml, dotHtml, popupHtml,
   };
 });
