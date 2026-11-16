@@ -1,6 +1,10 @@
 {
   "tests_dir": "tests",
   "files": {
+    "tests/test_p0_fake.js": "59af6e0e3be514dc6d13b5395bd9b36adb60c2f8e47b4ecfd00859ee869ae3c6",
+    "tests/test_p0_node.py": "1f7cbaa3e5859d98c4e4fcb01b7145965d8e5b50fa2709e2a62edf4561b4202d",
+    "tests/test_p0_relay.js": "d817466647af3d043b04dd2529cf8847408bf0f0a58ceff80af0ce2953121d7e",
+    "tests/test_p0_relay.py": "204bb0e6f6c2525b539ba3dcfe9cc62a53dcddc4f621d286657eae7d72887c3b",
     "tests/test_p1_models_basic.py": "262639c72e5698c17ce49472d48a57c65b869b4d470dc2dfb8d8fc5a4e25d9a2",
     "tests/test_p2_range_basic.py": "b7ff039b84ddb2fa4eea8e7302b1f532f3a930ac2094a3a9b8874ed1773dc103",
     "tests/test_p3_status_basic.py": "c411fa74d5ab68de22a8a83081ef5a6326ec76e2324e2c5af1135ac392663bf5",
