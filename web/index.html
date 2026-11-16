@@ -95,6 +95,11 @@
     <section class="view" id="view-map" aria-labelledby="tab-map" hidden>
       <div id="map"></div>
       <div class="map-msg small" id="map-msg" aria-live="polite" hidden></div>
+      <form class="map-search" id="map-search" autocomplete="off" novalidate>
+        <label class="visually-hidden" for="map-dest">도착지</label>
+        <input id="map-dest" type="search" list="navi-places" placeholder="도착지 검색 (예: 부산역)" enterkeyhint="search" autocapitalize="off" spellcheck="false">
+        <button type="submit" id="btn-map-go">길 찾기</button>
+      </form>
       <button type="button" class="map-maker" id="map-maker">충전기 제조사</button>
       <div class="maker-panel" id="maker-panel" role="dialog" aria-labelledby="maker-title" hidden>
         <div class="maker-head"><b id="maker-title">보일 충전기 제조사</b><button type="button" class="edit-btn" id="maker-close">닫기</button></div>

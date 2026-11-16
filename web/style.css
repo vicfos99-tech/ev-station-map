@@ -329,3 +329,10 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
 .maker-item span { flex: 1; }
 .maker-item small { color: #57606a; }
 .maker-panel { color-scheme: light; }
+.map-search { position: absolute; left: 12px; right: 12px; top: 10px; z-index: 1000; display: flex; gap: 6px; color-scheme: light; }
+.map-search input { flex: 1 1 auto; min-width: 0; min-height: 46px; padding: 6px 14px; border-radius: 23px; border: 1px solid #c9d1d9; background: #fff; color: #1f2328; font: inherit; font-size: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+.map-search button { flex: 0 0 auto; min-height: 46px; padding: 6px 16px; border-radius: 23px; border: 0; background: #2563d9; color: #fff; font: inherit; font-weight: 600; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+.map-search button:disabled { opacity: 0.6; }
+.map-maker { top: 66px; }
+.map-msg { top: 118px; }
+.maker-panel { top: 118px; }

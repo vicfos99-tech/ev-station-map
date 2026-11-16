@@ -344,6 +344,13 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
 .maker-item span { flex: 1; }
 .maker-item small { color: #57606a; }
 .maker-panel { color-scheme: light; }
+.map-search { position: absolute; left: 12px; right: 12px; top: 10px; z-index: 1000; display: flex; gap: 6px; color-scheme: light; }
+.map-search input { flex: 1 1 auto; min-width: 0; min-height: 46px; padding: 6px 14px; border-radius: 23px; border: 1px solid #c9d1d9; background: #fff; color: #1f2328; font: inherit; font-size: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+.map-search button { flex: 0 0 auto; min-height: 46px; padding: 6px 16px; border-radius: 23px; border: 0; background: #2563d9; color: #fff; font: inherit; font-weight: 600; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+.map-search button:disabled { opacity: 0.6; }
+.map-maker { top: 66px; }
+.map-msg { top: 118px; }
+.maker-panel { top: 118px; }
 
 </style>
 </head>
@@ -428,6 +435,11 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
     <section class="view" id="view-map" aria-labelledby="tab-map" hidden>
       <div id="map"></div>
       <div class="map-msg small" id="map-msg" aria-live="polite" hidden></div>
+      <form class="map-search" id="map-search" autocomplete="off" novalidate>
+        <label class="visually-hidden" for="map-dest">도착지</label>
+        <input id="map-dest" type="search" list="navi-places" placeholder="도착지 검색 (예: 부산역)" enterkeyhint="search" autocapitalize="off" spellcheck="false">
+        <button type="submit" id="btn-map-go">길 찾기</button>
+      </form>
       <button type="button" class="map-maker" id="map-maker">충전기 제조사</button>
       <div class="maker-panel" id="maker-panel" role="dialog" aria-labelledby="maker-title" hidden>
         <div class="maker-head"><b id="maker-title">보일 충전기 제조사</b><button type="button" class="edit-btn" id="maker-close">닫기</button></div>
@@ -2447,6 +2459,28 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
     if (map) map.invalidateSize();
   }
   function followBtn() { $("#map-follow").dataset.on = String(mapFollow); }
+  // 길을 새로 받으면 길 전체를 잠깐 보여 주고, 그동안 지도를 건드리지 않았으면 다시 내 위치를 따라간다(운전 중에 손댈 일 없게)
+  let mapShowTimer = null;
+  function mapShowRoute() {
+    if (!map || !navi) return;
+    mapFollow = false;
+    followBtn();
+    map.fitBounds(window.L.latLngBounds(navi.result.route.points), { padding: [30, 30], animate: false });
+    clearTimeout(mapShowTimer);
+    const stamp = navi.fetched_at;
+    let touched = false;
+    const mark = () => { touched = true; };
+    map.once("dragstart", mark);
+    map.once("zoomstart", mark);
+    mapShowTimer = setTimeout(() => {
+      map.off("dragstart", mark); map.off("zoomstart", mark);
+      if ($("#map-msg").textContent.includes("까지 ")) mapMsg(""); // 길 요약은 잠깐만
+      if (touched || view !== "map" || !navi || navi.fetched_at !== stamp) return;
+      mapFollow = true;
+      followBtn();
+      if (mapMe) map.setView(mapMe.getLatLng(), MAP_FOLLOW_ZOOM, { animate: false });
+    }, 7000);
+  }
   async function openMap() {
     window.scrollTo(0, 0);
     placeMap();
@@ -3059,15 +3093,23 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
     const hit = PLACES.find((p) => norm(p[0]) === norm(q));
     if (hit) return hit;
     const r = await kakaoGet(`https://dapi.kakao.com/v2/local/search/keyword.json?size=1&query=${encodeURIComponent(q)}`, key);
-    if (r.status === 403) throw new Error("이름으로 장소 찾기가 카카오 앱 설정에서 꺼져 있어요(카카오맵 사용 설정). 지금은 목록에 있는 곳만 고를 수 있어요.");
     if (r.status === 401) throw new Error("카카오 키가 맞지 않아요. '내 차·할인'에서 다시 넣어 주세요.");
     const d = r.body && r.body.documents && r.body.documents[0];
-    if (!d) throw new Error(`'${q}'를 찾지 못했어요. 다른 이름으로 넣어 보세요.`);
-    return [d.place_name || q, Number(d.y), Number(d.x)];
+    if (d) return [d.place_name || q, Number(d.y), Number(d.x)];
+    // 카카오 장소 찾기가 꺼져 있거나(403) 못 찾으면: 열쇠가 필요 없는 오픈스트리트맵 검색(목적지 글자만 보낸다)
+    let o = null;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=kr&accept-language=ko&limit=1&q=${encodeURIComponent(q)}`);
+      if (res.ok) o = (await res.json())[0] || null;
+    } catch (e) { o = null; }
+    if (!o) throw new Error(`'${q}'를 찾지 못했어요. 역·시청·동네 이름처럼 다른 이름으로 넣어 보세요.`);
+    return [q, Number(o.lat), Number(o.lon)];
   }
   let naviBusy = false;
-  async function doNavi() {
+  async function doNavi(fromMap) {
     if (naviBusy) return;
+    const say = fromMap ? (text) => mapMsg(text) : naviMsg; // 지도에서 찾으면 안내를 지도 위에
+    const destEl = fromMap ? $("#map-dest") : $("#navi-dest");
     const key = kakaoKey();
     if (!key) {
       showView("my");
@@ -3075,18 +3117,20 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
       $("#kk-key").focus();
       return;
     }
-    const q = $("#navi-dest").value.trim();
-    if (!q) { naviMsg("목적지를 넣으세요. 예: 부산역", "warn"); $("#navi-dest").focus(); return; }
-    if (!naviSource()) { naviMsg("실제 고속도로 데이터가 든 파일에서만 됩니다.", "bad"); return; }
-    if (!navigator.geolocation || window.isSecureContext === false) { naviMsg("이 화면에서는 지금 위치를 알 수 없어 길을 찾지 못해요.", "bad"); return; }
+    const q = destEl.value.trim();
+    if (!q) { say("목적지를 넣으세요. 예: 부산역", "warn"); destEl.focus(); return; }
+    if (!naviSource()) { say("실제 고속도로 데이터가 든 파일에서만 됩니다.", "bad"); return; }
+    if (!navigator.geolocation || window.isSecureContext === false) { say("이 화면에서는 지금 위치를 알 수 없어 길을 찾지 못해요.", "bad"); return; }
     naviBusy = true;
     $("#btn-navi").disabled = true;
+    $("#btn-map-go").disabled = true;
+    destEl.blur(); // 폰 글자판을 내린다
     try {
-      naviMsg("지금 위치 찾는 중…", "");
+      say("지금 위치 찾는 중…", "");
       let p;
       try { p = await getPosition(); } catch (e) { throw new Error(e && e.code === 1 ? DENIED_SHORT : "지금 위치를 받지 못했어요. 폰의 위치(GPS)를 켜고 다시 눌러 주세요."); }
       try { localStorage.setItem(GEO_OK_KEY, "1"); } catch (e) { /* 무시 */ }
-      naviMsg("길 찾는 중…", "");
+      say("길 찾는 중…", "");
       const place = await findPlace(q, key);
       const lat = p.coords.latitude, lng = p.coords.longitude;
       const r = await kakaoGet(`https://apis-navi.kakaomobility.com/v1/directions?origin=${lng},${lat}&destination=${place[2]},${place[1]}&priority=RECOMMEND`, key);
@@ -3108,14 +3152,19 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
       persist();
       fillRouteOptions();
       naviMsg(...naviSummary(navi));
+      $("#navi-dest").value = navi.dest;
+      $("#map-dest").value = navi.dest;
       locateMsg("");
+      mapLastKm = null;
       render();
+      if (fromMap) { mapMsg(naviSummary(navi)[0]); mapShowRoute(); }
     } catch (e) {
       const net = e instanceof TypeError; // fetch 가 연결 자체를 못 함
-      naviMsg(net ? "카카오에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요." : e.message, "bad");
+      say(net ? "카카오에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요." : e.message, "bad");
     } finally {
       naviBusy = false;
       $("#btn-navi").disabled = false;
+      $("#btn-map-go").disabled = false;
     }
   }
   // 받아 둔 길 위에서 지금 위치 맞추기: 경로 위 km 로 바꾸고, 그보다 앞에 있는 것만 남는다
@@ -3354,7 +3403,7 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
     const savedNavi = JSON.parse(localStorage.getItem(NAVI_KEY) || "null");
     if (savedNavi) navi = buildNavi(savedNavi);
   } catch (e) { navi = null; }
-  if (navi) { routes = allRoutes(); $("#navi-dest").value = navi.dest; if (state.routeKey === "navi") naviMsg(...naviSummary(navi)); }
+  if (navi) { routes = allRoutes(); $("#navi-dest").value = navi.dest; $("#map-dest").value = navi.dest; if (state.routeKey === "navi") naviMsg(...naviSummary(navi)); }
   else if (state.routeKey === "navi") state.routeKey = DEFAULTS.routeKey;
   fillRouteOptions();
   sel.addEventListener("change", () => { state.routeKey = sel.value; state.pos = 0; editing = null; hidePick(); locateMsg(""); persist(); render(); });
@@ -3395,6 +3444,7 @@ button.demo-badge:disabled { opacity: 0.7; cursor: progress; }
   });
   for (const p of PLACES) $("#navi-places").append(h("option", { value: p[0] }));
   $("#navi-form").addEventListener("submit", (e) => { e.preventDefault(); doNavi(); });
+  $("#map-search").addEventListener("submit", (e) => { e.preventDefault(); doNavi(true); });
   $("#storage-warn").hidden = storageOk;
   for (const tab of document.querySelectorAll(".tabbar [data-view]")) tab.addEventListener("click", () => showView(tab.dataset.view));
   $("#btn-shuffle").addEventListener("click", () => {
