@@ -20,7 +20,6 @@
     "tests/test_r3_read_relay.py": "7e3a49053109ec7e968e544303893f4efe01304b5a68e0f353c9b720695ffa4a",
     "tests/test_r4_rest_relay.js": "ba4040f1352901a45b95413dd4d71701ac4f52fd65d549cb4f008d229ed1151a",
     "tests/test_r4_rest_relay.py": "61822a63b01b25afb15b725c46c5f1d2a93ba739f73f4df7560fdad9761091e7",
-    "tests/test_r5_around_relay.js": "5e3a97648fca81bb6f62d520b3e94e10c0033a7431d68d69989569cd53d9759d",
-    "tests/test_r5_around_relay.py": "051bc36a891463caa53a66a9d5ebd1b3b1b70a639ab1d83b960f6f7b5e3cd2d9"
+    "tests/test_r5_around_relay.py": "d3e9107f4d2c38b0a96b1e81c90f73c230d9492499e1376eac384096d77c3805"
   }
 }
