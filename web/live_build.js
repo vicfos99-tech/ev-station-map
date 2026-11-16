@@ -185,9 +185,12 @@
           id: sid, operator,
           price: Object.prototype.hasOwnProperty.call(tariffs, operator) ? tariffs[operator] : tariffs.default,
           updated: fetchedMs, chargers: [],
+          loc: [Number(pt[0].toFixed(5)), Number(pt[1].toFixed(5))], maker: "", // 지도에 찍을 자리, 충전기 제조사
         });
       }
       area.stations.get(sid).chargers.push(chargerOf(it, cfg));
+      const stn = area.stations.get(sid), mk = String(it.maker || "").trim(); // 파이썬 add_maker 와 같게
+      if (mk && !stn.maker.split("·").includes(mk)) stn.maker = stn.maker ? stn.maker + "·" + mk : mk;
     }
 
     const routes = [];

@@ -92,6 +92,12 @@
       <p class="small muted" id="demo-note">이 화면의 휴게소·충전소·가격·상태는 모두 지어낸 예시입니다. 실제 충전소 정보는 공공 충전소 API 를 연결한 뒤에 나옵니다.</p>
     </section>
 
+    <section class="view" id="view-map" aria-labelledby="tab-map" hidden>
+      <div id="map"></div>
+      <div class="map-msg small" id="map-msg" aria-live="polite" hidden></div>
+      <button type="button" class="map-follow" id="map-follow" aria-label="내 위치로">◎ 내 위치</button>
+    </section>
+
     <section class="view" id="view-my" aria-labelledby="tab-my" hidden>
       <div class="form-error" id="storage-warn" hidden>이 폰에서 이 파일로 열면 설정이 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.</div>
 
@@ -170,6 +176,10 @@
     <button role="tab" id="tab-route" data-view="route" aria-selected="true" type="button">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 6 21M15 3l3 18M12 4v3M12 11v3M12 18v2"/></svg>
       경로
+    </button>
+    <button role="tab" id="tab-map" data-view="map" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.6-6-10a6 6 0 0 1 12 0c0 4.4-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>
+      지도
     </button>
     <button role="tab" id="tab-my" data-view="my" aria-selected="false" type="button">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M19 11h2v3h-2M10 10l-2 3h4l-2 3"/></svg>

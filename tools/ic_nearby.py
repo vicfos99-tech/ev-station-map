@@ -245,8 +245,10 @@ def stations_from_items(items, fetched_ms, tariffs=ca.TARIFFS):
         operator = str(it.get("busiNm") or it.get("bnm") or "").strip() or "알 수 없음"
         st = by.setdefault(sid, {"id": sid, "name": str(it.get("statNm") or "").strip(), "operator": operator,
                                  "price": tariffs.get(operator, tariffs["default"]), "updated": fetched_ms,
-                                 "chargers": [], "pt": pt})
+                                 "chargers": [], "pt": pt,
+                                 "loc": [round(pt[0], 5), round(pt[1], 5)], "maker": ""})
         st["chargers"].append(ca.charger_of(it))
+        ca.add_maker(st, it)
         if is_indoor(it):
             st["indoor"] = True  # 충전기 하나라도 건물 안·지하면 그 충전소는 건물 안으로 본다
     return [s for s in by.values() if any(c["type"] == "fast" for c in s["chargers"])]

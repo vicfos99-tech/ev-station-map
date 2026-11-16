@@ -376,6 +376,13 @@ def charger_of(item):
     return out
 
 
+def add_maker(st, item):
+    """충전기 제조사(API 의 maker)를 충전소에 모은다. 여러 곳이면 처음 나온 순서로 '·' 로 잇는다."""
+    mk = str(item.get("maker") or "").strip()
+    if mk and mk not in st["maker"].split("·"):
+        st["maker"] = st["maker"] + "·" + mk if st["maker"] else mk
+
+
 KST = timezone(timedelta(hours=9))
 
 
@@ -489,8 +496,10 @@ def build_routes(items, fetched_ms, tariffs=TARIFFS):
             "id": sid, "operator": operator,
             "price": tariffs.get(operator, tariffs["default"]),
             "updated": fetched_ms, "chargers": [],
+            "loc": [round(pt[0], 5), round(pt[1], 5)], "maker": "",  # 지도에 찍을 자리, 충전기 제조사
         })
         st["chargers"].append(charger_of(it))
+        add_maker(st, it)
 
     routes = []
     for hk, hw in HIGHWAYS.items():
