@@ -512,3 +512,8 @@
 | `ref_build.js` → `build_out.json` | 임시 폴더 빌드와 파일 검사 |
 
 돌리기: `py -m pytest -q --tb=short -p no:cacheprovider .orchestra/logs/ref_relay` → 계획 세션에서 `3 passed`(값 뽑기·통합 흐름·빌드).
+
+## 판정 보완 (지휘 스크립트가 자동으로 붙임)
+- [p0] p0: tests/test_p0_relay.js 와 tests/test_p0_fake.js 도 tests.lock.json 에 잠기는 테스트 파일이다. 기준 3·4·5·7 의 값 단언은 JS 안에만 두고 파이썬 쪽은 확인 이름과 ok 만 본다(C7). 파이썬에서 같은 값을 다시 단언하지 않는다.
+- [p0] p0: 같은 이름으로 check 를 세 번 이상 부르면 '<이름> (이름 겹침)' 실패 확인이 그 횟수만큼 더해져도 된다(run_js 의 딕셔너리에서는 하나로 접힌다). 처음 확인은 그대로 남는다.
+- [p0] p0: run_js 의 AssertionError 글에는 파일 이름·종료 코드(exit N)·표준 출력 끝 1000자·표준 오류 끝 2000자를 넣는다.
