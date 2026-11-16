@@ -15,6 +15,8 @@
     "tests/test_r1_settings_relay.js": "9552d9492ae5d0d345c48ddbb6348e622fab7836832ab739c37ff5db3be6fafa",
     "tests/test_r1_settings_relay.py": "003c0b0bac4ca1d5ba0cf9596bc2a62c26b83ec336d14ed672f26aa275a1f9df",
     "tests/test_r2_fresh_relay.js": "001b7563aa2f6151ba1f12565d4e7904a376adc056b56baea5bbc91874c76679",
-    "tests/test_r2_fresh_relay.py": "03a28a0592e2a47e6732f160b7fab096c17674fe1e768a68a8cbfbf2093fc65c"
+    "tests/test_r2_fresh_relay.py": "03a28a0592e2a47e6732f160b7fab096c17674fe1e768a68a8cbfbf2093fc65c",
+    "tests/test_r3_read_relay.js": "6f343bcbf6aaa49ffa1a199d314bd19b285419ba38a0fff16ab308d986c1a338",
+    "tests/test_r3_read_relay.py": "7e3a49053109ec7e968e544303893f4efe01304b5a68e0f353c9b720695ffa4a"
   }
 }
