@@ -517,3 +517,6 @@
 - [p0] p0: tests/test_p0_relay.js 와 tests/test_p0_fake.js 도 tests.lock.json 에 잠기는 테스트 파일이다. 기준 3·4·5·7 의 값 단언은 JS 안에만 두고 파이썬 쪽은 확인 이름과 ok 만 본다(C7). 파이썬에서 같은 값을 다시 단언하지 않는다.
 - [p0] p0: 같은 이름으로 check 를 세 번 이상 부르면 '<이름> (이름 겹침)' 실패 확인이 그 횟수만큼 더해져도 된다(run_js 의 딕셔너리에서는 하나로 접힌다). 처음 확인은 그대로 남는다.
 - [p0] p0: run_js 의 AssertionError 글에는 파일 이름·종료 코드(exit N)·표준 출력 끝 1000자·표준 오류 끝 2000자를 넣는다.
+- [r1_settings] r1_settings loadSettings 의 base 는 저장된 글자 그대로가 아니라 checkBase 가 돌려준 정리값(base)이다(참조 구현과 같다. 저장값은 saveBase 가 정리한 것만 넣으므로 보통은 같은 글자이고, 이 차이는 r1 테스트로 고정하지 않았다).
+- [r1_settings] r1_settings 테스트는 ANDROID_BASE 를 relay.js 에서 꺼내지 않고 3.1 의 글자 상수와 견준다. 상수 값 자체의 확인은 p0 기준 5 가 맡는다.
+- [r1_settings] r1_settings 의 '저장소를 한 번도 부르지 않고'(199행)는 getItem 도 포함한다. p0 의 makeStorage.log() 는 set·remove 만 적으므로 테스트는 쓰기가 없음과 '모든 동작이 던지는 저장소에서도 검사 까닭이 나옴'으로만 본다(읽고 버리는 getItem 은 잡지 못함 — 알고 둔 빈틈).
