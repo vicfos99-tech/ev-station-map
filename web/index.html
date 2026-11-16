@@ -144,6 +144,15 @@
         <div class="row"><button class="btn btn-primary" type="submit">저장</button><span class="saved-msg small" id="discount-saved" aria-live="polite"></span></div>
       </form>
 
+      <form class="card stack" id="relay-form" autocomplete="off" novalidate>
+        <h2>공공 데이터 중계</h2>
+        <p class="small muted">집 PC 가 공공 데이터를 받아 올려 둔 것을 읽습니다. 켜 두면 인증키 없이도 새로 받을 수 있어요. 끄면 폰이 공공 데이터를 직접 받습니다.</p>
+        <label class="check"><input type="checkbox" id="relay-on"> 공공 데이터를 중계에서 받기</label>
+        <div class="field"><label for="relay-base">중계 주소</label><input id="relay-base" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="비워 두면 기본 주소"><div class="hint">https:// 로 시작하는 주소만 됩니다.</div></div>
+        <div class="row"><button class="btn btn-primary" type="submit">저장</button></div>
+        <div class="live-msg small" id="relay-msg" aria-live="polite"></div>
+      </form>
+
       <form class="card stack" id="live-form" autocomplete="off" novalidate>
         <h2>공공 데이터 새로 받기</h2>
         <p class="small muted">공공데이터포털 충전소 정보 키로 지금 상태를 받아 옵니다. 키는 이 폰에만 저장되고 파일에는 들어가지 않습니다.</p>
@@ -208,6 +217,7 @@
 <script src="navi.js"></script>
 <script src="regions.js"></script>
 <script src="around.js"></script>
+<script src="relay.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

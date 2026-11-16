@@ -536,3 +536,7 @@
 - [integration] integration: 판정 보완의 '새로 쓰는 글 3000자 이하'는 테스트 세션이 새로 짓는 글에만 센다. 참조 파일에서 그대로 옮긴 글과 뽑아 낸 기준·기대값 json 은 세지 않는다(판정의 해석이다 — 묘성이 달리 정하면 그에 따른다).
 - [integration] integration: 통과 기준 14 의 '#relay-on 을 끄면 저장값 off' 는 저장소 값을 직접 견준다. 끈 뒤의 #relay-msg 글과 받는 중 진행 글은 계획서가 정하지 않았으니 견주지 않는다.
 - [integration] integration: 통과 기준 6 의 '시군구마다 meta.json·stations·status 만 부름'은 테스트에서 '새로 받기 3 + 지도 9 = 부른 주소 12개, 공공 데이터 0번'과 풍선 6개의 글자로 본다(동시에 부르는 주소의 차례는 강제하지 않는다).
+- [integration] integration: 흐름 확인 이름과 통과 기준의 대응은 c1=기준 1, c2=기준 2, s3=기준 4~8, s3c=기준 6 의 부른 주소 12개, s4=기준 9, s5=기준 12, s6=기준 13, s7=기준 14, s8=기준 15·16, s9=기준 10·11, c18=기준 18 의 EvRelay 이름이고, 기준 17 은 각 흐름의 errors 칸을 기준 json 과 견주는 것으로 본다.
+- [integration] integration: 통과 기준 18 의 'vicfos99-tech.github.io 는 relay.js 에 1번'은 잠긴 tests/test_p0_relay.py 가 맡고 통합 테스트는 app.js·index.html 의 0번만 본다.
+- [integration] integration: 통과 기준 21 의 지문 표는 잠긴 tests/test_integration_data_base.json 의 files 칸에 옮겨 두고(표와 같음은 판정이 대조함) 테스트는 그 칸과 실제 파일을 견준다.
+- [integration] integration: 통과 기준 22 의 기존 대조는 web/test/*.js 를 모두 돌려 종료 코드 0 으로 보고(compare_navi.js 는 navi_fixture.json 이 있을 때만), 빌드 검사와 한 테스트 함수에 둔다(새 글 3000자 한도 때문).

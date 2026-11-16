@@ -3,6 +3,9 @@
   "use strict";
   const EV = window.EvPlanner;
   const DATA = window.EvData;
+  const RL = window.EvRelay; // 공공 데이터 중계(web/relay.js)
+  const LS = (() => { try { return localStorage; } catch (e) { return null; } })();
+  const relaySet = () => RL.loadSettings(LS);
   const KEY = "ev-charge-planner/v1";
   const $ = (sel) => document.querySelector(sel);
   const MINE_KEY = "ev-charge-planner/mine";     // 내가 확인한 값(업체 이름·요금, 충전소 요금·상태)
@@ -26,6 +29,7 @@
       DATA.replaceLive(saved);
     }
   } catch (e) { /* 못 읽으면 파일 데이터 */ }
+  RL.expireLive(DATA.LIVE, Date.now()); // 중계에서 받아 둔 상태가 오래됐으면 빈자리로 세지 않는다
 
   // ---------- 내가 확인한 값 ----------
   const DEFAULT_ALIAS = { "브라이트에너지파트너스": "워터", "기후에너지환경부": "환경부" };
@@ -341,6 +345,7 @@
 
   // ---------- 그리기 ----------
   function render() {
+    if (RL.expireLive(DATA.LIVE, Date.now()) && navi) { navi = buildNavi(navi) || navi; routes = allRoutes(); }
     const r = curRoute();
     $("#soc").value = state.soc;
     $("#soc-out").textContent = `${state.soc}%`;
@@ -467,7 +472,6 @@
   const MAP_STEP_KM = 0.3;    // 길 위에서 이만큼 움직이면 앞에 남은 곳을 다시 계산한다
   let map = null, mapLayer = null, mapLine = null, mapLineKey = "", mapMe = null, mapAcc = null, mapWatch = null;
   let mapFollow = true, mapLoading = null, mapDetail = false, mapLevel = -1, mapFitKey = "", mapWake = null, mapLastKm = null, lastResult = null;
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   function mapMsg(text) { const el = $("#map-msg"); el.textContent = text; el.hidden = !text; }
   function loadLeaflet() {
     if (window.L) return Promise.resolve();
@@ -541,26 +545,23 @@
     makerBtn();
   }
   function bubbleIcon(top, free, total, sub, tone, role, far, dx, around) {
-    const html = `<div class="mk" data-tone="${tone}"${role ? ` data-role="${role}"` : ""}${far ? ' data-far="true"' : ""}${around ? ' data-around="true"' : ""}${dx ? ` style="margin-left:${dx}px"` : ""}>`
-      + `<span class="mk-top">${esc(top)}</span><b class="num">${free}<i>/${total}</i></b>`
-      + (sub ? `<span class="mk-sub">${esc(sub)}</span>` : "") + "</div>";
-    return window.L.divIcon({ className: "mk-wrap", html, iconSize: [0, 0] });
+    return window.L.divIcon({ className: "mk-wrap", html: RL.bubbleHtml({ top, free, total, sub, tone, role, far, dx, around }), iconSize: [0, 0] });
   }
   // 0: 아주 멀리(점에 빈 급속 수만) · 1: 휴게소·나들목마다 이름 풍선 · 2: 충전소마다 풍선
   const levelOf = (z) => (z >= MAP_DETAIL_ZOOM ? 2 : z >= MAP_DETAIL_ZOOM - 2 ? 1 : 0);
-  const dotIcon = (free, tone, far) => window.L.divIcon({ className: "mk-wrap", html: `<div class="mk-dot num" data-tone="${tone}"${far ? ' data-far="true"' : ""}>${free}</div>`, iconSize: [0, 0] });
+  const dotIcon = (free, tone, far) => window.L.divIcon({ className: "mk-wrap", html: RL.dotHtml({ free, tone, far }), iconSize: [0, 0] });
   const toneOf = (free, waiting) => (free > 0 ? "good" : waiting > 0 ? "busy" : "bad");
   const roleOf = (list) => (list.some((s) => s.role === "primary") ? "primary" : list.some((s) => s.role === "backup") ? "backup" : "");
   function popupHtml(e, x) {
     const s = x.s, st = s.status, lines = [];
     const place = s.is_nearby ? (x.raw && x.raw.name) || e.name : e.name;
-    lines.push(`<b>${esc(place)}</b>`);
-    lines.push(`${esc(opLabel(s.operator))}${x.maker ? ` · 충전기 ${esc(x.maker)}` : ""}`);
+    lines.push({ b: place });
+    lines.push(`${opLabel(s.operator)}${x.maker ? ` · 충전기 ${x.maker}` : ""}`);
     lines.push(`빈 급속 ${st.usable_fast} / 전체 ${x.fast}${st.waiting_fast ? ` · 충전 중 ${st.waiting_fast}` : ""}${st.unusable ? ` · 고장·점검 ${st.unusable}` : ""}`);
-    lines.push(`${won(s.quote.final_price)}/kWh · ${esc(infoAge(s.station_id))}`);
+    lines.push(`${won(s.quote.final_price)}/kWh · ${infoAge(s.station_id)}`);
     lines.push(`${km(e.remaining_km)} 앞 · 도착 예상 ${pct(s.is_nearby ? s.arrival_soc_pct : e.arrival_soc_pct)}${s.is_nearby ? ` · 왕복 +${km(s.detour_km)}` : ""}`);
-    if (s.role === "primary") lines.push("<b>1순위</b>"); else if (s.role === "backup") lines.push("<b>예비</b>");
-    return `<div class="mk-pop">${lines.join("<br>")}</div>`;
+    if (s.role === "primary") lines.push({ b: "1순위" }); else if (s.role === "backup") lines.push({ b: "예비" });
+    return RL.popupHtml(lines); // 글자는 relay.js 가 모두 이스케이프한다
   }
   function drawMap() {
     if (!map || !lastResult) return;
@@ -685,9 +686,11 @@
   }
   async function arEnsure() {
     if (!arOn || !map || view !== "map" || !AR || !window.EvRegions) return;
-    const cfg = arCfg(), key = storedKey(), at = arCenter();
-    if (!cfg) return;
-    if (!key) { mapNote("주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요."); return; }
+    const cfg = arCfg(), key = storedKey(), at = arCenter(), rs = relaySet();
+    if (!rs.on) { // 중계를 껐으면 지금까지와 같다
+      if (!cfg) return;
+      if (!key) { mapNote("주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요."); return; }
+    }
     if (map.getZoom() < MAP_DETAIL_ZOOM - 1) return; // 멀리 볼 때는 받지 않는다(여러 시군구가 한꺼번에 걸린다)
     const want = AR.zscodesNear(window.EvRegions, at[0], at[1]).slice(0, 3);
     if (!want.length) return;
@@ -698,17 +701,19 @@
     arBusy = z;
     arBtn();
     try {
-      const r = await AR.fetchRegion(key, cfg, z);
-      arRegions.set(z, { stations: r.stations, fetched_at: r.fetched_at, status_at: r.fetched_at, used: Date.now() });
+      const r = await RL.loadRegion({ settings: rs, href: location.href, key, zscode: z, tariffs: cfg ? cfg.tariffs : null,
+        direct: key && cfg ? () => AR.fetchRegion(key, cfg, z) : null });
+      arRegions.set(z, { stations: r.stations, fetched_at: r.fetched_at, status_at: r.status_at, used: Date.now(), source: r.source, zcodes: r.zcodes });
       while (arRegions.size > AR_KEEP) { // 가장 오래 안 쓴 시군구를 버린다
         let old = null;
         for (const [k, v] of arRegions) if (!old || v.used < arRegions.get(old).used) old = k;
         arRegions.delete(old);
       }
-      if ($("#map-note").textContent.startsWith("주변 충전소를 받지")) mapNote("");
+      if (r.note) mapNote(`주변 충전소: ${r.note}`);
+      else if ($("#map-note").textContent.startsWith("주변 충전소를 받지") || $("#map-note").textContent.startsWith("주변 충전소: ")) mapNote("");
     } catch (e) {
       arFail.set(z, Date.now() + 60000); // 1분 뒤에 다시
-      mapNote(`주변 충전소를 받지 못했어요(${e instanceof AR.ApiError ? e.message : "연결 실패"}). 잠시 뒤 다시 받아요.`);
+      mapNote(`주변 충전소를 받지 못했어요(${e instanceof AR.ApiError || e instanceof RL.RelayError ? e.message : "연결 실패"}). 잠시 뒤 다시 받아요.`);
     } finally {
       arBusy = "";
       arBtn();
@@ -716,14 +721,23 @@
     drawAround();
     arEnsure(); // 둘레 시군구가 남았으면 이어서
   }
-  // 상태만 다시 받기: 받아 둔 시군구 가운데 지금 보는 곳만
+  // 상태만 다시 받기: 받아 둔 시군구 가운데 지금 보는 곳만. 중계에서 받은 시군구는 중계의 상태 파일만 다시 읽는다
   async function arRefreshStatus() {
     if (!arOn || view !== "map" || document.hidden || arBusy) return;
-    const cfg = arCfg(), key = storedKey();
-    if (!cfg || !key) return;
+    const cfg = arCfg(), key = storedKey(), rs = relaySet();
     for (const z of arWant || []) {
       const r = arRegions.get(z);
       if (!r) continue;
+      if (r.source === "relay") {
+        try {
+          const out = await RL.refreshRegion({ settings: rs, href: location.href, key, zscode: z, region: r, direct: key && cfg ? () => AR.fetchRegion(key, cfg, z) : null });
+          if (out.replaced) arRegions.set(z, { stations: out.replaced.stations, fetched_at: out.replaced.fetched_at, status_at: out.replaced.status_at, used: Date.now(), source: "direct", zcodes: [] });
+          else r.status_at = out.status_at;
+          if (out.note) mapNote(`주변 충전소: ${out.note}`); else if ($("#map-note").textContent.startsWith("주변 충전소: ")) mapNote("");
+        } catch (e) { /* 다음 차례에 다시 */ }
+        continue;
+      }
+      if (!cfg || !key) continue;
       const mins = Math.min(60, Math.ceil((Date.now() - r.status_at) / 60000) + 2); // 지난번 뒤로 바뀐 것을 넉넉히
       try {
         const at = Date.now();
@@ -735,15 +749,14 @@
   }
   function mapNote(text) { const el = $("#map-note"); el.textContent = text; el.hidden = !text; }
   function arPopup(st, s) {
-    const lines = [`<b>${esc(st.name)}</b>`, `${esc(opLabel(st.operator))}${st.maker ? ` · 충전기 ${esc(st.maker)}` : ""}`,
+    return RL.popupHtml([{ b: st.name }, `${opLabel(st.operator)}${st.maker ? ` · 충전기 ${st.maker}` : ""}`,
       `빈 급속 ${s.free} / 전체 ${s.total}${s.busy ? ` · 충전 중 ${s.busy}` : ""}${s.broken ? ` · 고장·점검 ${s.broken}` : ""}`,
-      `최대 ${Math.round(s.kw)}kW · ${won(st.price)}/kWh(추정) · ${ago(st.updated)} 정보`];
-    if (st.addr) lines.push(esc(st.addr));
-    return `<div class="mk-pop">${lines.join("<br>")}</div>`;
+      `최대 ${Math.round(s.kw)}kW · ${st.price === null ? "" : `${won(st.price)}/kWh(추정) · `}${ago(st.updated)} 정보`, st.addr]);
   }
   function drawAround() {
     if (!map || !arLayer) return;
     arLayer.clearLayers();
+    for (const r of arRegions.values()) if (r.source === "relay") RL.expire(r.stations, Date.now()); // 오래된 상태는 빈자리로 세지 않는다
     if (!arOn || map.getZoom() < MAP_DETAIL_ZOOM) { arCount(0, 0); return; }
     const L = window.L, b = map.getBounds().pad(0.15), c = map.getCenter();
     const onRoute = new Set(); // 길 위 충전소로 이미 그린 것은 다시 그리지 않는다
@@ -758,7 +771,7 @@
       const s = AR.summary(st);
       // 가까이(AR_FULL_ZOOM 부터)는 업체·빈자리·제조사 세 줄, 그보다 멀면 한 줄(제조사 빈/전체)로 줄여 겹침을 던다
       const icon = full ? bubbleIcon(aliasOf(st.operator) || st.operator, s.free, s.total, st.maker, toneOf(s.free, s.busy), "", false, 0, true)
-        : L.divIcon({ className: "mk-wrap", iconSize: [0, 0], html: `<div class="mk mk-line" data-around="true" data-tone="${toneOf(s.free, s.busy)}"><span class="mk-top">${esc((st.maker || aliasOf(st.operator) || st.operator).split("·")[0])}</span><b class="num">${s.free}<i>/${s.total}</i></b></div>` });
+        : L.divIcon({ className: "mk-wrap", iconSize: [0, 0], html: RL.lineHtml({ top: (st.maker || aliasOf(st.operator) || st.operator).split("·")[0], free: s.free, total: s.total, tone: toneOf(s.free, s.busy) }) });
       const m = L.marker(st.loc, { icon });
       m.bindPopup(arPopup(st, s), { maxWidth: 260 });
       arLayer.addLayer(m);
@@ -917,22 +930,23 @@
     for (const el of [$("#live-msg"), $("#live-msg-route")]) { el.textContent = text; el.dataset.tone = tone || ""; el.hidden = !text; }
   }
   function storedKey() { try { return localStorage.getItem(APIKEY_KEY) || ""; } catch (e) { return ""; } }
+  let rfRelay = false; // 지금 받는 것이 중계인지(진행 창 글)
   async function doRefresh() {
     if (busy) { $("#rf-modal").hidden = false; return; } // 받는 중이면 진행 창을 다시 보여 준다
     const typed = $("#k-key").value.trim();
     if (typed) { try { localStorage.setItem(APIKEY_KEY, typed); } catch (e) { /* 저장 못 해도 이번엔 씀 */ } }
-    const key = typed || storedKey();
-    if (!key) {
+    const key = typed || storedKey(), rs = relaySet();
+    if (!rs.on && !key) { // 중계를 껐으면 지금까지와 같이 키가 있어야 한다
       showView("my");
       liveMsg("인증키를 넣고 '새로 받기'를 누르세요. 공공데이터포털 마이페이지의 일반 인증키입니다.", "warn");
       $("#k-key").focus();
       return;
     }
-    $("#k-key").value = "";
-    $("#k-key").placeholder = "저장된 키 있음";
+    if (key) { $("#k-key").value = ""; $("#k-key").placeholder = "저장된 키 있음"; }
     const cfg = DATA.LIVE && DATA.LIVE.config;
-    if (!cfg || !window.EvLiveBuild) { liveMsg("이 파일에는 새로 받기 설정이 없습니다. 새 파일을 받아 주세요.", "bad"); return; }
+    if (!rs.on && (!cfg || !window.EvLiveBuild)) { liveMsg("이 파일에는 새로 받기 설정이 없습니다. 새 파일을 받아 주세요.", "bad"); return; }
     busy = true;
+    rfRelay = rs.on;
     const token = ++rfToken;
     const started = Date.now();
     setBusyUi(true, 0);
@@ -940,9 +954,14 @@
     rfTimer = setInterval(() => rfTick(started), 1000);
     liveMsg("");
     try {
-      const live = await window.EvLiveBuild.refresh(key, cfg, { onProgress: (d, n) => { if (token === rfToken) rfShowProgress(d, n, started); } });
+      const onProgress = (d, n) => { if (token === rfToken) rfShowProgress(d, n, started); };
+      const cur = curRoute();
+      const out = await RL.refreshRest({ settings: rs, href: location.href, key, routeKey: cur.key, config: cfg || null, onProgress,
+        extraIds: cur.live || cur.navi ? cur.rest_areas.flatMap((a) => (a.stations || []).map((s) => s.id)) : [],
+        direct: key && cfg && window.EvLiveBuild ? () => window.EvLiveBuild.refresh(key, cfg, { onProgress }) : null });
+      const live = out.live;
       if (token !== rfToken) return; // 취소한 뒤에 도착한 결과는 버린다
-      // 폰의 새로 받기는 휴게소만 받는다. 나들목 인근 충전소는 PC 에서 만든 것을 그대로 옮긴다(상태 시각도 그때 것)
+      // 새로 받기는 휴게소만 받는다. 나들목 인근 충전소는 PC 에서 만든 것을 그대로 옮긴다(상태 시각도 그때 것)
       const prev = DATA.LIVE;
       if (prev) {
         for (const r of live.routes) {
@@ -954,11 +973,12 @@
         }
         if (prev.ic_note) live.ic_note = prev.ic_note;
       }
-      rfApply(live); // 다 받으면 바로 적용한다(진행 중 표시만, 바꿀지 묻지 않음)
+      rfApply(live, out); // 다 받으면 바로 적용한다(진행 중 표시만, 바꿀지 묻지 않음)
     } catch (e) {
       if (token !== rfToken) return;
       const api = window.EvLiveBuild && e instanceof window.EvLiveBuild.ApiError;
-      rfShowError(api ? `받지 못했어요: ${e.message}` : "공공 데이터 서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 받아 주세요. Claude 링크로 연 화면에서는 새로 받기가 막혀 있어요.");
+      rfShowError(api ? `받지 못했어요: ${e.message}` : e instanceof RL.RelayError ? e.message
+        : "공공 데이터 서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 받아 주세요. Claude 링크로 연 화면에서는 새로 받기가 막혀 있어요.");
     } finally {
       if (token === rfToken) finishBusy();
     }
@@ -996,7 +1016,7 @@
     $("#rf-fill").style.width = n ? `${pctDone}%` : "";
     $("#rf-pct").textContent = n ? `${pctDone}%` : "연결 중…";
     $("#rf-step").textContent = rfStepText(started);
-    $("#rf-text").textContent = "공공데이터포털에서 전국 휴게소 충전기 상태를 받고 있어요. 보통 10~30초 걸려요.";
+    $("#rf-text").textContent = rfRelay ? "중계에서 휴게소 충전기 상태를 받고 있어요." : "공공데이터포털에서 전국 휴게소 충전기 상태를 받고 있어요. 보통 10~30초 걸려요.";
     $("#rf-retry").hidden = true;
     $("#rf-close").textContent = "취소";
     if (n) setBusyUi(true, pctDone);
@@ -1012,14 +1032,16 @@
     $("#rf-modal").hidden = false;
     $("#rf-retry").focus();
   }
-  function rfApply(live) {
+  function rfApply(live, out) {
     $("#rf-modal").hidden = true;
     DATA.replaceLive(live);
     try { localStorage.setItem(LIVE_KEY, JSON.stringify(live)); } catch (e) { /* 저장 못 해도 이번 화면엔 씀 */ }
     if (navi) navi = buildNavi(navi) || navi; // 새로 받은 충전소 상태로 길 위 노선을 다시 만든다
     routes = allRoutes();
     fillRouteOptions(); fillSubOptions(); fillOps();
-    liveMsg(`새로 받았어요 ${hhmm(live.fetched_at)} · 휴게소 충전기 ${countChargers(live)}대`, "good");
+    let text = `${out && out.source === "relay" ? "중계에서 받았어요" : "새로 받았어요"} ${hhmm(live.fetched_at)} · 휴게소 충전기 ${countChargers(live)}대`;
+    if (out && out.note) text = out.source === "direct" ? `${out.note}. ${text}` : `${text}. ${out.note}`;
+    liveMsg(text, out && out.tone === "warn" ? "warn" : "good");
     render();
   }
   function rfClose() {
@@ -1437,7 +1459,12 @@
   if (navi) { routes = allRoutes(); $("#navi-dest").value = navi.dest; $("#map-dest").value = navi.dest; if (state.routeKey === "navi") naviMsg(...naviSummary(navi)); }
   else if (state.routeKey === "navi") state.routeKey = DEFAULTS.routeKey;
   fillRouteOptions();
-  sel.addEventListener("change", () => { state.routeKey = sel.value; state.pos = 0; editing = null; hidePick(); locateMsg(""); persist(); render(); });
+  sel.addEventListener("change", () => {
+    state.routeKey = sel.value; state.pos = 0; editing = null; hidePick(); locateMsg(""); persist(); render();
+    // 중계에서는 고른 노선의 상태만 받는다 → 아직 안 받은 노선이면 알려 준다
+    const hint = RL.routeHint(DATA.LIVE, curRoute().rest_areas.flatMap((a) => (a.stations || []).map((s) => s.id)));
+    if (hint) liveMsg(hint, "warn"); else if ($("#live-msg").textContent.startsWith("이 노선의 상태는")) liveMsg("");
+  });
   $("#soc").addEventListener("input", (e) => { state.soc = Number(e.target.value); persist(); render(); });
   $("#pos").addEventListener("input", (e) => { state.pos = Number(e.target.value); hidePick(); locateMsg(""); persist(); render(); });
   fillSubOptions();
@@ -1456,6 +1483,24 @@
     liveMsg("키를 지웠어요.", "");
   });
   if (storedKey()) $("#k-key").placeholder = "저장된 키 있음";
+  // 공공 데이터 중계: 켜기/끄기와 주소(이 폰에만)
+  function relayMsg(text, tone) { const el = $("#relay-msg"); el.textContent = text; el.dataset.tone = tone || ""; }
+  function relayReset() { arRegions.clear(); arFail.clear(); if (view === "map") { drawAround(); arEnsure(); } } // 받아 둔 주변 충전소는 버리고 새 설정으로 다시
+  { const rs = relaySet(); $("#relay-on").checked = rs.on; $("#relay-base").value = rs.base; }
+  $("#relay-on").addEventListener("change", () => {
+    const on = $("#relay-on").checked, ok = RL.saveOn(LS, on);
+    relayMsg(ok ? (on ? "공공 데이터를 중계에서 받아요." : "중계를 껐어요. 폰이 공공 데이터를 직접 받아요.") : "이 화면에서는 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.", ok ? "good" : "bad");
+    relayReset();
+  });
+  $("#relay-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const out = RL.saveBase(LS, $("#relay-base").value);
+    if (!out.ok) { relayMsg(out.reason, "bad"); return; } // 저장하지 않고 까닭을 보여 준다
+    RL.saveOn(LS, $("#relay-on").checked);
+    $("#relay-base").value = out.base;
+    relayMsg(`저장했어요 ${hhmm(Date.now())}`, "good");
+    relayReset();
+  });
   // 길찾기: 카카오 키(이 폰에만)와 목적지
   if (kakaoKey()) $("#kk-key").placeholder = "저장된 키 있음";
   $("#navi-key-form").addEventListener("submit", (e) => {

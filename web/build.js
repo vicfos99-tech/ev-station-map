@@ -21,7 +21,7 @@ inline('<link rel="stylesheet" href="style.css">', `<style>\n${read("style.css")
 // live.js(실제 충전소 데이터)는 tools/charger_api.py 로 만든 뒤에만 있다. 없으면 예시 데이터만 들어간다
 const hasLive = fs.existsSync(path.join(dir, "live.js"));
 inline('<script src="live.js"></script>', hasLive ? `<script>\n${read("live.js")}\n</script>` : "");
-for (const f of ["engine.js", "live_build.js", "data.js", "navi.js", "regions.js", "around.js", "app.js"]) {
+for (const f of ["engine.js", "live_build.js", "data.js", "navi.js", "regions.js", "around.js", "relay.js", "app.js"]) {
   inline(`<script src="${f}"></script>`, `<script>\n${read(f)}\n</script>`);
 }
 
