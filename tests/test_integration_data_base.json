@@ -1,0 +1,145 @@
+{
+ "app": "d201f923e197fa8e0fc7e03e520fbf4f8398bf69c5158b5d1419344f4d15ae87",
+ "files": {
+  "web/engine.js": "1b198a3df993a1dc8c8398654107f721089ac4f759a7fff2d1e99cd394296bdc",
+  "web/live_build.js": "dae38a994c76ab8466f7720c3b4b54f3d010fe1e85fb011a50e945672d689c96",
+  "web/around.js": "e517c8e60cf809acdeb34fcd4153e517e93ed5ce08bf145096a87786518c9201",
+  "web/navi.js": "5418c23bcf3ce3724af5ab7114b02d12d7ca162670b8fb37a866622cf7010cdd",
+  "web/data.js": "44bd97d740a7b37e47b0faab8f6816e9cd794c7205c636d9e76ea5162fbbd874",
+  "web/regions.js": "60d68b8a30ae07431ee4da612b29323d2f9aedd360a80a6f84e7ecac1c44c337",
+  "web/style.css": "fd39eea00046c2c90aae9542173d5265b896348f56fb9d6834dc05fe714307ed",
+  "web/test/compare.js": "0c43da3e7757b4c869b60bac7fbcf5c90b965a81361bf963737fac079e1f0981",
+  "web/test/compare_live.js": "10b15e32889e41c8baa968fa814e01329d3741374901c798dcb659334aa09fb6",
+  "web/test/test_locate.js": "85d273c4e36090891f38547164bdad232119a71812bc96d552cf68f43ce7750d",
+  "web/test/test_around.js": "ea3bba4371c0022422aeae967b06ad64cbd0ffe1f5c9d3603cae0bc98f3fceae",
+  "web/test/fixtures.json": "f0ebba97e1dc905ce2f576e34b54f2a4592fab09ce886c0c6600755da1396dcd",
+  "web/test/live_fixture.json": "4e5028dde336a95d3465ab0eb9267f2307131779cad11beaf1e30b80b1d7d3cc"
+ },
+ "S1": {
+  "loadErrors": [],
+  "badge": "",
+  "route": "live-gb-down",
+  "strip": 1,
+  "refresh": {
+   "msg": "새로 받았어요 09:12 · 휴게소 충전기 3대",
+   "tone": "good",
+   "modalHidden": true,
+   "rfText": "공공데이터포털에서 전국 휴게소 충전기 상태를 받고 있어요. 보통 10~30초 걸려요.",
+   "badge": "받는 중 100%"
+  },
+  "live": [
+   "live-gb-down=KP000101:available,charging",
+   "live-gb-up=KP000102:available"
+  ],
+  "map15": {
+   "note": "",
+   "around": [
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "map13": {
+   "note": "",
+   "around": [
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "afterTick": {
+   "note": "",
+   "around": [
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 3분 전 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 3분 전 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 3분 전 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "calls": [
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&zcode=41&kindDetail=C001&dataType=JSON",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41130",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41610",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41460",
+   "공공:getChargerStatus?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41130&period=5",
+   "공공:getChargerStatus?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41610&period=5",
+   "공공:getChargerStatus?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41460&period=5"
+  ],
+  "stored": [
+   "ev-charge-planner/apikey",
+   "ev-charge-planner/live",
+   "ev-charge-planner/test",
+   "ev-charge-planner/v1"
+  ],
+  "savedLive": 2,
+  "errors": []
+ },
+ "S2": {
+  "loadErrors": [],
+  "badge": "",
+  "route": "live-gb-down",
+  "strip": 1,
+  "refresh": {
+   "msg": "인증키를 넣고 '새로 받기'를 누르세요. 공공데이터포털 마이페이지의 일반 인증키입니다.",
+   "tone": "warn",
+   "modalHidden": false,
+   "rfText": "",
+   "badge": ""
+  },
+  "live": [
+   "live-gb-down=KP000101:available,charging",
+   "live-gb-up=KP000102:available"
+  ],
+  "map15": {
+   "note": "주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요.",
+   "around": [],
+   "btn": "주변 충전소 켬"
+  },
+  "map13": {
+   "note": "주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요.",
+   "around": [],
+   "btn": "주변 충전소 켬"
+  },
+  "afterTick": {
+   "note": "주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요.",
+   "around": [],
+   "btn": "주변 충전소 켬"
+  },
+  "calls": [],
+  "stored": [
+   "ev-charge-planner/test",
+   "ev-charge-planner/v1"
+  ],
+  "savedLive": null,
+  "errors": []
+ }
+}

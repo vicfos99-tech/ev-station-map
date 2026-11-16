@@ -1,6 +1,10 @@
 {
   "tests_dir": "tests",
   "files": {
+    "tests/test_integration_data_base.json": "d86e85f6e31092689ab9c65f80d5e0a0fe89f1e33074fde9238c1e56a6f2298b",
+    "tests/test_integration_dom.js": "184de1d24481d8dbdcb86a821946375d13a12c837a35f7e86f540f515346b685",
+    "tests/test_integration_relay.js": "e5f5136ee0abdc2e0863febcc51a677521888629cc6b82ad40f8f8bf31aac029",
+    "tests/test_integration_relay.py": "050535496a2f838f9ff4740ff281285f764e0d44a97f38a8ba8f8fc246a3d569",
     "tests/test_p0_fake.js": "59af6e0e3be514dc6d13b5395bd9b36adb60c2f8e47b4ecfd00859ee869ae3c6",
     "tests/test_p0_node.py": "1f7cbaa3e5859d98c4e4fcb01b7145965d8e5b50fa2709e2a62edf4561b4202d",
     "tests/test_p0_relay.js": "d817466647af3d043b04dd2529cf8847408bf0f0a58ceff80af0ce2953121d7e",

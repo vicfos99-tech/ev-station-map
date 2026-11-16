@@ -1,0 +1,5 @@
+const fs=require("fs"),T=require("./test_p0_fake.js"),r=__dirname+"/..",D=r+"/.orchestra/logs/ref_relay/",F=D+"scenario.js",j=x=>JSON.stringify(x,(k,y)=>k=="badge"||/받고 있어요|껐어요/.test(y)?void 0:y);let s=fs.readFileSync(F,"utf8");process.argv[2]=r;
+for(const[a,b]of[['"./dom_stub.js"','"../../../tests/test_integration_dom.js"'],['"patched"','"base"'],['__dirname, "relay','WEB, "relay'],["const before","o.badge=app.short();const before"],["fs.writeFileSync(","return SC(out);("]]){if(!s.includes(a))throw a;s=s.replaceAll(a,b)}
+global.SC=o=>{const v=Object.values(o),R=Object.values(require(D+"scenario_out.json")),B=require("./test_integration_data_base.json"),a=fs.readFileSync(r+"/web/app.js","utf8"),q=(a.match(/(\w+) = window\.EvRelay\b/)||[,"EvRelay"])[1],L=a.match(RegExp(`\\b(EvRelay|${q})\\.\\w+`,"g")),E=require("../web/relay.js");
+T.eq("c1",v[0].base,B.S1);T.eq("c2",v[1].base,B.S2);for(let i=2;i<9;i++)T.eq("s"+(i+1),j(v[i]),j(R[i]));T.eq("s3c",v[2].badge.length,12);T.check("c18",L&&L.every(n=>n.split(".")[1]in E),L);T.finish()};
+const m=new(require("module"))(F);m.filename=F;m._compile(s,F);
