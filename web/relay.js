@@ -418,11 +418,126 @@
     return { live: await o.direct(), source: "direct", note: NOTE_FALLBACK, tone: "warn" };
   }
 
+  // ---------- 지도 주변 충전소 ----------
+  const toStat = (v) => (str(v) ? statusOf(v) : UNKNOWN);
+
+  // 충전기 상태를 상태 파일대로 고친다(확인 시각이 오래되었으면 미확인). 바뀐 충전기 수
+  function overlayRegion(stations, statusDoc, t, now) {
+    const drop = level(now, t) === "drop";
+    const sm = isObj(statusDoc) && statusDoc.s && typeof statusDoc.s === "object" ? statusDoc.s : null;
+    let n = 0;
+    for (const st of Array.isArray(stations) ? stations : []) {
+      if (!isObj(st)) continue;
+      const m = sm && own(sm, st.id) && sm[st.id] && typeof sm[st.id] === "object" ? sm[st.id] : null;
+      for (const c of Array.isArray(st.chargers) ? st.chargers : []) {
+        if (!isObj(c)) continue;
+        const next = drop || !m || !own(m, c.id) ? UNKNOWN : toStat(m[c.id]);
+        if (c.status !== next) { c.status = next; n += 1; }
+      }
+      st.updated = t;
+    }
+    return n;
+  }
+
+  function priceOf(tariffs, operator) {
+    if (!isObj(tariffs)) return null;
+    if (own(tariffs, operator) && fin(tariffs[operator])) return tariffs[operator];
+    return own(tariffs, "default") && fin(tariffs.default) ? tariffs.default : null;
+  }
+
+  function regionStations(stDoc, statusDoc, meta, o) {
+    const now = nowOf(o || {}), tariffs = o ? o.tariffs : null;
+    const t = trustAt(meta, statusDoc && statusDoc.at, stDoc && stDoc.zcodes).at;
+    const list = [];
+    for (const s of stDoc.stations) {
+      if (!s.chargers.some((c) => c.type === "fast")) continue;
+      const st = {
+        id: s.id, name: s.name, operator: s.operator, maker: s.maker, addr: "", price: priceOf(tariffs, s.operator),
+        loc: [Number(s.loc[0].toFixed(5)), Number(s.loc[1].toFixed(5))], updated: t,
+        chargers: s.chargers.map((c) => ({ id: c.id, type: c.type, power_kw: c.kw, status: UNKNOWN })),
+      };
+      if (s.indoor === true) st.indoor = true;
+      list.push(st);
+    }
+    overlayRegion(list, statusDoc, t, now);
+    return list;
+  }
+
+  const directRegion = (o, r, note) => ({ zscode: o.zscode, stations: r.stations, fetched_at: r.fetched_at, status_at: r.fetched_at, zcodes: [], source: "direct", note, suspect: false });
+
+  function offCheck(o) {
+    if (!o.key) throw new RelayError("no_key", "인증키가 필요해요");
+    if (typeof o.direct !== "function") throw new RelayError("no_direct", "직접 받기 설정이 없어요");
+  }
+
+  async function readRegion(o) {
+    const base = baseOf(o.settings, o.href), f = { fetch: o.fetch };
+    const urlMeta = urlOf(base, "meta"), urlSt = urlOf(base, "stations", o.zscode), urlSa = urlOf(base, "status", o.zscode);
+    const meta = parseMeta(await getJson(urlMeta, f));
+    const stDoc = parseStations(await getJson(urlSt, f), o.zscode);
+    const statusDoc = parseStatus(await getJson(urlSa, f));
+    const now = nowOf(o), t = trustAt(meta, statusDoc.at, stDoc.zcodes).at;
+    const stations = regionStations(stDoc, statusDoc, meta, { now, tariffs: o.tariffs });
+    const sus = meta.suspect;
+    const suspect = sus.includes(String(o.zscode).slice(0, 2)) || stDoc.zcodes.some((z) => sus.includes(z));
+    const note = [metaNote(meta), staleNote(now, t), suspect ? NOTE_SUSPECT : ""].filter(Boolean).join(" ");
+    return { zscode: o.zscode, stations, fetched_at: now, status_at: t, zcodes: stDoc.zcodes, source: "relay", note, suspect };
+  }
+
+  async function loadRegion(o) {
+    const s = o.settings || { on: true, base: "" }, canDirect = !!o.key && typeof o.direct === "function";
+    if (!s.on) {
+      offCheck(o);
+      return directRegion(o, await o.direct(), "");
+    }
+    let err = null;
+    try { return await readRegion(o); } catch (e) {
+      if (!(e instanceof RelayError)) throw e;
+      err = e;
+    }
+    if (!canDirect) throw failed(err);
+    return directRegion(o, await o.direct(), NOTE_FALLBACK);
+  }
+
+  async function readStatusOnly(o, region) {
+    const base = baseOf(o.settings, o.href), f = { fetch: o.fetch };
+    const urlMeta = urlOf(base, "meta"), urlSa = urlOf(base, "status", o.zscode);
+    const meta = parseMeta(await getJson(urlMeta, f));
+    const statusDoc = parseStatus(await getJson(urlSa, f));
+    const now = nowOf(o), t = trustAt(meta, statusDoc.at, region.zcodes).at;
+    const changed = overlayRegion(region.stations, statusDoc, t, now);
+    const note = [metaNote(meta), staleNote(now, t)].filter(Boolean).join(" ");
+    return { changed, status_at: t, source: "relay", failed: false, replaced: null, note };
+  }
+
+  async function refreshRegion(o) {
+    const s = o.settings || { on: true, base: "" }, canDirect = !!o.key && typeof o.direct === "function";
+    const region = isObj(o.region) ? o.region : {};
+    if (!s.on) {
+      offCheck(o);
+      return { changed: 0, status_at: null, source: "direct", failed: false, replaced: directRegion(o, await o.direct(), ""), note: "" };
+    }
+    let err = null;
+    try { return await readStatusOnly(o, region); } catch (e) {
+      if (!(e instanceof RelayError)) throw e;
+      err = e;
+    }
+    if (canDirect) {
+      return { changed: 0, status_at: null, source: "direct", failed: true, replaced: directRegion(o, await o.direct(), NOTE_FALLBACK), note: NOTE_FALLBACK };
+    }
+    const now = nowOf(o);
+    const changed = expire(region.stations, now);
+    const stale = staleNote(now, region.status_at);
+    const note = `${err.message}.` + (stale ? ` ${stale}` : "");
+    return { changed, status_at: region.status_at, source: "relay", failed: true, replaced: null, note };
+  }
+
   return {
     ANDROID_BASE, NOTE_MIN, DROP_MIN, FUTURE_MIN, POOL, KEY_ON, KEY_BASE, NOTE_FALLBACK, NOTE_SUSPECT, RelayError,
     defaultBase, checkBase, loadSettings, saveOn, saveBase, baseOf,
     kstMs, trustAt, ageMs, level, staleNote, cleanText, metaNote,
     urlOf, getJson, parseMeta, parseRoutes, parseStations, parseStatus, parseRest,
     wantedIds, buildLive, expire, expireLive, routeHint, refreshRest,
+    overlayRegion, regionStations, loadRegion, refreshRegion,
   };
 });
