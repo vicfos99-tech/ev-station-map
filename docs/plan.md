@@ -530,3 +530,5 @@
 - [r4_rest] r4_rest: refreshRest 의 onProgress 는 선택 인자다. 함수가 아니면(안 주면) 부르지 않고 그대로 진행한다. 잠긴 테스트에는 onProgress 없이 성공 갈래를 도는 사례가 없으니 개발 세션이 지킨다.
 - [r4_rest] r4_rest: relay.oldest 는 덮어쓴 충전소들의 updated 가운데 최솟값이다(차례와 무관). 잠긴 테스트는 더 이른 값이 뒤 차례에 오는 사례만 있어 '마지막으로 덮어쓴 값'과는 가르지 못하니 개발 세션이 min 으로 구현한다.
 - [integration] (11/17 묘성: "통합테스트는 단위테스트 내용을 추합해서 플러스 2000자로") **통합 테스트는 새로 길게 쓰지 않는다.** 앞 부분(p0·r1~r6)의 테스트 파일이 이미 만든 도우미·가짜 fetch·시험 자료를 불러(import·require) 이어 붙여 통합 흐름을 짠다. 통합 부분에서 새로 쓰는 글은 `tests/test_integration_` 파일 전부 합쳐 **3000자 이하** 로 한다(묘성 11/17 고침: 통합 테스트 크기 = 불러 쓰는 단위 테스트에서 잰 길이 + 새 글 3000자). 단위 테스트에 이미 있는 검사를 다시 쓰지 않는다. 다 쓴 뒤 길이를 재어 확인한다. 앞 부분 테스트 파일은 고치지 않는다(잠김).
+- [r5_around] r5_around refreshRegion 도 loadRegion·r4 처럼 meta.json 을 먼저 부르고 이어서 status/<zscode>.json 을 부른다(부른 주소는 그 순서로 둘).
+- [r5_around] r5_around loadRegion 의 suspect 는 zscode 앞 두 자리가 meta.suspect 에 있거나 시군구 파일의 zcodes 중 하나가 meta.suspect 에 있으면 참이고, 둘 중 한 갈래만 맞아도 참이다(코드는 글자가 정확히 같을 때만).

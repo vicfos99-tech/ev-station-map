@@ -189,6 +189,9 @@ E("켬 direct 0번", 0)
 # 기준 10: suspect·meta 실패·오래됨(결과 전체, stations 는 상태 배열)
 E("suspect 41", REG(SUS, suspect=True))
 E("suspect 견본 29", REG())
+# D11(plan.md 87행) '앞 두 자리' 갈래: suspect ['41'] 은 파일 zscode 41135 의 앞 두 자리로 걸린다(zcodes ['11'] 이어도).
+# fresh ['41'] 이 zcodes ['11'] 을 보증하지 않아 status_at 은 T_LIST.
+E("suspect 앞 두 자리로", REG(SUS, suspect=True, zcodes=["11"], status_at=T_LIST))
 # zcodes ["11"] 은 fresh ["41"] 에 없어 보증 없음 → status_at 이 파일 at. 결과 zcodes 는 파일의 ["11"]
 E("suspect zcodes 로", REG(SUS, suspect=True, zcodes=["11"], status_at=T_LIST))
 E("suspect 부분 일치 아님", REG())
@@ -459,6 +462,7 @@ async function asyncPart() {
   const LOADS = [
     ["suspect 41", { "meta.json": Object.assign(META(), { suspect: ["41"] }) }, null],
     ["suspect 견본 29", null, null],
+    ["suspect 앞 두 자리로", { "meta.json": Object.assign(META(), { suspect: ["41"] }), "stations/41135.json": Object.assign(ST(), { zcodes: ["11"] }) }, null],
     ["suspect zcodes 로", { "meta.json": Object.assign(META(), { suspect: ["11"] }), "stations/41135.json": Object.assign(ST(), { zcodes: ["11"] }) }, null],
     ["suspect 부분 일치 아님", { "meta.json": Object.assign(META(), { suspect: ["4", "411", "41135", " 41"] }) }, null],
     ["meta 실패 한도", { "meta.json": Object.assign(META(), { ok: false, error: "한도 넘음" }) }, null],
