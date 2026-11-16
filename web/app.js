@@ -463,7 +463,7 @@
   // 지도는 열쇠가 필요 없는 오픈스트리트맵. 지도 그리는 도구(Leaflet)는 지도 탭을 처음 열 때만 받는다.
   const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/";
   const MAP_DETAIL_ZOOM = 12; // 이보다 가까이 보면 충전소마다 풍선 하나, 멀리 보면 휴게소·나들목마다 하나
-  const MAP_FOLLOW_ZOOM = 13;
+  const MAP_FOLLOW_ZOOM = 14;
   const MAP_STEP_KM = 0.3;    // 길 위에서 이만큼 움직이면 앞에 남은 곳을 다시 계산한다
   let map = null, mapLayer = null, mapLine = null, mapLineKey = "", mapMe = null, mapAcc = null, mapWatch = null;
   let mapFollow = true, mapLoading = null, mapDetail = false, mapLevel = -1, mapFitKey = "", mapWake = null, mapLastKm = null, lastResult = null;
@@ -503,7 +503,11 @@
     if (!map) {
       map = window.L.map("map", { zoomControl: false }).setView([36.3, 127.8], 7);
       window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
-      mapLayer = window.L.layerGroup().addTo(map);
+      arLayer = window.L.layerGroup().addTo(map); // 주변 충전소(아래)
+      mapLayer = window.L.layerGroup().addTo(map); // 길 위 충전소(위)
+      map.on("moveend", arMoved);
+      map.createPane("me").style.zIndex = 650; // 내 위치는 풍선 위에
+      map.getPane("me").style.pointerEvents = "none";
       map.on("dragstart", () => { mapFollow = false; followBtn(); }); // 손으로 옮기면 따라가기를 멈춘다
       map.on("zoomend", () => { if (levelOf(map.getZoom()) !== mapLevel) drawMap(); });
     }
@@ -511,9 +515,11 @@
     followBtn();
     drawMap();
     startWatch();
+    arStart();
+    makerBtn();
   }
-  function bubbleIcon(top, free, total, sub, tone, role, far, dx) {
-    const html = `<div class="mk" data-tone="${tone}"${role ? ` data-role="${role}"` : ""}${far ? ' data-far="true"' : ""}${dx ? ` style="margin-left:${dx}px"` : ""}>`
+  function bubbleIcon(top, free, total, sub, tone, role, far, dx, around) {
+    const html = `<div class="mk" data-tone="${tone}"${role ? ` data-role="${role}"` : ""}${far ? ' data-far="true"' : ""}${around ? ' data-around="true"' : ""}${dx ? ` style="margin-left:${dx}px"` : ""}>`
       + `<span class="mk-top">${esc(top)}</span><b class="num">${free}<i>/${total}</i></b>`
       + (sub ? `<span class="mk-sub">${esc(sub)}</span>` : "") + "</div>";
     return window.L.divIcon({ className: "mk-wrap", html, iconSize: [0, 0] });
@@ -550,7 +556,7 @@
         const raw = rawOf.get(s.station_id) || null;
         return { s, raw, fast: raw && raw.chargers ? raw.chargers.filter((c) => c.type === "fast").length : s.status.usable_fast + s.status.waiting_fast + s.status.unusable,
           loc: (raw && raw.loc) || area.loc || null, maker: (raw && raw.maker) || "" };
-      });
+      }).filter((x) => makerShown(x.maker));
       if (!list.length) continue;
       const areaLoc = area.loc || (list.find((x) => x.loc) || {}).loc || null;
       if (areaLoc) spots.push(areaLoc);
@@ -582,7 +588,8 @@
       if (lineKey) mapLine = L.polyline(navi.result.route.points, { color: "#2563d9", weight: 5, opacity: 0.55, interactive: false }).addTo(map);
       mapLineKey = lineKey;
     }
-    if (!spots.length) mapMsg(r.live ? "앞에 남은 충전소가 없어요." : "예시 노선은 지도에 찍을 자리가 없어요. 실제 노선을 골라 주세요.");
+    drawAround();
+    if (!spots.length && !arOn) mapMsg(r.live ? "앞에 남은 충전소가 없어요." : "예시 노선은 지도에 찍을 자리가 없어요. 실제 노선을 골라 주세요.");
     else if ($("#map-msg").textContent.startsWith("앞에 남은") || $("#map-msg").textContent.startsWith("예시 노선")) mapMsg("");
     // 노선을 바꾼 뒤 처음: 내 위치를 알면 거기로, 모르면 앞에 남은 곳이 다 보이게
     if (mapFitKey !== r.key && spots.length) {
@@ -597,7 +604,7 @@
     if (/위치/.test($("#map-msg").textContent)) mapMsg("");
     if (!mapMe) {
       mapAcc = L.circle(ll, { radius: acc, stroke: false, fillColor: "#2563d9", fillOpacity: 0.12, interactive: false }).addTo(map);
-      mapMe = L.circleMarker(ll, { radius: 9, color: "#fff", weight: 3, fillColor: "#2563d9", fillOpacity: 1, interactive: false }).addTo(map);
+      mapMe = L.circleMarker(ll, { radius: 9, color: "#fff", weight: 3, fillColor: "#2563d9", fillOpacity: 1, interactive: false, pane: "me" }).addTo(map);
     } else { mapMe.setLatLng(ll); mapAcc.setLatLng(ll); mapAcc.setRadius(acc); }
     if (mapFollow) { const z = Math.max(map.getZoom(), MAP_FOLLOW_ZOOM); map.setView(ll, z, { animate: z === map.getZoom() }); } // 확대가 바뀔 때는 바로 옮긴다(움직이는 그림이 끊기면 중간에 멈춘다)
     // 길찾기로 받은 길이면 길 위 km 를 따라 옮긴다 → 지나온 곳이 지도에서 빠지고 남은 거리가 바뀐다
@@ -627,6 +634,167 @@
   function stopWatch() {
     if (mapWatch !== null) { navigator.geolocation.clearWatch(mapWatch); mapWatch = null; }
     if (mapWake) { try { mapWake.release(); } catch (e) { /* 무시 */ } mapWake = null; }
+    arStop();
+  }
+
+  // ---------- 지도: 주변 충전소(길 위가 아닌 곳까지) ----------
+  // 지금 위치(따라가기를 끄면 지도 가운데)의 시군구를 알아내 그 시군구의 급속 충전소를 공공 데이터에서 받는다.
+  // 시군구 하나가 수 MB 라서: 한 번 받은 시군구는 다시 받지 않고, 그 뒤로는 상태가 바뀐 충전기만 몇 분마다 가볍게 받는다.
+  const AR = window.EvAround;
+  const AROUND_KEY = "ev-charge-planner/around"; // 주변 충전소 켜기/끄기(이 폰에만)
+  const AR_STATUS_MIN = 3;      // 상태를 다시 받는 간격(분)
+  const AR_KEEP = 4;            // 받아 둔 시군구를 이만큼만 들고 있는다(오래된 것부터 버림)
+  const AR_FULL_ZOOM = 15;      // 이보다 가까이 보면 주변 충전소도 세 줄 풍선
+  const AR_MAX_BUBBLES = 40;    // 한 화면에 그리는 주변 풍선 수(가까운 것부터)
+  const arRegions = new Map();  // zscode → { stations, fetched_at, status_at, used }
+  let arOn = true, arBusy = "", arTimer = null, arLayer = null, arFail = new Map(), arWant = null;
+  try { arOn = localStorage.getItem(AROUND_KEY) !== "off"; } catch (e) { /* 기본 켬 */ }
+  const arCfg = () => (DATA.LIVE && DATA.LIVE.config) || null;
+  function arBtn() {
+    const b = $("#map-around");
+    b.dataset.on = String(arOn);
+    b.textContent = arOn ? (arBusy ? "주변 받는 중…" : "주변 충전소 켬") : "주변 충전소 끔";
+  }
+  // 지금 봐야 할 자리: 따라가는 중이면 내 위치, 아니면 지도 가운데
+  function arCenter() {
+    if (!map) return null;
+    const c = mapFollow && mapMe ? mapMe.getLatLng() : map.getCenter();
+    return [c.lat, c.lng];
+  }
+  async function arEnsure() {
+    if (!arOn || !map || view !== "map" || !AR || !window.EvRegions) return;
+    const cfg = arCfg(), key = storedKey(), at = arCenter();
+    if (!cfg) return;
+    if (!key) { mapNote("주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요."); return; }
+    if (map.getZoom() < MAP_DETAIL_ZOOM - 1) return; // 멀리 볼 때는 받지 않는다(여러 시군구가 한꺼번에 걸린다)
+    const want = AR.zscodesNear(window.EvRegions, at[0], at[1], 1).slice(0, 2);
+    if (!want.length) return;
+    arWant = want;
+    for (const z of want) { const r = arRegions.get(z); if (r) r.used = Date.now(); }
+    const z = want.find((x) => !arRegions.has(x) && !(arFail.get(x) > Date.now()));
+    if (!z || arBusy) return;
+    arBusy = z;
+    arBtn();
+    try {
+      const r = await AR.fetchRegion(key, cfg, z);
+      arRegions.set(z, { stations: r.stations, fetched_at: r.fetched_at, status_at: r.fetched_at, used: Date.now() });
+      while (arRegions.size > AR_KEEP) { // 가장 오래 안 쓴 시군구를 버린다
+        let old = null;
+        for (const [k, v] of arRegions) if (!old || v.used < arRegions.get(old).used) old = k;
+        arRegions.delete(old);
+      }
+      if ($("#map-note").textContent.startsWith("주변 충전소를 받지")) mapNote("");
+    } catch (e) {
+      arFail.set(z, Date.now() + 60000); // 1분 뒤에 다시
+      mapNote(`주변 충전소를 받지 못했어요(${e instanceof AR.ApiError ? e.message : "연결 실패"}). 잠시 뒤 다시 받아요.`);
+    } finally {
+      arBusy = "";
+      arBtn();
+    }
+    drawAround();
+    arEnsure(); // 둘레 시군구가 남았으면 이어서
+  }
+  // 상태만 다시 받기: 받아 둔 시군구 가운데 지금 보는 곳만
+  async function arRefreshStatus() {
+    if (!arOn || view !== "map" || document.hidden || arBusy) return;
+    const cfg = arCfg(), key = storedKey();
+    if (!cfg || !key) return;
+    for (const z of arWant || []) {
+      const r = arRegions.get(z);
+      if (!r) continue;
+      const mins = Math.min(60, Math.ceil((Date.now() - r.status_at) / 60000) + 2); // 지난번 뒤로 바뀐 것을 넉넉히
+      try {
+        const at = Date.now();
+        AR.applyStatus(r.stations, await AR.fetchStatus(key, cfg, z, mins), cfg, at);
+        r.status_at = at;
+      } catch (e) { /* 다음 차례에 다시 */ }
+    }
+    drawAround();
+  }
+  function mapNote(text) { const el = $("#map-note"); el.textContent = text; el.hidden = !text; }
+  function arPopup(st, s) {
+    const lines = [`<b>${esc(st.name)}</b>`, `${esc(opLabel(st.operator))}${st.maker ? ` · 충전기 ${esc(st.maker)}` : ""}`,
+      `빈 급속 ${s.free} / 전체 ${s.total}${s.busy ? ` · 충전 중 ${s.busy}` : ""}${s.broken ? ` · 고장·점검 ${s.broken}` : ""}`,
+      `최대 ${Math.round(s.kw)}kW · ${won(st.price)}/kWh(추정) · ${ago(st.updated)} 정보`];
+    if (st.addr) lines.push(esc(st.addr));
+    return `<div class="mk-pop">${lines.join("<br>")}</div>`;
+  }
+  function drawAround() {
+    if (!map || !arLayer) return;
+    arLayer.clearLayers();
+    if (!arOn || map.getZoom() < MAP_DETAIL_ZOOM) { arCount(0, 0); return; }
+    const L = window.L, b = map.getBounds().pad(0.15), c = map.getCenter();
+    const onRoute = new Set(); // 길 위 충전소로 이미 그린 것은 다시 그리지 않는다
+    if (lastResult) for (const e of lastResult.route_list.entries) for (const s of [...e.stations, ...e.nearby]) onRoute.add(s.station_id);
+    const inView = [], full = map.getZoom() >= AR_FULL_ZOOM;
+    for (const r of arRegions.values()) for (const st of r.stations) {
+      if (onRoute.has(st.id) || !b.contains(st.loc) || !makerShown(st.maker)) continue;
+      inView.push([(st.loc[0] - c.lat) ** 2 + ((st.loc[1] - c.lng) * 0.8) ** 2, st]);
+    }
+    inView.sort((x, y) => x[0] - y[0]);
+    for (const [, st] of inView.slice(0, AR_MAX_BUBBLES)) {
+      const s = AR.summary(st);
+      // 가까이(AR_FULL_ZOOM 부터)는 업체·빈자리·제조사 세 줄, 그보다 멀면 한 줄(제조사 빈/전체)로 줄여 겹침을 던다
+      const icon = full ? bubbleIcon(aliasOf(st.operator) || st.operator, s.free, s.total, st.maker, toneOf(s.free, s.busy), "", false, 0, true)
+        : L.divIcon({ className: "mk-wrap", iconSize: [0, 0], html: `<div class="mk mk-line" data-around="true" data-tone="${toneOf(s.free, s.busy)}"><span class="mk-top">${esc((st.maker || aliasOf(st.operator) || st.operator).split("·")[0])}</span><b class="num">${s.free}<i>/${s.total}</i></b></div>` });
+      const m = L.marker(st.loc, { icon });
+      m.bindPopup(arPopup(st, s), { maxWidth: 260 });
+      arLayer.addLayer(m);
+    }
+    arCount(Math.min(inView.length, AR_MAX_BUBBLES), inView.length);
+  }
+  function arCount(shown, all) {
+    if (all > shown) mapNote(`이 화면에 주변 충전소 ${all}곳 중 가까운 ${shown}곳만 보여요. 더 가까이 확대해 보세요.`);
+    else if ($("#map-note").textContent.startsWith("이 화면에 주변")) mapNote("");
+  }
+  let arMoveTimer = null;
+  function arMoved() { // 지도가 멈춘 뒤 잠깐 기다렸다가(끌고 있는 동안 받지 않게)
+    drawAround();
+    clearTimeout(arMoveTimer);
+    arMoveTimer = setTimeout(arEnsure, 600);
+  }
+  function arStart() {
+    arBtn();
+    if (arTimer === null) arTimer = setInterval(arRefreshStatus, AR_STATUS_MIN * 60000);
+    drawAround(); // 받아 둔 것이 있으면 바로 그린다
+    arEnsure();
+  }
+  function arStop() { if (arTimer !== null) { clearInterval(arTimer); arTimer = null; } }
+
+  // ---------- 지도: 충전기 제조사 고르기 ----------
+  // 체크한 제조사의 충전기가 있는 충전소만 지도에 보인다. 끈 것만 기억한다(새로 나온 제조사는 처음부터 보인다).
+  const MAKER_KEY = "ev-charge-planner/makers-off";
+  const NO_MAKER = "제조사 모름";
+  let makerOff = new Set();
+  try { makerOff = new Set(JSON.parse(localStorage.getItem(MAKER_KEY) || "[]")); } catch (e) { makerOff = new Set(); }
+  const makersOf = (mk) => (mk ? mk.split("·") : [NO_MAKER]);
+  const makerShown = (mk) => makerOff.size === 0 || makersOf(mk).some((m) => !makerOff.has(m));
+  // 지금 가진 데이터(노선 전체 + 받아 둔 주변 시군구)에 나오는 제조사와 충전소 수, 많은 순
+  function makerCounts() {
+    const seen = new Set(), n = new Map();
+    const add = (st) => { if (!st || seen.has(st.id)) return; seen.add(st.id); for (const m of makersOf(st.maker)) n.set(m, (n.get(m) || 0) + 1); };
+    for (const r of DATA.ROUTES) if (r.live) for (const a of r.rest_areas) { for (const st of a.stations || []) add(st); for (const x of a.nearby || []) add(x.station); }
+    for (const r of arRegions.values()) for (const st of r.stations) add(st);
+    for (const m of makerOff) if (!n.has(m)) n.set(m, 0); // 꺼 둔 것은 지금 데이터에 없어도 목록에 남긴다(다시 켤 수 있게)
+    return [...n.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+  }
+  function makerSave() { try { localStorage.setItem(MAKER_KEY, JSON.stringify([...makerOff])); } catch (e) { /* 무시 */ } }
+  function makerBtn() {
+    const all = makerCounts().length, on = makerCounts().filter(([m]) => !makerOff.has(m)).length;
+    const b = $("#map-maker");
+    b.textContent = makerOff.size ? `제조사 ${on}/${all} 고름` : "충전기 제조사";
+    b.dataset.on = String(makerOff.size > 0);
+  }
+  function makerApply() { makerSave(); makerBtn(); drawMap(); }
+  function makerPanel() {
+    const list = $("#maker-list");
+    list.replaceChildren();
+    for (const [m, cnt] of makerCounts()) {
+      const box = h("input", { type: "checkbox" });
+      box.checked = !makerOff.has(m);
+      box.addEventListener("change", () => { if (box.checked) makerOff.delete(m); else makerOff.add(m); makerApply(); });
+      list.append(h("label", { class: "maker-item" }, box, h("span", { text: m }), h("small", { class: "num", text: `${cnt}곳` })));
+    }
   }
 
   // ---------- 내 차·할인 ----------
@@ -1280,7 +1448,17 @@
   document.addEventListener("visibilitychange", () => { if (!document.hidden && view === "route") render(); });
   $("#map-follow").addEventListener("click", () => { mapFollow = true; followBtn(); if (map && mapMe) map.setView(mapMe.getLatLng(), Math.max(map.getZoom(), MAP_FOLLOW_ZOOM)); else if (!mapMe) startWatch(); });
   window.addEventListener("resize", () => { if (view === "map") placeMap(); });
-  document.addEventListener("visibilitychange", () => { if (view !== "map") return; if (document.hidden) stopWatch(); else startWatch(); });
+  $("#map-maker").addEventListener("click", () => { const p = $("#maker-panel"); p.hidden = !p.hidden; if (!p.hidden) makerPanel(); });
+  $("#maker-close").addEventListener("click", () => { $("#maker-panel").hidden = true; });
+  $("#maker-all").addEventListener("click", () => { makerOff.clear(); makerApply(); makerPanel(); });
+  $("#maker-none").addEventListener("click", () => { makerOff = new Set(makerCounts().map(([m]) => m)); makerApply(); makerPanel(); });
+  $("#map-around").addEventListener("click", () => {
+    arOn = !arOn;
+    try { localStorage.setItem(AROUND_KEY, arOn ? "on" : "off"); } catch (e) { /* 무시 */ }
+    arBtn();
+    if (arOn) arStart(); else { arStop(); mapNote(""); drawAround(); }
+  });
+  document.addEventListener("visibilitychange", () => { if (view !== "map") return; if (document.hidden) stopWatch(); else { startWatch(); arStart(); arRefreshStatus(); } });
   // '몇 분 전'이 시간이 지나며 바뀌도록 1분마다 다시 그린다(고치는 중엔 건드리지 않음)
   setInterval(() => { if (!document.hidden && view === "route" && editing === null && !busy) render(); }, 60000);
 
