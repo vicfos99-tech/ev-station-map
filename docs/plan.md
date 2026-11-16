@@ -532,3 +532,7 @@
 - [integration] (11/17 묘성: "통합테스트는 단위테스트 내용을 추합해서 플러스 2000자로") **통합 테스트는 새로 길게 쓰지 않는다.** 앞 부분(p0·r1~r6)의 테스트 파일이 이미 만든 도우미·가짜 fetch·시험 자료를 불러(import·require) 이어 붙여 통합 흐름을 짠다. 통합 부분에서 새로 쓰는 글은 `tests/test_integration_` 파일 전부 합쳐 **3000자 이하** 로 한다(묘성 11/17 고침: 통합 테스트 크기 = 불러 쓰는 단위 테스트에서 잰 길이 + 새 글 3000자). 단위 테스트에 이미 있는 검사를 다시 쓰지 않는다. 다 쓴 뒤 길이를 재어 확인한다. 앞 부분 테스트 파일은 고치지 않는다(잠김).
 - [r5_around] r5_around refreshRegion 도 loadRegion·r4 처럼 meta.json 을 먼저 부르고 이어서 status/<zscode>.json 을 부른다(부른 주소는 그 순서로 둘).
 - [r5_around] r5_around loadRegion 의 suspect 는 zscode 앞 두 자리가 meta.suspect 에 있거나 시군구 파일의 zcodes 중 하나가 meta.suspect 에 있으면 참이고, 둘 중 한 갈래만 맞아도 참이다(코드는 글자가 정확히 같을 때만).
+- [integration] integration: tests/test_integration_ 네 파일은 `.orchestra/` 아래 파일을 읽지 않는다(그 폴더는 .gitignore 에 있고 잠기지 않는다). 가짜 화면·흐름·기대값은 참조(ref_relay 의 dom_stub.js·scenario.js·scenario_out.json)에서 tests/ 의 네 파일 안으로 옮겨 잠근다.
+- [integration] integration: 판정 보완의 '새로 쓰는 글 3000자 이하'는 테스트 세션이 새로 짓는 글에만 센다. 참조 파일에서 그대로 옮긴 글과 뽑아 낸 기준·기대값 json 은 세지 않는다(판정의 해석이다 — 묘성이 달리 정하면 그에 따른다).
+- [integration] integration: 통과 기준 14 의 '#relay-on 을 끄면 저장값 off' 는 저장소 값을 직접 견준다. 끈 뒤의 #relay-msg 글과 받는 중 진행 글은 계획서가 정하지 않았으니 견주지 않는다.
+- [integration] integration: 통과 기준 6 의 '시군구마다 meta.json·stations·status 만 부름'은 테스트에서 '새로 받기 3 + 지도 9 = 부른 주소 12개, 공공 데이터 0번'과 풍선 6개의 글자로 본다(동시에 부르는 주소의 차례는 강제하지 않는다).

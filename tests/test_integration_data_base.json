@@ -141,5 +141,343 @@
   ],
   "savedLive": null,
   "errors": []
+ },
+ "S3": {
+  "loadErrors": [],
+  "relayOn": true,
+  "relayBase": "",
+  "refresh": {
+   "msg": "중계에서 받았어요 09:12 · 휴게소 충전기 3대",
+   "tone": "good",
+   "modalHidden": true,
+   "rfText": "중계에서 휴게소 충전기 상태를 받고 있어요.",
+   "badge": "받는 중 100%"
+  },
+  "calls1": [
+   "중계:meta.json",
+   "중계:routes.json",
+   "중계:status/rest/KP000101.json"
+  ],
+  "live": [
+   "live-gb-down=KP000101:charging,charging",
+   "live-gb-up=KP000102:available"
+  ],
+  "relay": {
+   "at": 1767571800000,
+   "ok": true,
+   "ids": [
+    "KP000101"
+   ],
+   "missing": [],
+   "mixed": [],
+   "oldest": 1767571800000
+  },
+  "updated": 1767571800000,
+  "hint": "이 노선의 상태는 아직 받지 않았어요. '새로 받기'를 눌러 주세요.",
+  "hintBack": "",
+  "map15": {
+   "note": "",
+   "around": [
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">환경부</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">환경부</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">환경부</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">가나전기</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">가나전기</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">가나전기</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 2분 전 정보</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "map13": {
+   "note": "",
+   "around": [
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><span class=\"mk-top\">가나전기</span><b class=\"num\">0<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><span class=\"mk-top\">가나전기</span><b class=\"num\">0<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 2분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><span class=\"mk-top\">가나전기</span><b class=\"num\">0<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 2분 전 정보</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "tickCalls": [
+   "중계:meta.json",
+   "중계:status/41130.json",
+   "중계:meta.json",
+   "중계:status/41610.json",
+   "중계:meta.json",
+   "중계:status/41460.json"
+  ],
+  "afterTick": {
+   "note": "",
+   "around": [
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 5분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 5분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"good\"><span class=\"mk-top\">&lt;b&gt;가나&lt;/b&gt;</span><b class=\"num\">1<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 50kW · 347원/kWh(추정) · 5분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><span class=\"mk-top\">가나전기</span><b class=\"num\">0<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 5분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><span class=\"mk-top\">가나전기</span><b class=\"num\">0<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 5분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><span class=\"mk-top\">가나전기</span><b class=\"num\">0<i>/1</i></b></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 5분 전 정보</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "public": 0,
+  "tags": false,
+  "errors": [],
+  "liveAfter40": [
+   "live-gb-down=KP000101:comm_error,comm_error",
+   "live-gb-up=KP000102:comm_error"
+  ],
+  "mapAfter40": [
+   "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><b class=\"num\">0<i>/1</i></b></div>",
+   "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><b class=\"num\">0<i>/1</i></b></div>",
+   "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><b class=\"num\">0<i>/1</i></b></div>",
+   "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><b class=\"num\">0<i>/1</i></b></div>",
+   "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><b class=\"num\">0<i>/1</i></b></div>",
+   "<div class=\"mk mk-line\" data-around=\"true\" data-tone=\"bad\"><b class=\"num\">0<i>/1</i></b></div>"
+  ]
+ },
+ "S4": {
+  "refresh": {
+   "msg": "중계에서 받았어요 09:50 · 휴게소 충전기 3대. 40분 전 상태라 빈자리를 세지 않았어요.",
+   "tone": "warn",
+   "modalHidden": true,
+   "rfText": "중계에서 휴게소 충전기 상태를 받고 있어요.",
+   "badge": "받는 중 100%"
+  },
+  "live": [
+   "live-gb-down=KP000101:comm_error,comm_error",
+   "live-gb-up=KP000102:comm_error"
+  ],
+  "map15": {
+   "note": "주변 충전소: 40분 전 상태라 빈자리를 세지 않았어요.",
+   "around": [
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">환경부</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 50kW · 347원/kWh(추정) · 40분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">환경부</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 50kW · 347원/kWh(추정) · 40분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">환경부</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>환경부 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 50kW · 347원/kWh(추정) · 40분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">가나전기</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 40분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">가나전기</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 40분 전 정보</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"bad\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">0<i>/1</i></b><span class=\"mk-sub\">가나전기</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>판교주차장</b><br>한국전력 · 충전기 가나전기<br>빈 급속 0 / 전체 1 · 고장·점검 1<br>최대 350kW · 391원/kWh(추정) · 40분 전 정보</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "public": 0,
+  "errors": []
+ },
+ "S5": {
+  "refresh": {
+   "msg": "중계에 연결하지 못해 직접 받았어요. 새로 받았어요 09:12 · 휴게소 충전기 3대",
+   "tone": "warn",
+   "modalHidden": true,
+   "rfText": "중계에서 휴게소 충전기 상태를 받고 있어요.",
+   "badge": "받는 중 100%"
+  },
+  "calls1": [
+   "중계:meta.json",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&zcode=41&kindDetail=C001&dataType=JSON"
+  ],
+  "live": [
+   "live-gb-down=KP000101:available,charging",
+   "live-gb-up=KP000102:available"
+  ],
+  "hasRelayMark": false,
+  "map15": {
+   "note": "주변 충전소: 중계에 연결하지 못해 직접 받았어요",
+   "around": [
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    },
+    {
+     "html": "<div class=\"mk\" data-tone=\"good\" data-around=\"true\"><span class=\"mk-top\">한국전력</span><b class=\"num\">1<i>/1</i></b><span class=\"mk-sub\">&lt;b&gt;가나&lt;/b&gt;</span></div>",
+     "popup": "<div class=\"mk-pop\"><b>&lt;img src=x onerror=alert(1)&gt;</b><br>한국전력 · 충전기 &lt;b&gt;가나&lt;/b&gt;<br>빈 급속 1 / 전체 1<br>최대 100kW · 391원/kWh(추정) · 방금 정보<br>어디 &lt;i&gt;1&lt;/i&gt;</div>"
+    }
+   ],
+   "btn": "주변 충전소 켬"
+  },
+  "calls2": [
+   "중계:meta.json",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41130",
+   "중계:meta.json",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41610",
+   "중계:meta.json",
+   "공공:getChargerInfo?serviceKey=*&pageNo=1&numOfRows=9999&dataType=JSON&zscode=41460"
+  ],
+  "errors": []
+ },
+ "S6": {
+  "refresh": {
+   "msg": "중계에 파일이 없어요. 공공 데이터 키를 넣으면 직접 받을 수 있어요.",
+   "tone": "bad",
+   "modalHidden": false,
+   "rfText": "중계에 파일이 없어요. 공공 데이터 키를 넣으면 직접 받을 수 있어요. 지금 정보는 그대로예요.",
+   "badge": "받는 중 0%"
+  },
+  "calls1": [
+   "중계:meta.json"
+  ],
+  "live": [
+   "live-gb-down=KP000101:available,charging",
+   "live-gb-up=KP000102:available"
+  ],
+  "map15": {
+   "note": "주변 충전소를 받지 못했어요(중계에 파일이 없어요. 공공 데이터 키를 넣으면 직접 받을 수 있어요.). 잠시 뒤 다시 받아요.",
+   "around": [],
+   "btn": "주변 충전소 켬"
+  },
+  "public": 0,
+  "errors": []
+ },
+ "S7": {
+  "bad": [
+   "주소는 https:// 로 시작해야 해요.",
+   "bad",
+   false
+  ],
+  "good": [
+   "저장했어요 09:12",
+   "https://x.example/r/",
+   "https://x.example/r/"
+  ],
+  "refresh": {
+   "msg": "중계에서 받았어요 09:12 · 휴게소 충전기 3대",
+   "tone": "good",
+   "modalHidden": true,
+   "rfText": "중계에서 휴게소 충전기 상태를 받고 있어요.",
+   "badge": "받는 중 100%"
+  },
+  "calls": [
+   "https://x.example/r/meta.json",
+   "https://x.example/r/routes.json",
+   "https://x.example/r/status/rest/KP000101.json"
+  ],
+  "off": [
+   "off",
+   "중계를 껐어요. 폰이 공공 데이터를 직접 받아요."
+  ],
+  "refreshOff": {
+   "msg": "인증키를 넣고 '새로 받기'를 누르세요. 공공데이터포털 마이페이지의 일반 인증키입니다.",
+   "tone": "warn",
+   "modalHidden": true,
+   "rfText": "중계에서 휴게소 충전기 상태를 받고 있어요.",
+   "badge": "받는 중 100%"
+  },
+  "callsOff": 3,
+  "cleared": [
+   false,
+   "저장했어요 09:12"
+  ],
+  "errors": [],
+  "boot": [
+   false,
+   "https://x.example/r/"
+  ]
+ },
+ "S8": {
+  "after29": [
+   "live-gb-down=KP000101:charging,charging",
+   "live-gb-up=KP000102:comm_error"
+  ],
+  "after40": [
+   "live-gb-down=KP000101:comm_error,comm_error",
+   "live-gb-up=KP000102:comm_error"
+  ],
+  "errors": [],
+  "webCalls": [
+   "https://me.example/ev/relay/meta.json",
+   "https://me.example/ev/relay/routes.json"
+  ]
+ },
+ "S9": {
+  "quiet": [
+   "중계에서 받았어요 09:12 · 휴게소 충전기 3대",
+   [
+    "live-gb-down=KP000101:charging,charging",
+    "live-gb-up=KP000102:available"
+   ]
+  ],
+  "failed": [
+   "중계에서 받았어요 09:12 · 휴게소 충전기 3대. 중계가 마지막 받기에 실패했어요(상태 받기 실패: HTTP 500 (주소)).",
+   "warn",
+   [
+    "live-gb-down=KP000101:charging,charging",
+    "live-gb-up=KP000102:available"
+   ],
+   "주변 충전소: 중계가 마지막 받기에 실패했어요(상태 받기 실패: HTTP 500 (주소))."
+  ]
  }
 }
