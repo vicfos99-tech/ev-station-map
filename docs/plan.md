@@ -520,3 +520,9 @@
 - [r1_settings] r1_settings loadSettings 의 base 는 저장된 글자 그대로가 아니라 checkBase 가 돌려준 정리값(base)이다(참조 구현과 같다. 저장값은 saveBase 가 정리한 것만 넣으므로 보통은 같은 글자이고, 이 차이는 r1 테스트로 고정하지 않았다).
 - [r1_settings] r1_settings 테스트는 ANDROID_BASE 를 relay.js 에서 꺼내지 않고 3.1 의 글자 상수와 견준다. 상수 값 자체의 확인은 p0 기준 5 가 맡는다.
 - [r1_settings] r1_settings 의 '저장소를 한 번도 부르지 않고'(199행)는 getItem 도 포함한다. p0 의 makeStorage.log() 는 set·remove 만 적으므로 테스트는 쓰기가 없음과 '모든 동작이 던지는 저장소에서도 검사 까닭이 나옴'으로만 본다(읽고 버리는 getItem 은 잡지 못함 — 알고 둔 빈틈).
+- [r3_read] r3_read urlOf 의 kind 가 meta·routes 이면 id 는 보지 않는다(나쁜 id '../evil' 을 줘도 meta.json 주소를 준다). base 는 'https://' 뿐이면(뒤에 사이트가 없으면) bad_base 다.
+- [r3_read] r3_read getJson 의 상태 코드가 정수가 아니면(글자 '404'·503.5·없음) 404 로 보지 않고 http·'중계가 0 로 답했어요' 다. ok 가 거짓이면 status 가 200 이어도 http('중계가 200 로 답했어요')이고 404 면 missing 이다. fetch 가 Error 가 아닌 것(null·글자)으로 거절해도 network 다.
+- [r3_read] r3_read parseStations·parseRest 는 둘째 인자(zscode·id)와 파일의 칸이 둘 다 없어도(undefined === undefined) 거부한다. 인자가 글자가 아니면 거부다.
+- [r3_read] r3_read parseRest 의 'id 글자 순'은 글자 코드 순이다('02' < '1' < '10'). localeCompare 와 갈리는 id 는 시험하지 않았다.
+- [r3_read] r3_read parseRoutes 는 충전기의 id 칸을 옮기지 않는다(견본 충전기의 칸 type·power_kw·status·last_end 만). parseStations 의 operator 가 글자가 아니면(숫자) '알 수 없음', name 이 글자가 아니면 '' 이다.
+- [r3_read] r3_read 테스트가 잡지 못하는 알고 둔 빈틈: parseStations 의 v '1'·true(느슨한 비교), parseRest 의 at null·v null, parseStatus 안쪽 충전소 객체의 프로토타입, base 앞뒤 빈칸. 개발은 계획 308·312행 문장대로(v !== 1, at 을 못 읽으면 거부, v 가 undefined 가 아닌데 1 이 아니면 거부) 구현한다.
