@@ -526,3 +526,6 @@
 - [r3_read] r3_read parseRest 의 'id 글자 순'은 글자 코드 순이다('02' < '1' < '10'). localeCompare 와 갈리는 id 는 시험하지 않았다.
 - [r3_read] r3_read parseRoutes 는 충전기의 id 칸을 옮기지 않는다(견본 충전기의 칸 type·power_kw·status·last_end 만). parseStations 의 operator 가 글자가 아니면(숫자) '알 수 없음', name 이 글자가 아니면 '' 이다.
 - [r3_read] r3_read 테스트가 잡지 못하는 알고 둔 빈틈: parseStations 의 v '1'·true(느슨한 비교), parseRest 의 at null·v null, parseStatus 안쪽 충전소 객체의 프로토타입, base 앞뒤 빈칸. 개발은 계획 308·312행 문장대로(v !== 1, at 을 못 읽으면 거부, v 가 undefined 가 아닌데 1 이 아니면 거부) 구현한다.
+- [r4_rest] r4_rest: relay.ids·relay.missing·relay.mixed 의 순서는 routesDoc 에 충전소가 나온 순서다(wanted 순서가 아니다). 잠긴 테스트는 여러 개일 때 정렬해 견주므로 순서를 강제하지 않는다.
+- [r4_rest] r4_rest: refreshRest 의 onProgress 는 선택 인자다. 함수가 아니면(안 주면) 부르지 않고 그대로 진행한다. 잠긴 테스트에는 onProgress 없이 성공 갈래를 도는 사례가 없으니 개발 세션이 지킨다.
+- [r4_rest] r4_rest: relay.oldest 는 덮어쓴 충전소들의 updated 가운데 최솟값이다(차례와 무관). 잠긴 테스트는 더 이른 값이 뒤 차례에 오는 사례만 있어 '마지막으로 덮어쓴 값'과는 가르지 못하니 개발 세션이 min 으로 구현한다.

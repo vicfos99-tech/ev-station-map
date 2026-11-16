@@ -286,10 +286,143 @@
     return { rest: id, at: o.at, chargers };
   }
 
+  // ---------- 휴게소 새로 받기 ----------
+  const STAT = { 1: "comm_error", 2: "available", 3: "charging", 4: "out_of_service", 5: "maintenance", 9: "comm_error" };
+  const UNKNOWN = STAT_UNKNOWN;
+  const statusOf = (stat) => (own(STAT, stat) ? STAT[stat] : UNKNOWN);
+  const stationsIn = (route) => (isObj(route) && Array.isArray(route.rest_areas) ? route.rest_areas : []).flatMap((a) => (isObj(a) && Array.isArray(a.stations) ? a.stations : []));
+
+  function wantedIds(routes, routeKey, extraIds) {
+    const all = new Set(routes.flatMap(stationsIn).map((s) => s.id));
+    const out = [];
+    const add = (id) => { if (all.has(id) && !out.includes(id)) out.push(id); };
+    const cur = routes.find((r) => r.key === routeKey);
+    if (cur) stationsIn(cur).forEach((s) => add(s.id));
+    if (Array.isArray(extraIds)) extraIds.forEach((id) => { if (str(id)) add(id); });
+    if (!out.length && routes.length) stationsIn(routes[0]).forEach((s) => add(s.id));
+    return out;
+  }
+
+  // 확인 시각이 DROP_MIN 넘게 지난 충전소의 충전기를 상태 미확인으로 바꾼다 → 바꾼 충전소 수
+  function expire(stations, now) {
+    let n = 0;
+    for (const st of Array.isArray(stations) ? stations : []) {
+      if (!isObj(st) || !Array.isArray(st.chargers) || level(now, st.updated) !== "drop") continue;
+      let hit = false;
+      for (const c of st.chargers) if (isObj(c) && c.status !== UNKNOWN) { c.status = UNKNOWN; hit = true; }
+      if (hit) n += 1;
+    }
+    return n;
+  }
+
+  function expireLive(live, now) {
+    if (!isObj(live) || !isObj(live.relay) || !Array.isArray(live.routes)) return 0;
+    let n = 0;
+    for (const r of live.routes) n += expire(stationsIn(r), now);
+    return n;
+  }
+
+  function buildLive(routesDoc, restById, meta, o) {
+    const now = o.now, want = new Set(o.wanted || []);
+    const metaOk = isObj(meta) && meta.ok === true;
+    const info = { at: metaOk ? kstMs(meta.at) : null, ok: metaOk, ids: [], missing: [], mixed: [], oldest: null };
+    let count = 0;
+    const routes = routesDoc.routes.map((r) => Object.assign({}, r, {
+      rest_areas: r.rest_areas.map((a) => Object.assign({}, a, a.loc ? { loc: a.loc.slice() } : {}, {
+        stations: a.stations.map((s) => {
+          const st = Object.assign({}, s, { chargers: s.chargers.map((c) => Object.assign({}, c)) }, s.loc ? { loc: s.loc.slice() } : {});
+          count += st.chargers.length;
+          const doc = want.has(st.id) && restById && own(restById, st.id) ? restById[st.id] : null;
+          if (doc) {
+            const types = new Set(st.chargers.map((c) => c.type)), n = st.chargers.length, m = doc.chargers.length;
+            if (n > 0 && types.size === 1 && m <= n) {
+              st.chargers.forEach((c, i) => {
+                if (i < m) {
+                  c.status = statusOf(doc.chargers[i].stat);
+                  if (doc.chargers[i].last_end !== null) c.last_end = doc.chargers[i].last_end;
+                } else c.status = UNKNOWN;
+              });
+            } else {
+              st.chargers.forEach((c) => { c.status = UNKNOWN; });
+              info.mixed.push(st.id);
+            }
+            st.updated = trustAt(meta, doc.at).at;
+            info.ids.push(st.id);
+            if (info.oldest === null || st.updated < info.oldest) info.oldest = st.updated;
+          } else if (want.has(st.id)) info.missing.push(st.id);
+          return st;
+        }),
+      })),
+    }));
+    const live = { fetched_at: now, source: routesDoc.source, price_note: routesDoc.price_note, routes, skipped: routesDoc.skipped, config: o.config || null, item_count: count, relay: info };
+    expireLive(live, now);
+    return live;
+  }
+
+  function routeHint(live, ids) {
+    if (!isObj(live) || !isObj(live.relay) || !Array.isArray(live.relay.ids) || !Array.isArray(ids) || !ids.length) return "";
+    return ids.some((id) => live.relay.ids.includes(id)) ? "" : "이 노선의 상태는 아직 받지 않았어요. '새로 받기'를 눌러 주세요.";
+  }
+
+  async function pool(items, size, fn) {
+    let next = 0;
+    async function worker() { while (next < items.length) { const i = next++; await fn(items[i], i); } }
+    await Promise.all(Array.from({ length: Math.min(size, items.length) }, worker));
+  }
+
+  const nowOf = (o) => (fin(o.now) ? o.now : Date.now());
+
+  async function readRest(o) {
+    const base = baseOf(o.settings, o.href), f = { fetch: o.fetch };
+    const meta = parseMeta(await getJson(urlOf(base, "meta"), f));
+    const routesDoc = parseRoutes(await getJson(urlOf(base, "routes"), f));
+    const ids = wantedIds(routesDoc.routes, o.routeKey, o.extraIds);
+    const restById = {};
+    let done = 0;
+    await pool(ids, POOL, async (id) => {
+      if (RE_ID.test(id)) {
+        let doc = null;
+        try { doc = await getJson(urlOf(base, "rest", id), f); } catch (e) {
+          if (!(e instanceof RelayError) || e.code !== "missing") throw e;
+        }
+        if (doc !== null) restById[id] = parseRest(doc, id);
+      }
+      done += 1;
+      if (typeof o.onProgress === "function") o.onProgress(done, ids.length);
+    });
+    if (ids.length && !Object.keys(restById).length) throw new RelayError("missing", MSG.missing);
+    const now = nowOf(o);
+    const live = buildLive(routesDoc, restById, meta, { now, wanted: ids, config: o.config });
+    const notes = [metaNote(meta), live.relay.oldest === null ? "" : staleNote(now, live.relay.oldest)];
+    if (live.relay.missing.length) notes.push(`충전소 ${live.relay.missing.length}곳은 상태 파일이 없어 미확인이에요.`);
+    if (live.relay.mixed.length) notes.push(`충전소 ${live.relay.mixed.length}곳은 충전기 목록이 달라 미확인이에요.`);
+    const note = notes.filter(Boolean).join(" ");
+    return { live, source: "relay", note, tone: note ? "warn" : "good" };
+  }
+
+  const failed = (e) => new RelayError("relay_failed", `${e.message}. 공공 데이터 키를 넣으면 직접 받을 수 있어요.`);
+
+  async function refreshRest(o) {
+    const s = o.settings || { on: true, base: "" }, canDirect = !!o.key && typeof o.direct === "function";
+    if (!s.on) {
+      if (!o.key) throw new RelayError("no_key", "인증키가 필요해요");
+      if (typeof o.direct !== "function") throw new RelayError("no_direct", "직접 받기 설정이 없어요");
+      return { live: await o.direct(), source: "direct", note: "", tone: "good" };
+    }
+    let err = null;
+    try { return await readRest(o); } catch (e) {
+      if (!(e instanceof RelayError)) throw e;
+      err = e;
+    }
+    if (!canDirect) throw failed(err);
+    return { live: await o.direct(), source: "direct", note: NOTE_FALLBACK, tone: "warn" };
+  }
+
   return {
     ANDROID_BASE, NOTE_MIN, DROP_MIN, FUTURE_MIN, POOL, KEY_ON, KEY_BASE, NOTE_FALLBACK, NOTE_SUSPECT, RelayError,
     defaultBase, checkBase, loadSettings, saveOn, saveBase, baseOf,
     kstMs, trustAt, ageMs, level, staleNote, cleanText, metaNote,
     urlOf, getJson, parseMeta, parseRoutes, parseStations, parseStatus, parseRest,
+    wantedIds, buildLive, expire, expireLive, routeHint, refreshRest,
   };
 });
