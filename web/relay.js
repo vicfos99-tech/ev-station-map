@@ -88,8 +88,82 @@
     return defaultBase(href);
   }
 
+  const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+
+  // 한국 시각 14자리 글자 → 밀리초. 못 읽으면 null
+  function kstMs(v) {
+    if (typeof v !== "string" || !/^[0-9]{14}$/.test(v)) return null;
+    const n = (a, b) => Number(v.slice(a, b));
+    const y = n(0, 4), mo = n(4, 6), d = n(6, 8), hh = n(8, 10), mi = n(10, 12), ss = n(12, 14);
+    if (y < 2000 || mo < 1 || mo > 12 || d < 1 || hh > 23 || mi > 59 || ss > 59) return null;
+    const ms = Date.UTC(y, mo - 1, d, hh - 9, mi, ss);
+    const back = new Date(ms + 9 * 3600000);
+    if (back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) return null;
+    return ms;
+  }
+
+  // 확인 시각: meta 가 보증하면 meta.at 과 파일 at 중 늦은 쪽, 아니면 파일 at
+  function trustAt(meta, fileAt, zcodes) {
+    const f = typeof fileAt === "number" ? (Number.isFinite(fileAt) ? fileAt : null) : kstMs(fileAt);
+    if (f === null) return { at: null, by: "none" };
+    const m = isObj(meta) && meta.ok === true ? kstMs(meta.at) : null;
+    let vouch = m !== null;
+    if (vouch && zcodes !== undefined && zcodes !== null) {
+      const fresh = Array.isArray(meta.fresh) ? meta.fresh : [];
+      vouch = Array.isArray(zcodes) && zcodes.length > 0 && zcodes.every((z) => fresh.includes(z));
+    }
+    return vouch ? { at: Math.max(m, f), by: "meta" } : { at: f, by: "file" };
+  }
+
+  // 지금에서 얼마나 지났나(밀리초). 모르거나 FUTURE_MIN 넘게 앞서 있으면 null, 조금 앞서 있으면 0
+  function ageMs(now, t) {
+    if (typeof t !== "number" || !Number.isFinite(t) || typeof now !== "number" || !Number.isFinite(now)) return null;
+    const d = now - t;
+    if (d < -FUTURE_MIN * 60000) return null;
+    return d < 0 ? 0 : d;
+  }
+
+  function level(now, t) {
+    const a = ageMs(now, t);
+    if (a === null || a > DROP_MIN * 60000) return "drop";
+    return a > NOTE_MIN * 60000 ? "old" : "fresh";
+  }
+
+  function agoText(a) {
+    const min = Math.floor(a / 60000);
+    if (min < 60) return `${min}분 전`;
+    if (min < 1440) return `${Math.floor(min / 60)}시간 전`;
+    return `${Math.floor(min / 1440)}일 전`;
+  }
+
+  function staleNote(now, t) {
+    const a = ageMs(now, t), lv = level(now, t);
+    if (lv === "fresh") return "";
+    if (a === null) return "상태 시각을 알 수 없어 빈자리를 세지 않았어요.";
+    return lv === "old" ? `${agoText(a)} 상태예요.` : `${agoText(a)} 상태라 빈자리를 세지 않았어요.`;
+  }
+
+  // 오류 까닭에서 주소·키를 가리고 길이를 자른다
+  function cleanText(s, max) {
+    if (typeof s !== "string") return "";
+    const lim = typeof max === "number" && max > 0 ? Math.floor(max) : 60;
+    let t = s.replace(/[a-z][a-z0-9+.-]*:\/\/\S+/gi, "(주소)")
+      .replace(/(service_?key|api_?key|key|token|authorization)\s*[=:]\s*\S+/gi, "$1=(가림)")
+      .replace(/[A-Za-z0-9%+\/=_-]{20,}/g, "(가림)")
+      .replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim();
+    if (t.length > lim) t = t.slice(0, lim) + "…";
+    return t;
+  }
+
+  function metaNote(meta) {
+    if (!isObj(meta) || meta.ok === true) return "";
+    const why = cleanText(meta.error);
+    return why ? `중계가 마지막 받기에 실패했어요(${why}).` : "중계가 마지막 받기에 실패했어요.";
+  }
+
   return {
     ANDROID_BASE, NOTE_MIN, DROP_MIN, FUTURE_MIN, POOL, KEY_ON, KEY_BASE, NOTE_FALLBACK, NOTE_SUSPECT, RelayError,
     defaultBase, checkBase, loadSettings, saveOn, saveBase, baseOf,
+    kstMs, trustAt, ageMs, level, staleNote, cleanText, metaNote,
   };
 });
