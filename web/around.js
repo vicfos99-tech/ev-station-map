@@ -18,21 +18,25 @@
   class ApiError extends Error {}
 
   const cellOf = (step, lat, lng) => `${Math.floor(lat / step)}_${Math.floor(lng / step)}`;
+  const defaultReach = (regions) => Math.max(1, Math.round(0.04 / ((regions && regions.step) || 0.05))); // 둘레 약 4~5km
   function zscodeAt(regions, lat, lng) {
-    return zscodesNear(regions, lat, lng, 2)[0] || null;
+    return zscodesNear(regions, lat, lng, 2 * defaultReach(regions))[0] || null;
   }
-  // 그 칸 → 둘레 한 칸 → 두 칸 순으로 훑는다. reach: 몇 칸까지 볼지(기본 1 ≈ 5km)
+  // 내가 선 칸 먼저, 그다음 둘레 칸을 '내 자리에서 칸 가운데까지 가까운 순'으로 훑는다(칸 가장자리에 서 있으면 옆 칸이 바로 다음).
+  // reach: 몇 칸까지 볼지(기본은 약 4~5km)
   function zscodesNear(regions, lat, lng, reach) {
     if (!regions || !regions.cells) return [];
     const step = regions.step, la = Math.floor(lat / step), lo = Math.floor(lng / step), out = [];
-    const max = reach === undefined ? 1 : reach;
-    for (let ring = 0; ring <= max; ring++) {
-      for (let i = -ring; i <= ring; i++) for (let j = -ring; j <= ring; j++) {
-        if (Math.max(Math.abs(i), Math.abs(j)) !== ring) continue;
-        const z = regions.cells[`${la + i}_${lo + j}`];
-        if (z && !out.includes(z)) out.push(z);
-      }
+    const max = reach === undefined ? defaultReach(regions) : reach;
+    const found = [];
+    for (let i = -max; i <= max; i++) for (let j = -max; j <= max; j++) {
+      const v = regions.cells[`${la + i}_${lo + j}`]; // "코드" 또는 "코드,코드"(경계에 걸친 칸, 많은 순)
+      if (!v) continue;
+      const dy = (la + i + 0.5) * step - lat, dx = ((lo + j + 0.5) * step - lng) * 0.8; // 경도 1도는 위도보다 짧다
+      found.push([i === 0 && j === 0 ? -1 : dy * dy + dx * dx, v]);
     }
+    found.sort((a, b) => a[0] - b[0]);
+    for (const [, v] of found) for (const z of v.split(",")) if (!out.includes(z)) out.push(z);
     return out;
   }
 

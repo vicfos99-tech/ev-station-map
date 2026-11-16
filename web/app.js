@@ -667,7 +667,7 @@
     if (!cfg) return;
     if (!key) { mapNote("주변 충전소를 보려면 '내 차·할인'에서 공공 데이터 키를 한 번 넣어 주세요. 지금은 길 위 충전소만 보여요."); return; }
     if (map.getZoom() < MAP_DETAIL_ZOOM - 1) return; // 멀리 볼 때는 받지 않는다(여러 시군구가 한꺼번에 걸린다)
-    const want = AR.zscodesNear(window.EvRegions, at[0], at[1], 1).slice(0, 2);
+    const want = AR.zscodesNear(window.EvRegions, at[0], at[1]).slice(0, 3);
     if (!want.length) return;
     arWant = want;
     for (const z of want) { const r = arRegions.get(z); if (r) r.used = Date.now(); }
