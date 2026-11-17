@@ -11,7 +11,7 @@ const vm = require("vm");
 const { check, eq } = T;
 
 const RELAY_PATH = path.join(__dirname, "..", "web", "relay.js");
-const ANDROID = "https://vicfos99-tech.github.io/ev-station-map/relay/";
+const ANDROID = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/";
 
 async function fakeFetchChecks() {
   const B = "https://r.example/relay/";

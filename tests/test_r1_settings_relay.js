@@ -13,7 +13,7 @@ const { check } = T;
 let R = null, loadErr = "";
 try { R = require(path.join(__dirname, "..", "web", "relay.js")); } catch (e) { loadErr = String(e && e.message).slice(0, 200); }
 
-const ANDROID = "https://vicfos99-tech.github.io/ev-station-map/relay/";
+const ANDROID = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/";
 const HTTPS = "주소는 https:// 로 시작해야 해요.";
 const SHAPE = "주소 모양이 맞지 않아요. https://사이트/폴더/ 처럼 적어 주세요.";
 const STORE = "이 화면에서는 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.";

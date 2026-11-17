@@ -18,7 +18,7 @@ from test_p0_node import HERE, run_js, run_node
 ROOT = HERE.parent
 RELAY = ROOT / "web" / "relay.js"
 FAKE = HERE / "test_p0_fake.js"
-ANDROID = "https://vicfos99-tech.github.io/ev-station-map/relay/"
+ANDROID = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/"
 
 JS_NAMES = [
     "fetch 객체 ok", "fetch 객체 status", "fetch 객체 글", "fetch 글 그대로", "fetch 503", "fetch 204",

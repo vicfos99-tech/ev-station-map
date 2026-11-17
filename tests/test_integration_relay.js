@@ -14,7 +14,7 @@ const PROJ = path.join(__dirname, ".."), WEB = path.join(PROJ, "web");
 const read = (f) => fs.readFileSync(path.join(WEB, f), "utf8");
 const S = (f) => JSON.parse(fs.readFileSync(path.join(PROJ, "ref", "relay_sample", f), "utf8"));
 
-const RELAY = "https://vicfos99-tech.github.io/ev-station-map/relay/";
+const RELAY = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/";
 const PUBLIC = "https://apis.data.go.kr/B552584/EvCharger/";
 const NOW = 1767571920000; // 2026-01-05 09:12:00 한국 시각. meta.json 의 at(09:10) 2분 뒤
 const CENTER = [37.3801, 127.1185];

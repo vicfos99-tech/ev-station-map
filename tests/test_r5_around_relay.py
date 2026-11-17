@@ -44,7 +44,7 @@ CE = "comm_error"
 FB = "중계에 연결하지 못해 직접 받았어요"
 SUS = "이 지역은 충전소 목록을 확인하는 중이라 빠진 곳이 있을 수 있어요."
 TAIL = ". 공공 데이터 키를 넣으면 직접 받을 수 있어요."
-ANDROID = "https://vicfos99-tech.github.io/ev-station-map/relay/"
+ANDROID = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/"
 NOCACHE = {"cache": "no-cache"}
 
 # 기준 1: 열쇠 순서까지 이대로(369행)

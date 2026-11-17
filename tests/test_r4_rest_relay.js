@@ -18,7 +18,7 @@ const FUNCS = ["wantedIds", "expire", "expireLive", "buildLive", "routeHint", "r
 const MIN = 60000;
 const NOW0 = 1767571920000, T_META = 1767571800000, T_LIST = 1767571200000, T_REST1 = 1767571500000, T_LAST = 1767569400000;
 const B = "https://a.example/relay/";
-const ANDROID = "https://vicfos99-tech.github.io/ev-station-map/relay/";
+const ANDROID = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/";
 const HINT = "이 노선의 상태는 아직 받지 않았어요. '새로 받기'를 눌러 주세요.";
 const FB = "중계에 연결하지 못해 직접 받았어요";
 const TAIL = ". 공공 데이터 키를 넣으면 직접 받을 수 있어요.";
