@@ -5,6 +5,10 @@ name: pages
 on:
   push:
     branches: [master]
+  # 집 PC 중계가 relay-data 브랜치에 10분마다 올린 자료를 relay/ 로 내려고 10분마다 다시 만든다(2026-11-17).
+  # relay-data 로의 push 는 이 파일을 부르지 못하고, github-pages 환경은 master 만 배포할 수 있어서 시각으로 돈다.
+  schedule:
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -33,6 +37,14 @@ jobs:
         run: |
           mkdir -p _site
           cp web/dist/index.html _site/index.html
+      - name: 중계 자료(relay-data 브랜치)를 relay/ 로 넣기
+        run: |
+          mkdir -p _site/relay
+          if git fetch --depth 1 origin relay-data; then
+            git archive FETCH_HEAD | tar -x -C _site/relay
+          else
+            echo "relay-data 브랜치가 아직 없음 — relay/ 없이 올림"
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
