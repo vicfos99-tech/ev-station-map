@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """e1_enough — 추천 칸의 안심 안내(plan.md 4.1 E1~E6).
 
-표 T(26줄, 사례 22개)를 이 파일의 표로 두고 test_e1_enough_reco.js 에 넘겨 가짜 화면(잠긴 test_integration_dom.js)으로
+표 T(32줄, 사례 24개)를 이 파일의 표로 두고 test_e1_enough_reco.js 에 넘겨 가짜 화면(잠긴 test_integration_dom.js)으로
 실제 web/ 을 띄운다. JS 는 본 것만 내고 기대값은 여기(표 T·3.2·3.3절 글)에만 있다. node 는 한 번만 돈다.
 칸 기호: P 1순위 · B 예비 · RB 빨간 "예비 없음" · RN 빨간 "충전소 없음" · C 차분한 칸(plan.md 3.2절).
 web/app.js 의 글자(함수·변수 이름)는 보지 않는다(plan.md 3.5 C1). 화면에서 본 값만 본다.
@@ -59,6 +59,8 @@ CASES = [
     ("T20", "two", 300, NAVI(), None, []),
     ("T21", "one", 60, NAVI(soc=20), None, [step("#soc", "80")]),
     ("T22", "one", 60, NAVI(height=2.5), None, []),
+    ("T23", "one", 176, NAVI(), None, [step("#pos", "0.4"), step("#pos", "0.6")]),
+    ("T24", "one", 196, NAVI(margin=0), None, [step("#pos", "0.6"), step("#pos", "1")]),
 ]
 CASE_IDS = [c[0] for c in CASES]
 
@@ -71,6 +73,9 @@ T = [
     ("T14-0", "P RB", None, 176), ("T15-0", "P RB", None, 176), ("T16-0", "RN", None, 176), ("T17-0", "RN", None, 176),
     ("T18-0", "RN", None, 0), ("T19-0", "P B", None, 176), ("T20-0", "P B", None, 176), ("T21-0", "RN", None, 14),
     ("T21-1", "P C", 60, 176), ("T22-0", "P C", 60, 176),
+    # 경계(판정 보완): 남은 거리 176·175.6·175.4 / 196·195.4·195, 안전 거리 175.5 / 195 — 반올림 전 값끼리 견준다
+    ("T23-0", "P RB", None, 176), ("T23-1", "P RB", None, 176), ("T23-2", "P C", 175, 176),
+    ("T24-0", "P RB", None, 195), ("T24-1", "P RB", None, 195), ("T24-2", "P C", 195, 195),
 ]
 T_IDS = [r[0] for r in T]
 
@@ -86,7 +91,7 @@ P_THIRD = {"T1-0": "26.1km", "T2-0": "16.1km"}
 
 @pytest.fixture(scope="module")
 def seen():
-    """사례 22개를 node 한 번으로 돌려 {id: [본 것…]} 을 준다(겹친 id 는 목록으로 남겨 실패시킨다)."""
+    """사례 24개를 node 한 번으로 돌려 {id: [본 것…]} 을 준다(겹친 id 는 목록으로 남겨 실패시킨다)."""
     cases = [{"id": i, "data": d, "len": n, "state": st, "dest": dest, "steps": steps}
              for i, d, n, st, dest, steps in CASES]
     code, out, err = run_node([HERE / "test_e1_enough_reco.js", json.dumps(cases, ensure_ascii=False)], cwd=P)
@@ -194,9 +199,9 @@ def test_case_clean(seen, case):
 
 
 def test_cases_cover_table(seen):
-    """E6: 사례 22개가 정확히 하나씩 결과를 낸다(빠진 사례·겹친 사례 없음). 표 T 26줄이 사례마다 걸음 0..끝을 빠짐없이 덮는다."""
-    assert len(CASE_IDS) == len(set(CASE_IDS)) == 22 and CASE_IDS == ["T%d" % i for i in range(1, 23)]
-    assert len(T_IDS) == len(set(T_IDS)) == 26
+    """E6: 사례 24개가 정확히 하나씩 결과를 낸다(빠진 사례·겹친 사례 없음). 표 T 32줄이 사례마다 걸음 0..끝을 빠짐없이 덮는다."""
+    assert len(CASE_IDS) == len(set(CASE_IDS)) == 24 and CASE_IDS == ["T%d" % i for i in range(1, 25)]
+    assert len(T_IDS) == len(set(T_IDS)) == 32
     assert sorted(seen) == sorted(CASE_IDS) and all(len(v) == 1 for v in seen.values()), sorted(seen)
     for cid, _, _, _, _, steps in CASES:
         assert [r for r in T_IDS if r.split("-")[0] == cid] == ["%s-%d" % (cid, k) for k in range(len(steps) + 1)], cid
