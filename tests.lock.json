@@ -2,6 +2,8 @@
   "tests_dir": "tests",
   "files": {
     "tests/test_a1_allow_funcs.py": "430b372b35d5e7c19c3e9f6d76933a6daeb967835609c96d9821cb0b04ed7696",
+    "tests/test_e1_enough_reco.js": "a5fad647e05a79344bc105be10d50d0f45b3f649c8175e75dcbf464c0d5bebc6",
+    "tests/test_e1_enough_reco.py": "ca49d47c82bec5b0e364720c2f3349731fe312e2627568171d2ef3daa8a8affd",
     "tests/test_g1_rawbase_base.js": "f3681596d50d9236105c802638c855fd015858f2e40b25891fbec9f9f756979e",
     "tests/test_g1_rawbase_base.py": "8e06730293dc944be03cebf672a34f00b265eae8e443a1aaafdc889251b4eb5c",
     "tests/test_integration_data_base.json": "89c09e902e7cc49c955c7a8be420c0e2d501077be0ee2e238f3bd49e533c2a32",
