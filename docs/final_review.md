@@ -1,101 +1,101 @@
-# ev-app-relay-raw 최종 검수 — 계획·요구사항과 결과 비교
+# ev-navi-enough 최종 검수 — 계획·요구사항과 결과 비교
 
-작성: 2026-11-17 최종 검수 세션. 비교 대상: 원 요구사항 `specs/ev-app-relay-raw.md`, 계획 `docs/plan.md`(끝의 "판정 보완" 3줄 포함), 결과 요약 `.orchestra/outbox/results.json`, 소스 `web/`, 테스트 `tests/`.
+작성: 2026-11-18 최종 검수 세션. 비교 대상: 원 요구사항 `specs/ev-navi-enough.md`, 계획 `docs/plan.md`(끝의 "판정 보완" 7줄 포함), 결과 요약 `.orchestra/outbox/results.json`, 소스 `web/`, 테스트 `tests/`.
 코드와 테스트는 고치지 않았다. 교훈은 `.orchestra/memory/lessons.md` 의 '공통'·'검증'을 따랐다.
-이 파일의 앞 단계(ev-secret-allow) 검수는 이 글로 덮어썼다. 옛 글은 `git show ae28a42:docs/final_review.md` 로 본다.
+이 파일의 앞 단계(ev-app-relay-raw) 검수는 이 글로 덮어썼다. 옛 글은 `git show 3efa313:docs/final_review.md` 로 본다.
 
 ## 한눈에
 
 | 항목 | 결과 |
 |---|---|
-| 부분 (g1_rawbase, integration) | 둘 다 `done`, 개발은 한 번에 통과(results.json 의 attempts 1) |
-| 전체 테스트 | **1949 passed** (25초) — 이 세션이 `py -m pytest -q --tb=short -p no:cacheprovider` 로 지금 작업 트리에서 직접 돌림. results.json 의 1949 와 같다 |
+| 부분 (e1_enough, integration) | 둘 다 `done`. e1 은 테스트 라운드 3번(판정 fix 2번) 뒤 개발 한 번에 통과, integration 은 개발 몫 없이 통과 |
+| 전체 테스트 | **2024 passed** (27초) — 이 세션이 `py -m pytest -q --tb=short -p no:cacheprovider` 로 지금 작업 트리에서 직접 돌림. results.json 의 2024 와 같다 (앞 단계 1949 + 새 테스트 75) |
 | 테스트 잠금 | `check_lock` 을 탐침에서 불러 어긋난 파일 0 |
-| 고친 소스 | `web/relay.js` 하나, 두 곳(상수 줄, `defaultBase`). `git diff --stat 35ae7b6 ae28a42 -- web app src tools ref .github pyproject.toml` 에 이 파일뿐 |
-| 원래 목적 | **코드로는 풀렸다. 아직 올리지 않아 사이트에는 안 보인다.** 제품 `relay.js` 를 실제 RAW 주소에 붙여 돌리니 우리 사이트 주소·앱 화면 주소 모두 `meta.json` → `routes.json` → 상태 파일을 200 으로 받았다. 그때 RAW 의 `meta.at` 은 21:56, 사이트 `relay/` 의 `meta.at` 은 12:51(멈춘 그대로) |
-| 가장 큰 발견 | **D1: 지금 `master` 가 원격보다 6 커밋 앞서 있다(`git status -sb`). 올리기 전에는 아무것도 바뀌지 않는다.** 그리고 저장소의 `web/dist/`·`app/www/index.html`·APK(11월 15일 빌드)에는 RAW 도 옛 주소도 0번 — 중계 기능이 들기 전 빌드다(T2) |
-| 요구사항과 다른 곳 | Q1(`https://localhost/` 도 RAW — 요구사항에 없는 갈래), Q2(부분 둘·글자 수), Q3(옛 주소 글자가 남음). 셋 다 계획서가 스스로 밝힌 것이고 이 세션이 더 찾은 어긋남은 없다 |
+| 고친 소스 | `web/app.js` 하나(`git diff --stat 3efa313 HEAD`: 19줄). `render` 2줄, 새 도우미 `enoughEl`, `renderReco` |
+| 원래 목적 | **코드로는 풀렸다. 아직 올리지 않았고 빌드 결과물도 옛 것이라 폰에는 안 보인다.** 실제 `web/live.js` 로 묘성 화면과 같은 꼴(영동선 강릉 방향, 1순위 문막휴게소 26.8 km, 예비 없음, 잔량 80%, 안전 거리 176 km, 남은 거리 53 km)을 지어 돌리니 고치기 전은 빨간 "예비 충전소가 없습니다 … 꼭 충전하세요", 고친 뒤는 "목적지까지 충전 없이 갈 수 있어요 / 남은 거리 약 53 km · 안전하게 갈 수 있는 거리 약 176 km. 1순위는 들르고 싶을 때 참고하세요." (P2) |
+| 가장 큰 발견 | **D1: `master` 가 원격보다 5 커밋 앞서 있고(`git status -sb`), 저장소의 `web/dist/` 세 파일과 `app/www/index.html` 에는 새 글이 0번, 옛 빨간 글이 1번씩이다(P3).** 올리기와 APK 다시 만들기를 하기 전에는 묘성 폰 화면은 그대로다 |
+| 요구사항과 다른 곳 | Q1(견줌을 반올림 전 값으로 — 화면 숫자가 같아도 빨간 칸), Q2(1순위 없을 때 꼬리 문장 뺌), Q3(색을 `style` 속성으로), Q4(부분 둘). 넷 다 계획서가 밝힌 것이지만 Q1 은 계획서 2.1 "요구사항과 다름" 표에는 없다 |
 
 ## 이 세션이 직접 돌린 것
 
-1. 전체 pytest: 1949 passed.
-2. 탐침 여섯 묶음(P1~P6). 제품 파일은 읽기만 했고, 바꿔 본 것은 모두 임시 폴더의 복사본이다.
-   - 드라이버 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\a41a7ded-a56e-4dae-9101-7085d52bee0c\scratchpad\test_probe_final.py` + `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\a41a7ded-a56e-4dae-9101-7085d52bee0c\scratchpad\probe.js` → 결과 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\a41a7ded-a56e-4dae-9101-7085d52bee0c\scratchpad\report_final.txt` (P1~P5. 파일이 두 경로로 두 번 모여 묶음마다 두 번 적혀 있다 — 값은 같다. P5 는 첫 두 번이 복사본에 `web/test/` 를 빼서 기준 실행부터 1 failed 로 멈췄고, 넣어 다시 돌린 것이 끝의 것이다)
-   - 드라이버 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\a41a7ded-a56e-4dae-9101-7085d52bee0c\scratchpad\test_probe_clone.py` → 결과 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\a41a7ded-a56e-4dae-9101-7085d52bee0c\scratchpad\report_clone.txt` (P6)
+1. 전체 pytest: 2024 passed.
+2. 탐침 일곱 묶음(P1~P7). 제품 파일은 읽기만 했고, 바꿔 본 것은 모두 임시 폴더의 복사본이다.
+   - 드라이버 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\c8d5f426-e835-46a1-a1c0-2d14fa61b582\scratchpad\test_probe_final.py` + `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\c8d5f426-e835-46a1-a1c0-2d14fa61b582\scratchpad\probe.js` → 결과 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\c8d5f426-e835-46a1-a1c0-2d14fa61b582\scratchpad\report_final.txt` (P1~P6. 파일이 두 경로로 두 번 모여 묶음마다 두 번 적혀 있다 — 값은 같다. P2 는 위치 걸음을 더해 한 번 더 돌린 것이 끝의 것이다)
+   - 드라이버 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\c8d5f426-e835-46a1-a1c0-2d14fa61b582\scratchpad\test_probe_nohw.py` → 결과 `C:\Users\ADMINI~1\AppData\Local\Temp\claude\f87820ce78287966\c8d5f426-e835-46a1-a1c0-2d14fa61b582\scratchpad\report_nohw.txt` (P7)
+   - "고치기 전"은 `git show 3efa313:web/app.js` 를 임시 파일로 꺼내 같은 가짜 화면에 끼운 것이다.
 
 | 탐침 | 한 것 | 결과 |
 |---|---|---|
-| P1 | 제품 `defaultBase` 에 표 밖 입력 31개(글 28 + 글이 아닌 것 3), 지도 탭 함수(`loadRegion`·`refreshRegion`)와 `refreshRest` 를 여섯 화면 주소·설정으로(가짜 fetch 404) | 던진 것 0. 우리 사이트·앱 화면·`file:` 은 세 함수 모두 첫 요청이 RAW + `meta.json`, 내 PC(`http://localhost:8000/web/…`)는 `…/web/relay/meta.json`. 표 밖 입력은 아래 T5 |
-| P2 | **실제 RAW 주소**에 요청(22:08, 읽기만). 머리글, 그리고 제품 `refreshRest`·`loadRegion` 을 진짜 `fetch` 로 | 아래 A6·T1·T3. 계획서가 "확인 못 함"으로 둔 2.0 의 3번 (가)·(나)·(다)가 모두 가려졌다 |
-| P3 | 잠금, 새 테스트 글자 수·줄 끝, `web/relay.js` 글자 조건, 저장소의 `web/dist/`·`app/www/`·`app/dist/` | 어긋남 0. 새 테스트 넷에 CR 0개·`.orchestra` 참조 0·건너뛰기 0. 나머지는 A·Q2·T2 |
-| P4 | 임시 폴더에 베낀 `web/` 에서 `build.js` | 종료 코드 0. 만들어진 세 파일(`index.html`·`artifact.html`·`충전길잡이.html`) 모두 RAW 1번, 옛 주소 1번, 사이트 호스트 이름 1번 |
-| P5 | 임시 복사본의 `relay.js` 에 변이 19종. 새 테스트 두 파일(98개)과 잠긴 `test_p0_relay`·`test_r1_settings_relay`·`test_integration_relay`(274개)를 따로 | 새 테스트: **잡힘 17, 생존 2**(T5). 잠긴 테스트만으로는 잡힘 9, 생존 10 — 새 테스트가 있어야 잡히는 갈래다 |
-| P6 | 이 PC 의 git 설정 그대로 `git clone` 한 복사본에서 전체 테스트·새 테스트·잠금 | 전체 **1 failed, 1948 passed**(T4 — 앞 단계에서 남은 것). 새 테스트 두 파일은 98 passed, 잠금 통과 |
+| P1 | 계획서 표 밖 사례 14개(X1~X14)를 제품 `app.js` 와 고치기 전 `app.js` 로 | 던진 것·`errors` 0. 차분한 칸이 뜨는 곳은 고치기 전에는 모두 빨간 칸. 눈에 띄는 것은 T4·T7·T8 |
+| P2 | **실제 `web/live.js`** + 영동선(강릉 방향) 문막 나들목 앞 32 km 에서 시작해 고속도로를 12 km(또는 150 km) 더 가는 길을 지어 잔량 80·30, 위치 0 → 9 km, 지도 탭 다녀오기 | 한눈에의 "원래 목적" 줄. 길이 246 km(남은 237 km)면 예비(새말 나들목)가 그대로 나오고, 잔량 30 이면 1순위·예비가 그대로 — 고치기 전과 같다. 지도 탭을 다녀와도 칸이 같다 |
+| P3 | 잠금, 새 테스트 글자 수·줄 끝, `.orchestra` 참조, 저장소의 `web/dist/`·`app/` | 어긋남 0. 새 테스트 셋 17,469자(e1 둘 14,588자 / 한도 30,000, integration 2,881자 / 한도 3,000), CR 0개, `.orchestra` 참조 0, 건너뛰기 0. 나머지는 D1·T1 |
+| P4 | 임시 폴더에 베낀 `web/` 에서 `build.js` | 종료 코드 0. 만들어진 세 파일(`index.html`·`artifact.html`·`충전길잡이.html`) 모두 새 굵은 글 1번 |
+| P5 | 임시 복사본의 `app.js` 에 변이 28종, 새 테스트 세 파일(75개) | **잡힘 24, 생존 4** — 넷 다 결과가 같은 변이(T6) |
+| P6 | 이 PC 의 git 설정 그대로 `git clone` 한 복사본에서 전체 테스트 | 전체 **1 failed, 2023 passed**(`test_integration_secret.py::test_real_allow` — 앞 단계에서 남은 CRLF 문제, T5). 새 테스트 75개는 clone 에서도 통과(clone 의 `app.js` 는 CR 1561개 — 줄 끝이 바뀌어도 통과) |
+| P7 | 길 위에 휴게소가 하나도 없는 길찾기 노선(국도만 30 km / 경부 8 km + 국도 12 km) | 잔량 80: 고치기 전 빨간 "안전하게 갈 수 있는 충전소가 없습니다" → 고친 뒤 차분한 칸(꼬리 문장 없음). 잔량 20(안전 거리 14 km): 그대로 빨간 칸 |
 
-3. 돌리지 못한 것: `bash tools/push.sh`(진짜로 올라가서 계획이 금지). 실제 폰 앱(APK) 화면에서의 주소·요청. 실제 브라우저에서 사이트를 연 것(P2 는 node 의 `fetch` 다 — 머리글로 읽기 허용을 확인했을 뿐 브라우저가 막는지 직접 본 것은 아니다). GitHub Actions 에서의 실행. "코드 읽기"라고 적은 줄은 돌려 보지 않고 소스·설정만 읽은 것이다.
+3. 돌리지 못한 것: 실제 브라우저·폰에서의 색(가짜 화면은 `style` 속성의 글자만 본다). 실제 카카오 길찾기 응답으로 만든 노선(P2 는 실제 충전소 자료에 손으로 지은 길이다). GPS 로 위치가 따라오는 흐름(코드 읽기만: `applyNaviFix` 가 `state.pos` 를 바꾸고 `render` 를 부른다 — `web/app.js` 1246~1249행). `bash tools/push.sh` 와 APK 만들기(계획이 금지). APK 안의 글자 수(압축 파일이라 바이트로 세는 것이 뜻이 없다 — 0번으로 나왔지만 근거가 못 된다).
 
 ## 1. 계획대로 된 것
 
 | # | 계획 | 확인 |
 |---|---|---|
-| A1 | `ANDROID_BASE` = RAW, 옛 주소는 `SITE_RELAY` 상수로 한 번만(3.1) | `web/relay.js` 11~13행. 글 전체에 사이트 호스트 이름 1번·RAW 1번·옛 주소 꼴 1번(P3). 금지 낱말 넷 0번, 내보내는 이름에 `SITE_`·`HOST` 없음(P1) |
-| A2 | `defaultBase` 의 순서 K6 ①~⑤ | 제품 코드가 계획서 5절 참조와 같다(다른 점 하나는 G1). 표 A~F 와 판정 보완 두 사례는 새 테스트 83개가 본다 — 전체 실행에서 통과 |
-| A3 | `baseOf` 와 나머지 함수는 한 글자도 안 고침(K8) | `git diff 35ae7b6 ae28a42 -- web/relay.js` 가 상수 3줄과 `defaultBase` 뿐 |
-| A4 | 3.1 의 두 잠긴 조건을 함께 지킴 | 전체 실행에서 `test_relay_android_host_exactly_once`·`test_build` 통과. 변이 `host_literal`(호스트 이름을 따로 적음)은 새 테스트 1개와 잠긴 `test_build` 가 각각 잡는다(P5) — 계획서 114행 그대로 |
-| A5 | integration 은 개발 몫 없음 | 커밋 `ae28a42` 는 `docs/plan.md` 1줄(판정 보완)뿐이고 소스는 안 바뀜 |
-| A6 | 사이트·앱 화면에서 열면 RAW 를 읽는다 | P2: 우리 사이트 주소와 `https://localhost/` 둘 다 요청 44개(200 과 404 만), 첫 셋이 RAW + `meta.json`·`routes.json`·`status/rest/….json`, `source` 는 `relay`. 지도 탭 `loadRegion`(11680)도 RAW 의 세 파일을 200 으로 받아 충전소 123곳 |
-| A7 | 고치지 않는 것(다른 `web/` 파일·`app/`·`src/`·`tools/`·`ref/`·잠긴 테스트·`web/dist/`) | `git diff --stat` 에 없음. 잠금 어긋남 0. 테스트는 빌드를 `tmp_path` 에서만 돌린다 |
-| A8 | 새 테스트 파일 넷, 글자 수 한도 | 넷뿐. g1 둘 10,939자(한도 20,000), integration 둘 7,850자(한도 10,000) — P3 이 UTF-8 `len` 으로 셈 |
-| A9 | 지금 실패하는 33개 통과 | 전체 실패 0. 계획서의 예상 "1851 passed"에 새 테스트 98개가 더해져 1949 |
-| A10 | 앞 단계 계획서를 `docs/plan_stage3.md` 로 옮김 | 있음. 계획 밖 파일이지만 까닭이 계획서 5행에 적혀 있다 |
+| A1 | 고치는 소스는 `web/app.js` 하나, `style.css` 등은 그대로(0절·3.1) | `git diff --stat 3efa313 HEAD` 에 `web/` 은 `app.js` 뿐. 잠긴 `test_integration_relay.py::test_same`·`test_text` 가 전체 실행에서 통과 |
+| A2 | 안전 거리를 `render` 에서 한 번 계산해 `#range-line` 과 `renderReco` 에 넘긴다 | `web/app.js` 369~373행. 숫자 꾸미기가 두 군데인 것은 G1 |
+| A3 | 견줌은 반올림 전·0 으로 자르기 전 값, 같으면 차분한 칸(K1·K2) | 412행 `safeKm >= route.length - state.pos`. 표 T 의 T5·T6·T12·T13·T18·T23·T24 통과. P1 X8(안전 거리 56.7): 위치 3.3 에서는 빨간 칸, 3.4 에서 차분한 칸 |
+| A4 | 길찾기 노선은 `navi === true` 로만 본다(K5), 고속도로 노선은 그대로 | 412행. T14·T15·T17 통과. P1 X13: 길찾기 노선에서 고속도로 노선으로 바꾸면 빨간 칸으로 돌아온다 |
+| A5 | 예비가 있으면 차분한 칸을 더하지 않는다(K7) | 420~421행. T19·T20 통과. 변이 `calm_over_backup` 잡힘 |
+| A6 | 칸의 꼴: class `none`, `data-tone="good"`, `style` 글, 자식 `B`·`SPAN`(3.2) | 405~407행이 계획서 5절 참조와 글자까지 같다. 변이 `style_nospace`·`tone_other`·`class_extra`·`head_text`·`unit_nospace` 모두 잡힘 |
+| A7 | 1순위가 없으면 꼬리 문장 없음(N1) | 414행·421행. 변이 `tail_always`·`tail_never` 잡힘 |
+| A8 | 글에 목적지 이름을 넣지 않고 `textContent` 로(K8) | 변이 `dest_in_text` 잡힘(T7). 잠긴 `test_text` 통과 |
+| A9 | 빨간 칸·1순위 칸·예비 칸·`#range-line` 글은 고치기 전과 글자까지 같다 | P1·P2·P7 의 고치기 전 출력과 견주어, 차분한 칸이 안 뜨는 줄은 모두 같다 |
+| A10 | integration 은 개발 몫 없음 | 커밋 `d32f029`(테스트)뿐이고 `dev_integration.md` 에 "코드 수정 없음" |
+| A11 | 새 테스트 파일 셋뿐, 글자 수 한도, `tests/data`·`conftest.py` 없음 | P3 |
+| A12 | 임시 폴더 빌드에 새 글 1번, 저장소 `web/dist/` 는 그대로(I2) | P4. `git status` 깨끗 |
+| A13 | 앞 단계 계획서를 `docs/plan_stage4.md` 로 옮김 | 있음. 계획 밖 파일이지만 까닭이 계획서 5행에 적혀 있다 |
+| A14 | 세션 기록 | 계획·테스트 둘·검증 둘·판정·개발 둘 모두 `.orchestra/logs/` 에 이번 실행 절이 있다(`dev_e1_enough.md` 포함 — 앞 단계 G3 은 되풀이되지 않았다) |
 
 ## 2. 계획과 다른 것
 
 | # | 계획 | 결과 | 무게 |
 |---|---|---|---|
-| G1 | 참조는 `APP_HOST` 상수(`"localhost"`)를 둔다(302행) | 제품은 상수 없이 `u.hostname === "localhost"` 로 바로 적었다 | 동작 같음. 고칠 것 없음 |
-| G2 | 표 A~F 의 66줄 | 테스트에 표 밖 사례 4줄이 더 있다: 판정 보완 둘(`K6c`·`C5b`)과 테스트 세션이 넣은 `K6a`·`K6b`(앞 공백·`xhttps://` 를 그 밖 호스트로) | 계획서 75행·204행에서 나온 것이라 좁히는 쪽. 문제 아님 |
-| G3 | 모든 세션이 `.orchestra/logs/<세션>.md` 를 쓴다(교훈) | `dev_g1_rawbase.md` 가 없다(계획·테스트·검증·판정·`dev_integration` 은 있음) | 기록만 빠짐 |
-| G4 | 2.0 의 2번 (b) "안 하면 폰 앱은 옛 주소 그대로" | 지금 APK·`app/www/index.html` 에는 옛 주소 글자도 0번이다(P3) — 중계 기능이 들기 전 빌드로 보인다 | 계획서 문장이 실제보다 낙관적. T2 |
+| G1 | 참조는 `render` 가 반올림한 `safeKm` 과 `enough = { left, safe }` 를 만들어 넘긴다(5절) | 제품은 반올림 전 값과 노선을 넘기고, `Math.max(0, Math.round(safeKm))` 를 `#range-line`(370행)과 `enoughEl`(407행) 두 군데에 적었다 | 동작 같음. "한 곳에서 계산"은 반올림 전 값까지만 지켜졌고 숫자 꾸미기는 두 벌이다. 한쪽만 고치면 어긋나지만 T25·T4·T6 이 잡는다(변이 `m_ceil`·`m_floor`·`range_floor` 잡힘) |
+| G2 | 표 T 26줄·사례 22개 | 테스트는 33줄·25개(판정 보완 T23·T24·T25) | 계획서 끝 "판정 보완"에 적힌 대로. 좁히는 쪽 |
+| G3 | 2.0 의 3번 (c) "`app/` 아래 `.html`·`.js` 에는 그 글이 0번이다(앱 화면 파일이 저장소에 없다)" | 작업 폴더의 `app/www/index.html` 과 `app/android/app/src/main/assets/public/index.html`(727,045바이트)에 옛 빨간 글이 1번씩 있다(P3). git 이 무시하는 파일이라 Grep 도구에는 안 보인다 | 계획서 문장이 틀림. 폰 앱 화면 파일은 PC 에 있고 옛 것이다(D1) |
+| G4 | 6절 "pytest 인자는 드라이버 파일 하나" | 이 세션의 드라이버도 두 번 모였다(12 passed = 6 × 2) | 검수 쪽 흠. 결과 값은 같다 |
 
-results.json 의 숫자는 이 세션의 실행과 맞는다: g1 뒤 1934(= 1851 + 83), integration 뒤 1949(= 1934 + 15).
+## 3. 요구사항과 다른 것 (계획이 좁히거나 바꾼 곳)
 
-## 3. 요구사항과 다른 것
-
-계획과는 맞지만 원 요구사항과 어긋나는 곳이다. 셋 다 계획서 2.1 이 밝혀 둔 것이고, 수용 기준 여섯 줄 자체는 모두 글자 그대로 채워졌다(표 A1·A2, C1·C2, C9, D1·D10·D3, F1·S1, 전체 실행).
-
-| # | 요구사항 | 결과 | 따져 본 것 |
+| # | 요구사항 | 결과 | 계획서가 밝혔나 |
 |---|---|---|---|
-| Q1 | "그 밖의 http(s) 페이지(내 PC 시험용 `localhost` 등)는 지금처럼 `./relay/`" | `https://localhost/`(https·호스트 `localhost`·포트 없음 또는 443)는 RAW. `https://user:pw@localhost/`·`https://localhost/sub/dir/index.html` 도 RAW(P1) | 요구사항의 예시 `http://localhost:8000/web/index.html` 은 그대로 `./relay/` 다. 까닭(앱 화면 주소)은 `app/README.md` 3행과 `app/capacitor.config.json`(주소 설정 없음 → 기본값)으로만 확인했다 — 코드 읽기. **이 갈래가 없으면 다시 만든 APK 가 `https://localhost/relay/` 를 읽어 중계를 못 본다**는 계획의 판단은 맞다고 본다. 묘성이 정할 것 D2 |
-| Q2 | "부분 하나", "이번 부분 테스트 파일(`tests/test_<부분>_` 전부)은 합쳐 4만5천 자 이하" | 부분 둘. `tests/test_integration_` 로 시작하는 파일은 일곱 개 55,254자(앞 단계의 잠긴 다섯 47,404자 + 새 둘 7,850자) | 글자 그대로 세면 integration 은 한도를 넘는다. 이번에 새로 쓴 것만 세면 넷 합쳐 18,789자다. 수용 기준 수는 6 + 2 = 8 로 지켰고, 판정 보완 3줄이 그 위에 붙었다 |
-| Q3 | "`ANDROID_BASE` 값을 … 로 바꾼다" | 바꿨다. 다만 옛 주소 글자가 `SITE_RELAY` 로 남는다 | 잠긴 `test_build` 가 빌드 결과에서 옛 주소 글자를 찾기 때문(A4). 읽는 데는 쓰지 않는다 — P1·P2 에서 기본 설정으로 옛 주소를 부른 일 0 |
+| Q1 | "안전 거리" = `#range-line` 에 쓰는 것과 같은 값. "안전 거리 ≥ 남은 거리이면" 차분한 칸 | 견줌은 화면 숫자가 아니라 **반올림 전 값**으로 한다. 잔량 80%(화면 "약 176km", 실제 175.5)에 남은 거리 176 km 면 화면 숫자는 같아도 빨간 칸(T12). 잔량이 '도착 때 남길 %'보다 낮아 화면이 "약 0km"일 때 남은 거리 0 이어도 빨간 칸(T18) | 2.0 의 2번·K1·K2 에 적었으나 **2.1 "요구사항과 다름" 표에는 없다.** 안전한 쪽으로 좁힌 것이고 0.5 km 안쪽에서만 갈린다 |
+| Q2 | 1순위·예비가 다 없을 때도 "같은 차분한 칸" | 굵은 글·숫자 문장은 같고 꼬리 문장 "1순위는 들르고 싶을 때 참고하세요."만 뺐다 | N1 |
+| Q3 | 차분한(good) 칸 | class `none`(빨간 칸의 틀) + `style` 속성으로 색을 덮음. 작은 글의 색은 빨간 칸과 같은 `--ink-2` 그대로(`style.css` 196행) | N2 |
+| Q4 | 부분 하나 | 부분 둘(e1_enough + integration). 수용 기준은 합쳐 8개, 새 테스트 17,469자 | N3 |
+| Q5 | 수용 기준 "위치 30 → 남은 거리 30 으로 나온다" | 맞게 나오지만 그 사례(T3-1)는 1순위 휴게소(26.1 km)를 이미 지나 1순위 칸 없이 차분한 칸만 뜬다. 1순위가 있는 채로 위치를 뺀 것은 T2(위치 10 → 50)가 본다 | 계획서 249행 |
 
-이 세션이 더 따져 본 것 — 어긋남 아님:
-- "풀 수 없는 주소는 … 던지지 않는다": 표 밖 입력 31개에서도 던진 것 0(P1).
-- "설정에 넣은 주소가 먼저": 우리 사이트·앱 화면에서 설정에 옛 주소를 넣으면 세 함수 모두 옛 주소를 부른다(P1). 요구사항 3번 그대로이고, 계획서 M2 가 말한 남는 것이기도 하다.
-- 요구사항 머리의 "앱은 키 없이 중계 페이지에서만 받는다": 앱에는 키를 넣으면 공공 API 를 직접 부르는 길이 그대로 있다(`refreshRest` 의 `direct`). 이번 범위("고칠 곳은 `web/relay.js` 뿐", 기본 주소) 밖이라 그대로 둔 것이 맞다. D5 에 적는다.
+이 세션이 더 찾은, 계획서에 없는 요구사항 어긋남은 없다. 요구사항 "바꿀 것" 1~5 와 수용 기준 여덟은 표 T·F 와 P1·P2·P7 로 모두 확인했다.
 
 ## 4. 테스트가 못 잡는 위험
 
-| # | 위험 | 근거 |
+| # | 내용 | 근거 |
 |---|---|---|
-| T1 | **GitHub 쪽 캐시 5분.** RAW 응답 머리글이 `cache-control: max-age=300` 이다. 앱이 `cache: "no-cache"` 로 불러도 GitHub 의 캐시 서버가 5분까지 옛 것을 준다. 탐침 때 `meta.at` 은 11.9분 전이었다 — 10분마다 올리기 + 캐시로 15분 문턱(`NOTE_MIN`)을 넘어 "오래됨" 안내가 뜨는 때가 있을 것이다. 30분(`DROP_MIN`)에는 닿지 않는다 | P2. 테스트는 전부 가짜 fetch. 계획서 M1 의 "미확인"이 사실로 확인됨 |
-| T2 | **저장소에 든 빌드 결과가 전부 옛 것이다.** `web/dist/` 세 파일·`app/www/index.html` 에 RAW 0번·옛 주소 0번, APK 는 11월 15일 것. 잠긴 테스트도 새 테스트도 이것이 최신인지 보지 않는다. 사이트는 올리면 GitHub 가 새로 빌드하니 괜찮고, **폰 앱은 `node web/build.js` → `node app/copy-web.js` → APK 다시 만들기·설치**를 해야 중계가 처음 들어간다 | P3·P4 |
-| T3 | **진짜 자료에서는 안내가 붙는다.** 실제 RAW 로 받으면 `tone` 이 `warn` 이고 글이 "충전소 8곳은 상태 파일이 없어 미확인이에요. 충전소 6곳은 충전기 목록이 달라 미확인이에요."였다(노선 `live-gb-down`). 지도 탭은 `stations/41135.json` 이 404 라 "중계에 파일이 없어요". 이번 고침 탓이 아니라 중계가 올리는 자료의 범위다(중계 프로그램 쪽 일). 새 테스트의 견본은 깨끗해서 `중계에서 받았어요 …` 만 본다 | P2 |
-| T4 | 이 PC 의 git 설정(`core.autocrlf=true`)으로 새로 clone 하면 `tests/test_integration_secret.py::test_real_allow` 가 실패한다(1 failed, 1948 passed). 앞 단계 검수의 T1 이 그대로 남아 있다(`.gitattributes` 없음). 이번 새 테스트는 CRLF 로 꺼내져도 통과한다. GitHub Actions 는 리눅스라 걸리지 않는다 | P6 |
-| T5 | 표 밖 주소 가운데 사례가 없는 것. 변이 생존 2종: `https://localhost./`(끝 점)와 `https://[::1]/` 를 앱 화면으로 봐도 새 테스트가 통과한다. 지금 제품은 둘 다 `./relay/` 로 보낸다. 그 밖에 P1 에서 본 지금 동작: `https://vicfos99-tech.github%2eio/`·`https://vicfos99-tech.github.io\@evil.example/` 는 RAW(URL 규칙으로는 둘 다 실제로 우리 호스트라 맞다), `new URL(…)` 객체·`new String(…)` 을 넘기면 글자가 아니라서 RAW(앱은 `location.href` 글자만 넘긴다) | P1·P5. 해는 없다고 본다 — 어느 쪽이든 읽는 곳은 우리 중계 아니면 그 페이지 자신의 `./relay/` |
-| T6 | 화면 흐름(표 S)은 '새로 받기'(휴게소)만 누른다. 새 주소에서 지도 탭을 여는 흐름은 화면으로 돌린 사례가 없고, P1·P2 가 함수 층으로만 봤다(같은 `baseOf` 를 쓴다) | `tests/test_integration_rawbase.py` |
-| T7 | 앱 화면 주소는 글로만 확인했다. 나중에 `capacitor.config.json` 에 `server.hostname`·`androidScheme: "http"`·개발용 `server.url` 을 넣으면 화면 주소가 `https://localhost/` 가 아니게 되어 다시 `./relay/` 를 읽는다. 그리고 `web/dist/artifact.html` 을 Claude 아티팩트로 열면 주소가 "그 밖의 https"라 `…/relay/` 를 읽는다(고치기 전에도 같았다) | 코드 읽기·P1 |
-| T8 | 한 번 받을 때 RAW 에 요청 44개(노선 하나). GitHub 가 요청 수를 줄이는지는 확인하지 못했다 | P2. 미확인 |
+| T1 | **저장소·PC 의 빌드 결과물이 모두 옛 것.** `web/dist/` 세 파일: 새 글 0번·옛 빨간 글 1번. `app/www/index.html`·안드로이드 assets 의 `index.html`: 새 글 0번·옛 글 1번. 테스트는 임시 폴더 빌드만 본다 | P3·P4 |
+| T2 | 실제 화면의 색·읽기 쉬움은 아무도 안 봤다. 테스트는 `style` 속성의 글자만 본다. `--good-soft`·`--good` 변수 이름이 바뀌면 색이 빠져 빨간 칸처럼 보인다(M5) | 코드 읽기(`style.css` 19·20·54·194행 — 밝은·어두운 화면 모두 변수는 있다) |
+| T3 | **예비가 있으면 안심 안내가 안 뜬다.** 실제 자료에서는 나들목 인근 충전소가 예비로 자주 잡힌다 — P2 에서 같은 길을 위치 0 에서 보면 1순위 여주휴게소·예비 문막휴게소만 나오고 "충전 없이 갈 수 있다"는 말은 어디에도 없다(남은 거리 62 km, 안전 거리 176 km). 요구사항 수용 기준 6번 그대로지만, 목표(필요 없는 충전을 권하지 않기)는 예비가 없는 화면에서만 이뤄진다 | P2 |
+| T4 | 잔량이 아주 낮아도 뜬다. 잔량 16%·남은 거리 2 km → "충전 없이 갈 수 있어요 / 약 2 km · 약 3 km"(X14). 잔량 15%·남은 거리 0 → "약 0 km · 약 0 km"(X2). 규칙대로지만 목적지에 충전기가 있는지, 돌아올 길은 안 본다(M1) | P1 |
+| T5 | 새 clone 전체 테스트 1 failed(`test_real_allow`, CRLF) — 앞 단계 ev-secret-allow T1 이 그대로 | P6 |
+| T6 | 생존 변이 넷은 모두 결과가 같은 변이다: `navi_by_key`(노선 열쇠가 `navi` 인지로 봄)·`navi_truthy`(K5 — 앱이 다른 참 값을 안 만든다)·`cmp_left_clamp0`(남은 거리를 0 아래로 안 내림 — `render` 가 위치를 노선 길이 안으로 되돌린다, X1)·`m_noclamp`(차분한 칸이 뜨면 안전 거리는 늘 0 이상) | P5 |
+| T7 | 남은 거리는 화면의 위치 값으로 센다. 위치 칸에 글자·음수가 들어가면(X6·X10) 고치기 전과 똑같이 빨간 칸·"설정을 확인해 주세요"가 뜬다 — 새로 생긴 틈은 아니다. 길에서 벗어났거나 어제 받아 둔 길이면 틀린 남은 거리로 차분한 칸이 뜰 수 있다(M2·M3) | P1, 코드 읽기 |
+| T8 | 소수 계산의 끝자리: 안전 거리 56.7·남은 거리 56.7(위치 3.3)은 같아 보여도 빨간 칸이다(X8). 안전한 쪽으로만 어긋난다 | P1 |
+| T9 | 시험의 길찾기 노선은 손으로 지은 조각이다. 실제 카카오 응답의 노선(조각 수백 개, 올림한 노선 길이 M4)으로는 아무도 안 돌렸다 | 계획서 250행, 이 세션도 못 함 |
 
 ## 5. 묘성이 정해야 할 것
 
-| # | 정할 것 | 권고 |
-|---|---|---|
-| D1 | **올리기.** `master` 가 원격보다 6 커밋 앞서 있다. `bash tools/push.sh` 로 올리면 GitHub 가 다시 빌드해 사이트가 RAW 를 읽는다. 올린 뒤 폰에서 사이트를 열어 '새로 받기' → 받은 시각이 10~15분 안쪽인지 한 번 본다 | 올린다. 올리기는 지휘 스크립트 밖의 일이다 |
-| D2 | **Q1 — `https://localhost/` 를 RAW 로 보내는 갈래를 둘지.** 요구사항에 없던 것이다. 빼면 폰 앱이 중계를 못 본다 | 둔다. 내 PC 시험은 포트를 붙여 띄우면 지금처럼 `./relay/` 다 |
-| D3 | **폰 앱(APK)을 다시 만들지(T2).** 지금 APK 에는 중계 기능 자체가 없다 | 사이트에서 먼저 확인한 뒤 다시 만든다 |
-| D4 | **사이트의 `relay/` 를 10분마다 만드는 예약 실행(`.github/workflows/pages.yml` 의 `schedule`)을 지울지.** 앱은 이제 쓰지 않고, 예약이 돌지 않아 12:51 에 멈춰 있다. 옛 주소 글자(`SITE_RELAY`)도 잠긴 `test_integration_relay.py` 17행을 풀어야 지울 수 있다 | 사이트가 RAW 로 잘 받는 것을 본 뒤 예약 실행만 지운다. 옛 주소 글자는 그대로 둔다(잠금을 풀 만한 값이 아니다) |
-| D5 | **캐시 5분(T1)을 받아들일지.** 줄이려면 앱이 주소 뒤에 시각을 붙이는 방법 등이 있으나 RAW 에서 통하는지는 확인하지 않았다 | 우선 받아들이고, "오래됨" 안내가 자주 뜨면 따로 요구사항을 쓴다. 키를 넣으면 직접 받는 길을 없앨지(3절 끝)도 그때 함께 정한다 |
-| D6 | T4(`.gitattributes` 로 줄 끝 고정) — 앞 단계 D2 가 아직 열려 있다 | 다음 일에 한 줄 넣는다 |
-| D7 | T3(상태 파일 없는 충전소 8곳·목록이 다른 6곳, 41135 같은 시군구 파일 없음) | 중계 프로그램(`ev-data-relay`) 쪽에서 볼 일. 앱 고침은 필요 없다 |
+1. **올리기와 폰 앱 다시 만들기(D1).** 지금은 PC 의 `master` 에만 있다(원격보다 5 커밋 앞). (a) `tools/push.sh` 로 올리면 사이트가 바뀐다. (b) 폰 앱은 `node web/build.js` → `node app/copy-web.js` → APK 만들기·설치를 해야 바뀐다. `app/www/index.html` 은 727KB 로 `web/dist/`(1.16MB)보다도 옛 빌드다.
+2. **화면 숫자가 같은데 빨간 칸(Q1).** "약 176km" 대 남은 거리 176 km 처럼 반올림한 숫자가 같을 때 지금은 빨간 칸이다. 요구사항 글자대로(화면 숫자끼리 견줌) 하려면 표 T 의 T12·T18·T23·T24 를 풀어야 한다. 권고: 지금 그대로(0.5 km 모자란데 "갈 수 있어요"가 뜨는 쪽이 더 나쁘다).
+3. **예비가 있을 때도 안심 안내를 보일지(T3).** 지금은 요구사항대로 안 보인다. 실제 자료에서는 예비가 자주 잡혀, 목적지가 넉넉히 닿는 거리인데도 화면에는 "1순위 충전소"와 예비만 보이는 때가 많다. 보이게 하려면 요구사항 수용 기준 6번과 K7·T19 를 바꾸는 새 일이다.
+4. **잔량이 낮을 때의 문턱(T4).** 잔량 16%·남은 2 km 에도 "충전 없이 갈 수 있어요"가 뜬다. 문턱(예: 도착 때 잔량이 몇 % 아래면 차분한 칸 대신 다른 글)을 둘지.
+5. **1순위가 없을 때 꼬리 문장(Q2)** — 지금은 뺐다. 권고: 지금 그대로(가리킬 1순위 칸이 없다).
+6. **색을 `style.css` 로 옮길지(Q3).** 옮기려면 잠긴 `test_integration_relay.py::test_same` 의 해시를 풀어야 한다. 그 전에 실제 폰 화면에서 차분한 칸의 색(초록 바탕·초록 굵은 글·회색 작은 글)이 괜찮은지 한 번 봐야 한다(T2).
+7. **새 clone 의 1 failed(T5)** — 앞 단계에서 남은 것. 이 일과 무관하지만 아직 그대로다.
