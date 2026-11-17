@@ -27,6 +27,60 @@ def env_value(name):
         return ""
 
 
+def load_allow(path, secrets):
+    """허용 목록 파일을 읽어 (허용 글 frozenset, 경고 글 list) 를 돌려준다. 못 읽으면 빈 결과."""
+    try:
+        with open(path, "rb") as fh:
+            raw = fh.read()
+    except OSError:
+        return frozenset(), []
+    if raw.startswith(b"\xef\xbb\xbf"):
+        raw = raw[3:]
+    allow = set()
+    warns = []
+    for no, line in enumerate(raw.split(b"\n"), 1):
+        line = line.strip()
+        if not line or line.startswith(b"#"):
+            continue
+        hit = next((n for n, v in secrets.items() if v in line), None)
+        if hit is not None:
+            warns.append(f"경고: 허용 목록 {no}번째 줄에 환경변수 {hit} 의 값이 들어 있어 그 줄은 무시한다")
+            continue
+        allow.add(line)
+    return frozenset(allow), warns
+
+
+def count_keys(data, allow):
+    """(허용 안 된 수, 허용돼 넘어간 수). PATTERN 에 걸린 글이 허용 글과 글자까지 같을 때만 넘어간다."""
+    bad = ok = 0
+    for m in PATTERN.finditer(data):
+        if m.group(0) in allow:
+            ok += 1
+        else:
+            bad += 1
+    return bad, ok
+
+
+def check_files(files, secrets, allow):
+    """(실패 줄 list, 넘어간 수 합계). 못 여는 파일은 건너뛴다."""
+    bad = []
+    skipped = 0
+    for f in files:
+        try:
+            with open(f, "rb") as fh:
+                data = fh.read()
+        except OSError:
+            continue
+        for n, v in secrets.items():
+            if v in data:
+                bad.append(f"{f}: 환경변수 {n} 의 값이 들어 있다")
+        nbad, nok = count_keys(data, allow)
+        skipped += nok
+        if nbad:
+            bad.append(f"{f}: 키처럼 생긴 글자가 있다")
+    return bad, skipped
+
+
 def main():
     out = subprocess.run(["git", "ls-files", "-z"], capture_output=True, check=True).stdout
     files = [f.decode("utf-8") for f in out.split(b"\0") if f]
