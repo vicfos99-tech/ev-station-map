@@ -3,7 +3,7 @@
   "files": {
     "tests/test_a1_allow_funcs.py": "430b372b35d5e7c19c3e9f6d76933a6daeb967835609c96d9821cb0b04ed7696",
     "tests/test_g1_rawbase_base.js": "f3681596d50d9236105c802638c855fd015858f2e40b25891fbec9f9f756979e",
-    "tests/test_g1_rawbase_base.py": "69759c943daed3d0e70daf6318d308f34a3589871741ced0d5e8a340f1646ca8",
+    "tests/test_g1_rawbase_base.py": "8e06730293dc944be03cebf672a34f00b265eae8e443a1aaafdc889251b4eb5c",
     "tests/test_integration_data_base.json": "89c09e902e7cc49c955c7a8be420c0e2d501077be0ee2e238f3bd49e533c2a32",
     "tests/test_integration_dom.js": "861d454ad620a6c4dc6719e8fa9d7dce0292ef2685f855bef1ed1586dc8b32a6",
     "tests/test_integration_relay.js": "9be7f7d014ea9fafe8ed62b1e7fe217cb429aecf5e424b94eb6b3b945702052f",

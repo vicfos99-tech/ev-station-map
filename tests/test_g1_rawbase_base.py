@@ -105,6 +105,13 @@ TABLE_K6 = [
     ("K6b", S("xhttps://a.example/x/")),
 ]
 
+# 표 C 밖 보강(판정 고칠 점): 그 밖 호스트라 기대값은 페이지 기준 주소. ① K6 스킴 대소문자 무관
+# (스킴·호스트만 소문자, 경로 /X/ 는 그대로) ② G4 포트 있는 https localhost 는 앱 화면이 아님.
+TABLE_G4X = [
+    ("K6c", "HTTPS://A.EXAMPLE/X/", "https://a.example/X/relay/"),
+    ("C5b", "https://localhost:3000/", "https://localhost:3000/relay/"),
+]
+
 # 표 E — baseOf(settings, href) (G6). 설정 주소가 기본값보다 먼저
 TABLE_E = [
     ("E1", {"on": True, "base": MY}, SITE, MY),
@@ -141,6 +148,7 @@ def _cases():
         "base": [{"name": "G2 " + i, "href": S(h), "want": RAW} for i, h in TABLE_A]
         + [{"name": "G3 " + i, "href": S(h), "want": RAW} for i, h in TABLE_B]
         + [{"name": "G4 " + i, "href": S(h), "want": w} for i, h, w in TABLE_C]
+        + [{"name": "G4 " + i, "href": S(h), "want": w} for i, h, w in TABLE_G4X]
         + [{"name": "G5 " + i, "href": x, "want": RAW} for i, x in TABLE_D]
         + [{"name": "G5 " + i, "href": x, "want": RAW} for i, x in TABLE_K6],
         "baseOf": [{"name": "G6 " + i, "settings": s, "href": h, "want": w} for i, s, h, w in TABLE_E],
@@ -171,7 +179,8 @@ def test_table_sizes():
     """plan.md 4.1 의 표 줄 수 그대로(A10·B5·C21·D13·E9·F8). 표를 조용히 줄이는 것을 막는다."""
     assert [len(t) for t in (TABLE_A, TABLE_B, TABLE_C, TABLE_D, TABLE_E, TABLE_F)] == [10, 5, 21, 13, 9, 8]
     assert len(TABLE_K6) == 2
-    assert len(JS_NAMES) == len(set(JS_NAMES)) == 1 + 10 + 5 + 21 + 13 + 2 + 9 + 8 * 2
+    assert len(TABLE_G4X) == 2
+    assert len(JS_NAMES) == len(set(JS_NAMES)) == 1 + 10 + 5 + 21 + 13 + 2 + 9 + 8 * 2 + 2
 
 
 @pytest.mark.parametrize("name", JS_NAMES)

@@ -308,3 +308,7 @@ function defaultBase(href) {
 - 개발 세션: `web/relay.js` 는 Edit 로 두 곳만 고친다(상수 줄, `defaultBase`). 파일 머리·함수 위 주석에 사이트 호스트 이름을 적지 않는다(3.1).
 - 테스트 세션: g1 의 JS 표는 잠긴 `tests/test_r1_settings_relay.js` 와 같은 꼴(배열 + `run`)로 쓰면 짧다. 파이썬 쪽 확인 이름 목록은 JS 배열 길이와 맞춘다. 건너뛰기(`skip`)를 쓰지 않는다.
 - 검증·최종 검수: 탐침은 참조 `ref_table.js`·`ref_flow.js` 에 프로젝트 폴더를 인자로 주면 제품 `web/relay.js` 로 같은 표가 나온다. 새 clone 에서도 전체 테스트를 한 번 돌린다.
+
+## 판정 보완 (지휘 스크립트가 자동으로 붙임)
+- [g1_rawbase] g1_rawbase K6 ① 의 '대소문자 무관'은 그 밖의 호스트에서도 같다: `defaultBase("HTTPS://A.EXAMPLE/X/")` 는 RAW 가 아니라 `https://a.example/X/relay/` 다(표 밖 보강 사례, G4 에 속한다).
+- [g1_rawbase] g1_rawbase G4 의 '포트 있는 localhost'는 8443 뿐 아니라 기본 포트(443)가 아닌 모든 포트다: `defaultBase("https://localhost:3000/")` 는 `https://localhost:3000/relay/` 다(표 밖 보강 사례, G4 에 속한다).
