@@ -6,6 +6,7 @@
     "tests/test_integration_dom.js": "861d454ad620a6c4dc6719e8fa9d7dce0292ef2685f855bef1ed1586dc8b32a6",
     "tests/test_integration_relay.js": "3ee475c7d3d4cacdf141e751874011df18ecb9c55fcf390f165d7da1302b762a",
     "tests/test_integration_relay.py": "e55d124b362d6477593e6b829edc0bc504652fcdefa954239655f23ef78f9575",
+    "tests/test_integration_secret.py": "937bf89f54417399a71e58a6352b70a2113bf7f8f3725cca99d864e54a0046dc",
     "tests/test_p0_fake.js": "59af6e0e3be514dc6d13b5395bd9b36adb60c2f8e47b4ecfd00859ee869ae3c6",
     "tests/test_p0_node.py": "1f7cbaa3e5859d98c4e4fcb01b7145965d8e5b50fa2709e2a62edf4561b4202d",
     "tests/test_p0_relay.js": "d817466647af3d043b04dd2529cf8847408bf0f0a58ceff80af0ce2953121d7e",
