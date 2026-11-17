@@ -8,7 +8,9 @@
   else root.EvRelay = api;
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
-  const ANDROID_BASE = "https://vicfos99-tech.github.io/ev-station-map/relay/";
+  const ANDROID_BASE = "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/";
+  const SITE_RELAY = "https://vicfos99-tech.github.io/ev-station-map/relay/"; // 우리 사이트의 옛 중계 폴더(더는 읽지 않는다)
+  const SITE_HOST = SITE_RELAY.split("/")[2]; // 이 호스트에서 열렸으면 중계 페이지를 바로 읽는다
   const NOTE_MIN = 15;
   const DROP_MIN = 30;
   const FUTURE_MIN = 5;
@@ -30,10 +32,15 @@
   const REASON_SHAPE = "주소 모양이 맞지 않아요. https://사이트/폴더/ 처럼 적어 주세요.";
   const REASON_STORE = "이 화면에서는 저장되지 않습니다. 크롬이나 삼성 인터넷으로 열어 주세요.";
 
-  // 페이지가 http(s) 면 페이지 기준 ./relay/, 아니면 ANDROID_BASE. 던지지 않는다.
+  // 우리 사이트나 폰 앱 화면(https://localhost/)이면 ANDROID_BASE, 그 밖의 http(s) 페이지는 페이지 기준 ./relay/. 던지지 않는다.
   function defaultBase(href) {
     try {
-      if (typeof href === "string" && /^https?:\/\//i.test(href)) return new URL("./relay/", href).href;
+      if (typeof href === "string" && /^https?:\/\//i.test(href)) {
+        const u = new URL(href);
+        if (u.hostname === SITE_HOST) return ANDROID_BASE;
+        if (u.protocol === "https:" && u.hostname === "localhost" && u.port === "") return ANDROID_BASE;
+        return new URL("./relay/", href).href;
+      }
     } catch (e) { /* 풀 수 없는 주소 */ }
     return ANDROID_BASE;
   }
