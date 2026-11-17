@@ -366,10 +366,11 @@
       return;
     }
     const v = EV.makeVehicle(inp.vehicle);
-    $("#range-line").textContent = `안전하게 갈 수 있는 거리 약 ${Math.max(0, Math.round(EV.conservative_range_km(v) - v.min_arrival_soc_pct * EV.km_per_pct(v)))}km `
+    const safeKm = EV.conservative_range_km(v) - v.min_arrival_soc_pct * EV.km_per_pct(v); // 반올림 전 안전 거리(0 으로 자르지 않음, 한 번만 계산)
+    $("#range-line").textContent = `안전하게 갈 수 있는 거리 약 ${Math.max(0, Math.round(safeKm))}km `
       + `(여유 ${state.margin}%, 도착 때 ${state.minArrival}% 남김)`
       + (state.height > 0 ? ` · 차 높이 ${state.height}m: 건물 안·지하 충전소 ${hiddenIndoor}곳 숨김` + (blocked.size ? `, 높이 제한으로 못 가는 곳 ${blocked.size}곳` : "") : "");
-    renderReco(result);
+    renderReco(result, safeKm, r);
     renderStrip(result);
     lastResult = result;
     if (view === "map") drawMap();
@@ -398,16 +399,26 @@
       priceEl(s.quote),
       h("div", { class: "facts" }, facts));
   }
-  function renderReco(result) {
+  // 길찾기 노선에서 안전 거리(반올림 전)가 남은 거리 이상이면 충전 없이 도착할 수 있다
+  function enoughEl(withTail, route, safeKm) {
+    const left = Math.round(route.length - state.pos);
+    return h("div", { class: "none", "data-tone": "good", style: "background: var(--good-soft); color: var(--good)" },
+      h("b", { text: "목적지까지 충전 없이 갈 수 있어요" }),
+      h("span", { text: `남은 거리 약 ${left} km · 안전하게 갈 수 있는 거리 약 ${Math.max(0, Math.round(safeKm))} km.` + (withTail ? " 1순위는 들르고 싶을 때 참고하세요." : "") }));
+  }
+  function renderReco(result, safeKm, route) {
     const rec = result.recommendation;
     const box = h("div", { class: "reco" });
+    const enough = !!(route && route.navi === true && safeKm >= route.length - state.pos);
     if (rec.status !== "ok") {
-      box.append(h("div", { class: "none" },
+      if (enough) box.append(enoughEl(false, route, safeKm));
+      else box.append(h("div", { class: "none" },
         h("b", { text: "안전하게 갈 수 있는 충전소가 없습니다" }),
         h("span", { text: "지금 잔량으로 닿는 곳에 빈 급속 충전기가 없습니다. 가까운 나들목으로 나가 충전소를 찾거나, 속도를 줄여 전비를 높이세요." })));
     } else {
       box.append(pickEl(rec.primary, "primary", result));
       if (rec.backup) box.append(pickEl(rec.backup, "backup", result));
+      else if (enough) box.append(enoughEl(true, route, safeKm));
       else box.append(h("div", { class: "none" },
         h("b", { text: "예비 충전소가 없습니다" }),
         h("span", { text: "1순위에서 충전하지 못하면 갈 수 있는 다음 충전소가 없습니다. 1순위에서 꼭 충전하세요." })));
