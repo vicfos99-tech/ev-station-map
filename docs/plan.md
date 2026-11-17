@@ -312,3 +312,4 @@ function defaultBase(href) {
 ## 판정 보완 (지휘 스크립트가 자동으로 붙임)
 - [g1_rawbase] g1_rawbase K6 ① 의 '대소문자 무관'은 그 밖의 호스트에서도 같다: `defaultBase("HTTPS://A.EXAMPLE/X/")` 는 RAW 가 아니라 `https://a.example/X/relay/` 다(표 밖 보강 사례, G4 에 속한다).
 - [g1_rawbase] g1_rawbase G4 의 '포트 있는 localhost'는 8443 뿐 아니라 기본 포트(443)가 아닌 모든 포트다: `defaultBase("https://localhost:3000/")` 는 `https://localhost:3000/relay/` 다(표 밖 보강 사례, G4 에 속한다).
+- [integration] integration I2 의 'dist/index.html 에 RAW 글자'는 web/relay.js 에 RAW 가 한 줄 글자 그대로(조각으로 이어 붙이지 않고) 적혀 있음을 뜻한다: 복사본 relay.js 의 RAW 글자를 다른 주소로 바꿔 빌드하면 결과에 RAW 가 없다(3.1 의 참조 상수 줄과 같은 꼴).
