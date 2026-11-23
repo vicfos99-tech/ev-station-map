@@ -1,0 +1,27 @@
+{
+ "part": "plan",
+ "step": "1 계획",
+ "time": "2026-11-24T04:50:33+09:00",
+ "task_id": "20261124-041924-0006",
+ "stop_result": "멈춤",
+ "rounds": [],
+ "last_verdict": "결과 없음 계획 검사: test_tools tests/test_t1_calc_core.py: 칸 테스트 무늬와 겹침; test_tools tests/test_t1_calc_core.py: 칸 테스트 무늬와 겹침; test_tools tests/test_t2_screen_flow.py: 칸 테스트 무늬와 겹침",
+ "kind": "결과 없음",
+ "same_kind_before": [],
+ "lesson": {
+  "cause": "계획서의 test_tools 칸에 부분(칸)의 테스트 무늬와 겹치는 테스트 파일(tests/test_t1_calc_core.py 2회, tests/test_t2_screen_flow.py 1회)을 적어 계획 검사가 '칸 테스트 무늬와 겹침'으로 3건 걸렸고, 고쳐 낸 결과가 없어 '결과 없음'으로 멈췄다. 곁들여 세션의 첫 bash 가 `cd … && git ls-files | grep | head; ls -la; ls …` 묶음이라 권한 거절로 턴을 버렸다.",
+  "lesson": "계획서의 test_tools 칸에 부분 테스트 무늬(tests/test_<부분>*.py)에 걸리는 파일을 적으면 계획 검사가 '칸 테스트 무늬와 겹침'으로 결과를 버려 계획 단계가 결과 없음으로 멈춘다. 그러니 test_tools 에는 부분 테스트 무늬에 걸리지 않는 이름의 보조 도구(공용 도우미·픽스처 등)만 적고, 부분의 테스트 파일은 그 부분의 테스트 무늬 칸에만 두며, 결과를 쓰기 전에 test_tools 의 경로마다 모든 부분의 테스트 무늬와 맞대어 겹침이 0 인지 본다.",
+  "guard": "계획 지시문의 '넘길 것' 모양 설명에 'test_tools 경로는 어느 부분의 테스트 무늬와도 겹치면 안 된다(겹치면 계획 검사가 결과를 버림)'를 한 줄로 넣고, 계획 검사가 겹침을 찾으면 멈추지 않고 겹친 경로와 무늬를 그대로 실어 계획 세션에 한 번 되돌려 고치게 한다. 첫 bash 는 `git status --short` 한 줄만 보내게 지시문에 적는다."
+ },
+ "solved": {
+  "solved": null,
+  "rounds": null,
+  "same_kind_again": null,
+  "how": {
+   "command": null,
+   "choice": null,
+   "next_given": null
+  }
+ },
+ "denials": "권한 거절: Bash cd \"c:/claude_work/10_프로젝트/ev-charge-planner\" && git ls-files | grep -v '^handoff/' | head -200; ls -la; ls docs .orchestra .orchestra/outbox 2>&1"
+}
