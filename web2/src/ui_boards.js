@@ -20,6 +20,9 @@ export function createBoardHost(deps) {
     const n = deps.board.checkNeeds(made.needs(), c.rule);
     const slot = doc.getElementById(c.slots[n.slot]);
     if (!slot) throw new Error(c.slots[n.slot]);
+    // 자리의 가장 좁은 폭(설정) — 판 글이 자리 밖으로 밀려 잘리지 않게(속도판 세 자리 잘림 고침)
+    const minPx = c.slot_min_px[n.slot];
+    if (typeof minPx === 'number' && slot.style) slot.style.minWidth = minPx + c.px_unit;
     const box = doc.createElement(c.box_tag);
     box.className = c.box_class;
     box.setAttribute(c.name_attr, entry.name);

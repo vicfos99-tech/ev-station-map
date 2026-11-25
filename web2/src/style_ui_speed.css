@@ -1,7 +1,9 @@
-/* 속도판: 지금 속도를 크게, 제한 속도는 작게. 넘음(data-judge="over")이면 경고 모양 */
-.ev-speed { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 8px; color: #f9fafb; font-family: system-ui, sans-serif; border-radius: 12px; }
-.ev-speed-now { display: flex; align-items: baseline; gap: 6px; }
-.ev-speed-value { font-size: 64px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+/* 속도판: 지금 속도를 크게, 제한 속도는 작게. 넘음(data-judge="over")이면 경고 모양.
+   숫자 크기는 ui_speed.js 가 설정의 크기 단계에서 골라 --ev-speed-size 로 넣는다(판 폭에 세 자리가 다 들어가게).
+   판은 자리 폭을 넘지 않고(max-width), 숫자는 줄을 바꾸지 않으며, 단위(km/h)는 자리가 모자라면 숫자 아래로 내려간다. */
+.ev-speed { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 8px; color: #f9fafb; font-family: system-ui, sans-serif; border-radius: 12px; box-sizing: border-box; max-width: 100%; min-width: 0; overflow: hidden; }
+.ev-speed-now { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 6px; max-width: 100%; }
+.ev-speed-value { font-size: var(--ev-speed-size); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-speed-unit { font-size: 18px; color: #9ca3af; }
 .ev-speed-limit-row { margin-top: 8px; font-size: 18px; color: #d1d5db; min-height: 24px; }
 .ev-speed-limit { margin-left: 6px; font-weight: 700; }

@@ -299,6 +299,15 @@
     "vendor_head_chars": 200,
     "report_file": "try_a2ga_last.md"
   },
+  "speedfit": {
+    "note": "속도판 세 자리 시험(try_speedfit.mjs). widths_px = 가상 창에서 판 폭으로 넣어 볼 값(0 = 그려지기 전 — 설정 판 폭으로 셈). slot_pad_px = 자리 안쪽 여백(style_ui_boards.css .ev-slot-side padding 8px × 2)",
+    "board": "ui_speed",
+    "config": "config_ui_speed",
+    "boards_config": "config_ui_boards",
+    "widths_px": [240, 160, 144, 128, 112, 96, 80],
+    "values": [199, 115, 95, 0],
+    "slot_pad_px": 16
+  },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",
     "host": "127.0.0.1",

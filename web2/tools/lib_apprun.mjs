@@ -17,6 +17,10 @@ export class El {
   constructor(doc, tag, id) {
     this.doc = doc; this.tag = tag; this.id = id; this.textContent = ''; this.hidden = false;
     this.attrs = {}; this.listeners = {}; this.children = []; this.className = ''; this.html = '';
+    // 가상 창에는 그림이 없다 — 폭은 0(시험이 정해 넣을 수 있음), 모양 값은 적어 두기만
+    this.clientWidth = 0;
+    const props = {};
+    this.style = { props, setProperty(k, v) { props[k] = String(v); }, getPropertyValue(k) { return props[k] || ''; } };
   }
   setAttribute(k, v) { this.attrs[k] = String(v); }
   getAttribute(k) { return this.attrs[k]; }

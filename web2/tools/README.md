@@ -47,6 +47,13 @@ node web2/tools/try_a2ga.mjs
 - 가짜 화면·지도·저장소와 앱 띄우기는 `lib_apprun.mjs`(try_a1 과 함께 씀).
 - **선 파일 대신 답하기**: 중계 R0 전이라 시험 다리가 고속도로 선을 내주지 않는다. 시험·보기 도구만 다리 자료 길의 선 파일 이름(`testbed.lines_shim`)을 테스트 베드 선 파일로 대신 답한다(`lib_testbed.fetchWithLines`·`linesShim`, 비밀 값 머리가 틀리면 다리처럼 `lock`). 앱 코드는 그대로 다리에 묻는다.
 
+## 속도판 세 자리 — `try_speedfit.mjs`
+```
+node web2/tools/try_speedfit.mjs
+```
+- 다리 없이 몇 초. 판 폭(가상 창에 정해 넣는 `clientWidth`, 설정 `speedfit.widths_px`)마다 속도판이 고른 숫자 크기로 '자리 수 × 숫자 한 자 폭 + 여백 ≤ 판 폭'인지 셈하고, 왼편 자리 가장 좁은 폭(`config_ui_boards.slot_min_px.left`)이 판 폭보다 좁지 않은지 본다.
+- **한계**: 가상 창에는 글꼴이 없어 실제 폭을 재지 못한다 — 숫자 한 자 폭은 설정 `config_ui_speed.fit.digit_em`(고정폭 숫자의 어림)으로 셈한다. 진짜 크롬에서 눈으로 한 번 봐야 한다.
+
 ## 크롬으로 보기 — `view_s1.mjs`
 ```
 node web2/tools/view_s1.mjs [초] [장면] [틱]

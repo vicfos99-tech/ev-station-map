@@ -11,5 +11,13 @@
   "texts.unit": {"t": "str", "min": 1, "max": 20},
   "texts.limit_label": {"t": "str", "min": 1, "max": 20},
   "judge_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
-  "judge_empty": {"t": "str", "min": 1, "max": 20}
+  "judge_empty": {"t": "str", "min": 1, "max": 20},
+  "fit.size_steps_px": {"t": "arr", "min": 1, "max": 12, "of": {"t": "num", "int": true, "min": 12, "max": 200}},
+  "fit.max_digits": {"t": "num", "int": true, "min": 1, "max": 5},
+  "fit.digit_em": {"t": "num", "min": 0.3, "max": 1.2},
+  "fit.panel_width_px": {"t": "num", "int": true, "min": 40, "max": 2000},
+  "fit.pad_px": {"t": "num", "int": true, "min": 0, "max": 200},
+  "fit.size_var": {"t": "str", "min": 3, "max": 40, "re": "^--[a-z-]+$"},
+  "fit.size_unit": {"t": "str", "one_of": ["px"]},
+  "fit.size_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"}
 }}

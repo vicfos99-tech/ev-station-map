@@ -1,9 +1,11 @@
 {
-  "note": "알림판 틀(ui_boards). 판 이름은 여기에도 없다 — 빌드가 주운 목록을 받는다. slots = 판이 밝힌 자리 이름 → 운전 화면의 칸. 같은 자리에 판이 여럿이면 위에서부터 쌓는다(넘기기는 판이 늘면)",
+  "note": "알림판 틀(ui_boards). 판 이름은 여기에도 없다 — 빌드가 주운 목록을 받는다. slots = 판이 밝힌 자리 이름 → 운전 화면의 칸. 같은 자리에 판이 여럿이면 위에서부터 쌓는다(넘기기는 판이 늘면). slot_min_px = 자리의 가장 좁은 폭(판 폭 — 자리 안쪽 여백 포함, style_ui_boards.css 의 .ev-slot-side padding 8px×2). 왼편 176 = 속도판 160 + 여백 16(config_ui_speed.fit.panel_width_px 와 맞춤). 적지 않은 자리는 그대로(오른편은 지도 폭 때문에 이번에 두지 않음)",
   "owner": "ui_boards",
   "needs_piece": "board.needs",
   "factory": "create",
   "slots": {"left": "ev-slot-left", "right": "ev-slot-right"},
+  "slot_min_px": {"left": 176},
+  "px_unit": "px",
   "rule": {"min_interval_ms": 200, "max_topics": 10, "slot_names": ["left", "right"]},
   "box_tag": "div",
   "box_class": "ev-board-box",
