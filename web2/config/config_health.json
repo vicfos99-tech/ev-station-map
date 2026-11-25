@@ -1,5 +1,5 @@
 {
-  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선)",
+  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선). features.ahead 의 sources 가 빈 까닭: 위치가 끊겨도 마지막 위치로 세 곳을 그대로 보인다(설계 5-7 (4) (나))",
   "stages": {"starting": "starting", "good": "good", "broken": "broken"},
   "app_grade": "app",
   "unknown_grade": "app",
@@ -31,7 +31,12 @@
     "config_locate": "calc",
     "config_speed": "speed",
     "config_ui_speed": "speed",
-    "config_ui_boards": "boards"
+    "config_ui_boards": "boards",
+    "config_ahead": "ahead",
+    "config_ui_ahead": "ahead",
+    "config_ui_locate": "locate",
+    "config_formcheck": "odd",
+    "config_ui_odd": "odd"
   },
   "reason_of_file": {"config_gateway": "gateway", "config_app_secret": "secret"},
   "reason_default": "config",
@@ -47,6 +52,9 @@
     "log": {"configs": ["config_ui_log"], "sources": ["logdir"]},
     "calc": {"configs": ["config_statecalc", "config_calcrunner", "config_locate"], "sources": []},
     "speed": {"configs": ["config_speed", "config_ui_speed", "config_geo", "config_statecalc", "config_calcrunner"], "sources": ["loc"]},
-    "boards": {"configs": ["config_ui_boards"], "sources": []}
+    "boards": {"configs": ["config_ui_boards"], "sources": []},
+    "ahead": {"configs": ["config_ahead", "config_ui_ahead", "config_locate", "config_geo", "config_statecalc", "config_calcrunner"], "sources": []},
+    "locate": {"configs": ["config_ui_locate"], "sources": []},
+    "odd": {"configs": ["config_ui_odd", "config_formcheck", "config_store"], "sources": ["datadir"]}
   }
 }

@@ -1,0 +1,4 @@
+/* 위치 권한 안내: 지도 칸 위쪽 가운데 작은 칸(화면을 덮지 않음) */
+.ev-locate { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; gap: 8px; align-items: center; max-width: 70vw; padding: 8px 12px; border-radius: 10px; background: #1e3a8a; color: #f9fafb; font-family: system-ui, sans-serif; font-size: 14px; }
+.ev-locate[hidden] { display: none; }
+.ev-locate-close { min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: #f9fafb; color: #111827; }

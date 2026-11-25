@@ -1,0 +1,19 @@
+{"keys": {
+  "ids.root": {"t": "str", "min": 1, "max": 40},
+  "ids.text": {"t": "str", "min": 1, "max": 40},
+  "ids.close": {"t": "str", "min": 1, "max": 40},
+  "device_source": {"t": "str", "min": 1, "max": 30},
+  "src_piece": {"t": "str", "min": 1, "max": 40},
+  "loc_source": {"t": "str", "min": 1, "max": 20},
+  "show_codes": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 1, "max": 30}},
+  "code_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
+  "click_event": {"t": "str", "min": 1, "max": 20},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "act_init": {"t": "str", "min": 1, "max": 20},
+  "act_show": {"t": "str", "min": 1, "max": 20},
+  "word_shown": {"t": "str", "min": 1, "max": 40},
+  "word_hidden": {"t": "str", "min": 1, "max": 40},
+  "texts.close": {"t": "str", "min": 1, "max": 20},
+  "texts.guide": {"t": "map", "of": {"t": "str", "min": 1, "max": 120}},
+  "texts.guide_default": {"t": "str", "min": 1, "max": 120}
+}}

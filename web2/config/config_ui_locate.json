@@ -1,0 +1,23 @@
+{
+  "note": "위치 권한 안내(ui_locate). device_source = config_loc_watch.source 가 이 값일 때만 움직인다(시험 흐름이면 안 뜸). show_codes = health.src 의 위치 출처 까닭 가운데 안내를 띄울 것(config_loc_watch.codes 의 denied·no_geo)",
+  "ids": {"root": "ev-locate", "text": "ev-locate-text", "close": "ev-locate-close"},
+  "device_source": "device",
+  "src_piece": "health.src",
+  "loc_source": "loc",
+  "show_codes": ["denied", "no_geo"],
+  "code_attr": "data-code",
+  "click_event": "click",
+  "where": "ui_locate",
+  "act_init": "init",
+  "act_show": "show",
+  "word_shown": "locate_guide_shown",
+  "word_hidden": "locate_guide_hidden",
+  "texts": {
+    "close": "닫기",
+    "guide": {
+      "denied": "위치 권한이 꺼져 있어요. 주소창 왼쪽 자물쇠 → 위치 → 허용으로 바꾼 뒤 새로 고쳐 주세요.",
+      "no_geo": "이 브라우저는 위치를 줄 수 없어요. 크롬에서 열어 주세요."
+    },
+    "guide_default": "위치를 받지 못하고 있어요."
+  }
+}

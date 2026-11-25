@@ -1,0 +1,29 @@
+{
+  "note": "충전소판(ui_ahead — 알림판). 거리 글: decimals_below_km 보다 가까우면 소수 decimals 자리, 아니면 정수. 업체는 ops_max 개까지 보이고 나머지는 '외 n'. around_mode = ahead 조각의 '주변' 모드 이름(config_ahead.modes.around 와 같게)",
+  "ahead_piece": "ahead",
+  "health_piece": "health.ahead",
+  "interval_ms": 1000,
+  "slot": "right",
+  "around_mode": "around",
+  "ids": {"root": "ev-ahead", "head": "ev-ahead-head", "list": "ev-ahead-list"},
+  "row_tag": "div",
+  "part_tag": "span",
+  "classes": {"row": "ev-ahead-row", "no": "ev-ahead-no", "name": "ev-ahead-name", "kind": "ev-ahead-kind", "ops": "ev-ahead-ops", "dist": "ev-ahead-dist"},
+  "key_attr": "data-key",
+  "mode_attr": "data-mode",
+  "mode_empty": "empty",
+  "decimals_below_km": 10,
+  "decimals": 1,
+  "ops_max": 2,
+  "n_mark": "{n}",
+  "texts": {
+    "head_ahead": "앞의 충전소",
+    "head_around": "주변 충전소 (고속도로 밖)",
+    "around_tag": "주변",
+    "straight": "직선",
+    "km_unit": "km",
+    "kinds": {"rest": "휴게소", "other": "충전소"},
+    "ops_join": " · ",
+    "ops_more": " 외 {n}"
+  }
+}

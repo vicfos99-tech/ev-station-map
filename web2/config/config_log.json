@@ -56,6 +56,11 @@
     "bad_name": "허용 밖 파일 이름",
     "board_mounted": "알림판 꽂음",
     "board_mount_failed": "알림판 꽂기 실패",
-    "board_show_failed": "알림판 보이기 실패"
+    "board_show_failed": "알림판 보이기 실패",
+    "odd_saved": "이상해 누름 — 기록 저장",
+    "odd_save_failed": "이상해 누름 — 기록 저장 못 함",
+    "odd_memo_bad": "이상해 메모 거절",
+    "locate_guide_shown": "위치 권한 안내 띄움",
+    "locate_guide_hidden": "위치 권한 안내 닫음"
   }
 }

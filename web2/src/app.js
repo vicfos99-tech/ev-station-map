@@ -22,6 +22,8 @@ import { createHealthRunner } from './healthrunner.js';
 import * as statecalc from './statecalc.js';
 import * as locate from './locate.js';
 import * as speed from './speed.js';
+import * as ahead from './ahead.js';
+import * as formcheck from './formcheck.js';
 import { createCalcRunner } from './calcrunner.js';
 import * as board from './board.js';
 import { createStatusBar } from './ui_status.js';
@@ -29,6 +31,8 @@ import { createDriveScreen } from './ui_drive.js';
 import { createMapScreen } from './ui_map.js';
 import { createBoardHost } from './ui_boards.js';
 import { createLogScreen } from './ui_log.js';
+import { createLocateGuide } from './ui_locate.js';
+import { createOddButton } from './ui_odd.js';
 
 export const NEEDS = ['platform'];
 
@@ -86,7 +90,7 @@ export function main(platform) {
     if (made.relay_base) make('relay_stations', () => createRelayStations({ ...s, relay_base: made.relay_base, relay_parse: relayParse }));
     make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo, fixcheck, geomath: geo }));
   }
-  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, speed } }));
+  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, speed, ahead } }));
   make('healthrunner', () => createHealthRunner({ ...s, health }));
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));
@@ -94,6 +98,8 @@ export function main(platform) {
   make('ui_map', () => createMapScreen({ ...screen, maplibre: p.maplibre }));
   make('ui_boards', () => createBoardHost({ ...screen, board, boards: p.boards || [] }));
   make('ui_log', () => createLogScreen(screen));
+  make('ui_locate', () => createLocateGuide(screen));
+  make('ui_odd', () => createOddButton({ ...screen, formcheck }));
 
   try {
     made.state.claim(c.owner, [c.events.start])(c.events.start, { at: p.clock.now() });

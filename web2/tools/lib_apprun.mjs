@@ -27,6 +27,7 @@ export class El {
   hasAttribute(k) { return k in this.attrs; }
   addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }
   appendChild(c) { this.children.push(c); }
+  replaceChildren(...cs) { this.children = cs; }
   click() { for (const f of this.listeners.click || []) f(); }
   set innerHTML(h) { this.html = String(h); if (this.doc) this.doc.register(this.html); }
   get innerHTML() { return this.html; }
@@ -98,7 +99,11 @@ export function fakeOpfs() {
       return { async seek(p) { pos = p; }, async write(t) { buf = buf.slice(0, pos) + t; pos = buf.length; }, async close() { files[key] = buf; } };
     },
   });
-  const dir = (prefix) => ({ async getDirectoryHandle(n) { return dir(prefix + n + '/'); }, async getFileHandle(n) { return fileHandle(prefix + n); } });
+  const dir = (prefix) => ({
+    async getDirectoryHandle(n) { return dir(prefix + n + '/'); },
+    async getFileHandle(n) { return fileHandle(prefix + n); },
+    async removeEntry(n) { if (!(prefix + n in files)) { const e = new Error(n); e.name = 'NotFoundError'; throw e; } delete files[prefix + n]; },
+  });
   return { files, storage: { getDirectory: async () => dir('') } };
 }
 
@@ -111,6 +116,7 @@ export function memDisk() {
     async append(d, f, t) { files[key(d, f)] = (files[key(d, f)] || '') + t; },
     async read(d, f) { return files[key(d, f)] || ''; },
     async write(d, f, t) { files[key(d, f)] = t; },
+    async remove(d, f) { delete files[key(d, f)]; },
   };
 }
 
@@ -172,12 +178,13 @@ export function startApp(ctx, opts) {
   };
   const realFetch = opts.fetchFn || fetch;
   const platform = {
-    config: raw, doc, win: fakeWin(), disk, console: con, clock, geo: null, maplibre: lib, boards: ctx.boards || [],
+    config: raw, doc, win: fakeWin(), disk, console: con, clock, geo: opts.geo || null, maplibre: lib, boards: ctx.boards || [],
     fetch: (url, init) => { fetchCalls.push({ url: String(url), headers: { ...((init && init.headers) || {}) } }); return realFetch(url, init); },
   };
   const made = main(platform);
-  const seen = { app: [], fixes: [], speed: [], pos: [], stations: [] };
+  const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [] };
   if (made.state) {
+    made.state.subscribe('ahead', (v) => seen.ahead.push({ v, at: Date.now() }));
     made.state.subscribe('health.app', (v) => seen.app.push({ ...v, at: Date.now() }));
     made.state.subscribe('fix', (v) => seen.fixes.push({ ...v, at: Date.now() }));
     made.state.subscribe('speed', (v) => seen.speed.push({ ...v, at: Date.now() }));

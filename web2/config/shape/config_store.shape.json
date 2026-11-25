@@ -1,6 +1,11 @@
 {"keys": {
   "dir": {"t": "str", "min": 1, "max": 40, "re": "^[A-Za-z0-9_-]+$"},
   "keys": {"t": "map", "of": {"t": "obj"}},
+  "records": {"t": "map", "of": {"t": "obj"}},
+  "records.odd.index_file": {"t": "str", "min": 1, "max": 64, "re": "^[A-Za-z0-9_.-]+$"},
+  "records.odd.v": {"t": "num", "int": true, "min": 1, "max": 1000},
+  "records.odd.keep": {"t": "num", "int": true, "min": 1, "max": 10000},
+  "where_record": {"t": "str", "min": 1, "max": 40},
   "version_key": {"t": "str", "min": 1, "max": 20},
   "value_key": {"t": "str", "min": 1, "max": 20},
   "where_read": {"t": "str", "min": 1, "max": 40},

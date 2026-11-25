@@ -1,7 +1,8 @@
 {
-  "note": "입력 ↔ 조각 표. 줄 꼴 {inputs:[알림], part:셈 모듈 이름, fn:함수, piece:결과 조각, rule:그 셈의 설정, uses:[더 읽는 설정]}. 위에서부터 셈하고 앞 줄 결과(pos)를 뒤 줄이 쓴다. A2-나 에서 ahead 가 pos 뒤에 들어온다",
+  "note": "입력 ↔ 조각 표. 줄 꼴 {inputs:[알림], part:셈 모듈 이름, fn:함수, piece:결과 조각, rule:그 셈의 설정, uses:[더 읽는 설정]}. 위에서부터 셈하고 앞 줄 결과(pos)를 뒤 줄(ahead)이 쓴다(E7)",
   "table": [
     {"inputs": ["fix", "stations"], "part": "locate", "fn": "locate", "piece": "pos", "rule": "config_locate", "uses": ["config_geo"]},
-    {"inputs": ["fix"], "part": "speed", "fn": "speedOf", "piece": "speed", "rule": "config_speed", "uses": ["config_geo"]}
+    {"inputs": ["fix"], "part": "speed", "fn": "speedOf", "piece": "speed", "rule": "config_speed", "uses": ["config_geo"]},
+    {"inputs": ["fix", "stations"], "part": "ahead", "fn": "aheadOf", "piece": "ahead", "rule": "config_ahead", "uses": ["config_geo", "config_locate"]}
   ]
 }

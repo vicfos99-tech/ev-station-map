@@ -1,0 +1,18 @@
+/* 충전소판: 줄마다 번호 · 이름(종류) · 업체 · 남은 거리(크게). '주변'이면 꼬리표 색이 다르다. 판 폭을 넘는 글은 말줄임 */
+.ev-ahead { display: flex; flex-direction: column; gap: 6px; color: #f9fafb; font-family: system-ui, sans-serif; box-sizing: border-box; max-width: 100%; min-width: 0; }
+.ev-ahead-head { font-size: 14px; color: #9ca3af; padding: 0 4px; }
+.ev-ahead-list { display: flex; flex-direction: column; gap: 6px; }
+.ev-ahead-row { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "no name" "no kind" "no ops" "dist dist"; column-gap: 8px; padding: 8px; border-radius: 10px; background: #374151; min-height: 48px; min-width: 0; }
+.ev-ahead-no { grid-area: no; font-size: 24px; font-weight: 700; color: #fbbf24; align-self: start; }
+.ev-ahead-name { grid-area: name; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-ahead-kind { grid-area: kind; font-size: 12px; color: #9ca3af; }
+.ev-ahead-ops { grid-area: ops; font-size: 13px; color: #d1d5db; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-ahead-dist { grid-area: dist; font-size: 28px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-ahead[data-mode="around"] .ev-ahead-kind { color: #93c5fd; }
+.ev-ahead[data-mode="around"] .ev-ahead-no { color: #93c5fd; }
+@media (orientation: portrait) {
+  .ev-ahead-list { flex-direction: row; }
+  .ev-ahead-row { grid-template-areas: "no name" "no dist"; min-height: 0; padding: 2px 6px; }
+  .ev-ahead-kind, .ev-ahead-ops, .ev-ahead-head { display: none; }
+  .ev-ahead-dist { font-size: 18px; text-align: left; }
+}

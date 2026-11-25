@@ -30,7 +30,7 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_log"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_odd", "ui_log"],
     "views_optional": ["ui_map", "ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
@@ -115,6 +115,8 @@
       "speed": "pure",
       "relay_parse": "pure",
       "board": "pure",
+      "ahead": "pure",
+      "formcheck": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -132,6 +134,8 @@
       "ui_map": "screen",
       "ui_log": "screen",
       "ui_boards": "screen",
+      "ui_locate": "screen",
+      "ui_odd": "screen",
       "app": "app"
     },
     "layer_may_need": {
@@ -170,7 +174,8 @@
       "fixcheck": "fixcheck",
       "relay_base": "relay_base",
       "relay_parse": "relay_parse",
-      "board": "board"
+      "board": "board",
+      "formcheck": "formcheck"
     },
     "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts"],
     "banned_everywhere": [
@@ -298,6 +303,36 @@
     "view": {"seconds": 25, "scene": "S2_제한속도", "tick": 470, "kmh": 115, "listen_ms": 5000, "ready_word": "크롬에서 여세요"},
     "vendor_head_chars": 200,
     "report_file": "try_a2ga_last.md"
+  },
+  "try_a2na": {
+    "note": "A2-나 스스로 시험(try_a2na.mjs). 장면은 seek 로 그 사건 앞 틱부터 — 앱은 경우마다 새로 띄운다. dist_tol_km = 앱의 남은 거리와 장면 km 로 셈한 거리의 허용 차이(앱은 휴게소 충전소 여럿의 선 위 km 평균, 장면은 휴게소 한 점). odd.keep_override = 보관 개수 시험만 줄이는 값(앱 설정 파일은 그대로)",
+    "run_seconds": 360,
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "refresh_override_ms": 3000,
+    "dist_tol_km": 0.3,
+    "m_per_km": 1000,
+    "vendor_head_chars": 200,
+    "s1": {"scene": "S1_고속도로", "listen_ms": 3000, "pass_seek": 215, "pass_wait_ms": 60000, "pass_km_tol": 0.1},
+    "s3": {"scene": "S3_상행하행", "listen_ms": 3000, "cases": [
+      {"seek": 10, "dir": "forward", "title": "하행(부산 방향) — 죽암(부산)·옥천만, 신탄진(서울)·죽암(서울) 없음", "expect_count": 2},
+      {"seek": 520, "dir": "backward", "title": "상행(서울 방향) — 신탄진·죽암(서울)·청주만, 죽암(부산) 없음", "expect_count": 3}
+    ]},
+    "s4": {"scene": "S4_나들목일반도로", "seek": 195, "around_wait_ms": 120000, "listen_ms": 3000, "dist_tol_km": 0.2, "around_kind": "around"},
+    "s5": {"scene": "S5_충전기상태", "seek": 50, "listen_ms": 20000, "change_t_s": 60, "min_refresh": 2},
+    "odd": {"scene": "S10_이상해기록", "seek": 20, "keep_override": 3, "memo_ok": "타이어 소리가 이상함", "long_char": "가", "ctrl_memo": "브레이크\u0007소리", "press_wait_ms": 5000, "upload_path": "/odd"},
+    "locate": {"deny_after_ms": 300, "wait_ms": 10000, "point_index": 3, "accuracy_m": 5},
+    "e4": {
+      "copy": ["src", "config", "vendor", "shell.html"],
+      "board_files": 5,
+      "untouched": ["src/app.js", "src/ui_drive.js", "src/ui_boards.js", "src/view_ui_drive.html"],
+      "listen_ms": 6000,
+      "cases": [
+        {"remove": "ui_ahead", "empty_slot": "right", "title": "충전소판을 빼고 지음 — 속도판만"},
+        {"remove": "ui_speed", "empty_slot": "left", "title": "속도판을 빼고 지음 — 충전소판만"}
+      ]
+    },
+    "report_file": "try_a2na_last.md"
   },
   "speedfit": {
     "note": "속도판 세 자리 시험(try_speedfit.mjs). widths_px = 가상 창에서 판 폭으로 넣어 볼 값(0 = 그려지기 전 — 설정 판 폭으로 셈). slot_pad_px = 자리 안쪽 여백(style_ui_boards.css .ev-slot-side padding 8px × 2)",

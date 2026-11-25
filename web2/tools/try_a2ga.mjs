@@ -345,7 +345,10 @@ async function main2() {
       const v2 = p2.doc.els[trialIds.value];
       const gone = !p2.doc.els[SP.ids.value];
       const failed = p2.pageLog.split('\n').filter((l) => l.includes(word('board_mount_failed'))).length;
-      const right = p2.doc.els[cfgOf('config_ui_boards', copy).slots.right];
+      // (A2-나) 오른편에는 충전소판도 있으므로 시험 판(ui_trial) 상자만 센다
+      const ubc = cfgOf('config_ui_boards', copy);
+      const rightAll = p2.doc.els[ubc.slots.right];
+      const right = rightAll ? { children: rightAll.children.filter((x) => x.getAttribute(ubc.name_attr) === tr) } : null;
       row('⑦-2', '판 하나(속도판)를 빼고 다른 판 하나(ui_trial, 오른편)를 새 파일로만 더해 지음(E4)', '조립·ui_drive·ui_boards·운전 화면 조각 그대로(' + T.e4.untouched.length + ') · 빌드 출력에 판 1(ui_trial) · 좋음 · 남은 판에 숫자 · 속도판 없음 · 꽂기 실패 0',
         '그대로 ' + untouched + ' · ' + said2.replace(/\s+/g, ' ').slice(0, 160) + ' · ' + p2.stage + ' · 남은 판 ' + JSON.stringify(v2 && v2.textContent) + ' · 속도판 ' + (gone ? '없음' : '있음') + ' · 오른편 상자 ' + (right ? right.children.length : '-') + ' · 꽂기 실패 ' + failed,
         untouched === T.e4.untouched.length && said2.includes(tr) && !said2.includes(rm) && p2.stage === HC.stages.good && !p2.driveHidden && v2 && /^\d+$/.test(v2.textContent) && gone && failed === 0 && right && right.children.length === 1);
