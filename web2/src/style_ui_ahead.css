@@ -6,6 +6,7 @@
 .ev-ahead-list { display: flex; flex-direction: column; }
 .ev-ahead-row { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "no name" "no kind" "no ops" "dist dist"; column-gap: 8px; padding: 8px 4px; min-height: 48px; min-width: 0; background: transparent; border-radius: 0; }
 .ev-ahead-row + .ev-ahead-row { border-top: 1px solid #4b5563; }
+.ev-ahead-row { cursor: pointer; }
 .ev-ahead-no { grid-area: no; font-size: 24px; font-weight: 700; color: #fbbf24; align-self: start; }
 .ev-ahead-name { grid-area: name; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .ev-ahead-kind { grid-area: kind; font-size: 12px; color: #9ca3af; }

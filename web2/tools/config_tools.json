@@ -30,7 +30,7 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_odd", "ui_log"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_odd", "ui_log"],
     "views_optional": ["ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
@@ -118,6 +118,10 @@
       "ahead": "pure",
       "formcheck": "pure",
       "mapcam": "pure",
+      "relay_fresh": "pure",
+      "relay_read": "pure",
+      "relay_html": "pure",
+      "navlink": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -127,6 +131,7 @@
       "loc_watch": "client",
       "relay_base": "client",
       "relay_stations": "client",
+      "relay_status": "client",
       "healthrunner": "runner",
       "calcrunner": "runner",
       "mapview": "screen_part",
@@ -137,6 +142,7 @@
       "ui_boards": "screen",
       "ui_locate": "screen",
       "ui_odd": "screen",
+      "ui_station": "screen",
       "app": "app"
     },
     "layer_may_need": {
@@ -158,6 +164,7 @@
       "loc_watch": ["netcore"],
       "relay_base": ["netcore"],
       "relay_stations": ["relay_base"],
+      "relay_status": ["relay_base"],
       "ui_map": ["mapview"]
     },
     "dep_module": {
@@ -177,9 +184,13 @@
       "relay_parse": "relay_parse",
       "board": "board",
       "formcheck": "formcheck",
-      "mapcam": "mapcam"
+      "mapcam": "mapcam",
+      "relay_read": "relay_read",
+      "relay_fresh": "relay_fresh",
+      "relay_html": "relay_html",
+      "navlink": "navlink"
     },
-    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts"],
+    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send"],
     "banned_everywhere": [
       "\\bnew\\s+(Logger|Store|Config|State)\\b",
       "\\bgetInstance\\b",
@@ -195,7 +206,7 @@
       "statecalc": ["health", "conn\\."]
     },
     "banned_in_layer": {
-      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
+      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\brelay_status\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
       "pure": ["\\bdeps\\b", "\\blog\\s*\\.", "\\bLogger\\b"]
     }
   },
@@ -448,6 +459,135 @@
     "chrome_frames": ["넓은 가로 1280×720", "폰 세로 360×740"],
     "chrome_actions": [{"name": "세 곳만 누름", "q": "#ev-map-only3", "wait_ms": 1500}],
     "report_file": "try_a3_last.md"
+  },
+  "try_a4": {
+    "note": "A4 스스로 시험(try_a4.mjs). pure = 다리 없이 순수 모듈 셈(시각·신선함·상태 읽기·이스케이프·내비 주소 — 기대 값은 시험이 따로 셈하거나 글로 적음). s5 = 정보 칸을 연 채로 장면 시간표의 충전기 바뀜(틱 60 사용 중 · 180 고장 · 300 빈자리)을 seek 로 앞당겨 봄. s3 = 하행·상행에서 이름의 방향·넘기는 좌표가 그 방향 충전소 자리. s7 = 자료 길 끊김(180~240초) 동안 정보 칸은 들고 있는 상태와 받은 때 · 낡음(old_ms 를 시험만 줄임) · 상태 자리에 끊김. refresh_ms = 시험만 줄인 상태 받기 간격(앱 설정 파일은 그대로). chrome = 진짜 크롬에서 충전판 첫 줄을 눌러 정보 칸을 연 뒤 잼",
+    "run_seconds": 330,
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "refresh_ms": 3000,
+    "nav_hint_ms": 600,
+    "open_wait_ms": 15000,
+    "pure": {
+      "now_text": "20261125213000",
+      "now_ms": 1795609800000,
+      "bad_texts": [
+        "20261331120000",
+        "20260230120000",
+        "2026112521300",
+        "abc"
+      ],
+      "old_ms": 900000,
+      "place": {
+        "name": "죽암휴게소",
+        "dir": "forward",
+        "line": "gyeongbu_down",
+        "lat": 36.5123456,
+        "lng": 127.4123456
+      },
+      "place_label": "죽암휴게소(부산 방향)",
+      "evil_name": "안성<b onmouseover=\"x\">'휴게소'</b>&",
+      "unreserved_re": "^[A-Za-z0-9_.~-]$"
+    },
+    "s5": {
+      "scene": "S5_충전기상태",
+      "seek": 45,
+      "station": "ME18B303",
+      "charger": "01",
+      "steps": [
+        {
+          "seek": 0,
+          "state": "busy",
+          "wait_ms": 30000
+        },
+        {
+          "seek": 176,
+          "state": "broken",
+          "wait_ms": 20000
+        },
+        {
+          "seek": 296,
+          "state": "free",
+          "wait_ms": 20000
+        }
+      ],
+      "first_state": "free",
+      "pick_mark_no": 2,
+      "pick_dot": "ST441324",
+      "close_watch_ms": 8000
+    },
+    "s3": {
+      "scene": "S3_상행하행",
+      "cases": [
+        {
+          "seek": 10,
+          "dir_text": "부산 방향",
+          "scene_dir": "부산 방향",
+          "title": "하행 — 첫 곳 죽암(부산)"
+        },
+        {
+          "seek": 520,
+          "dir_text": "서울 방향",
+          "scene_dir": "서울 방향",
+          "title": "상행 — 첫 곳 신탄진(서울)"
+        }
+      ]
+    },
+    "s7": {
+      "scene": "S7_출처끊김",
+      "seek": 172,
+      "down_t_s": 180,
+      "up_t_s": 240,
+      "old_ms": 20000,
+      "down_wait_ms": 45000,
+      "up_wait_ms": 90000
+    },
+    "evil": {
+      "scene": "S1_고속도로",
+      "file": "stations/41460.json",
+      "station": "ME178003"
+    },
+    "chrome_tick": 0,
+    "chrome_frames": [
+      "넓은 가로 1280×720",
+      "폰 세로 360×740"
+    ],
+    "chrome_sel": {
+      "center": {
+        "q": "#ev-center"
+      },
+      "station": {
+        "q": "#ev-station"
+      },
+      "station_btns": {
+        "q": "#ev-station-close, #ev-station-refresh, #ev-station-nav, #ev-station-copy",
+        "hit": true
+      },
+      "station_apps": {
+        "q": ".ev-st-app"
+      },
+      "station_ch": {
+        "q": "#ev-station .ev-st-ch"
+      },
+      "station_name": {
+        "q": "#ev-station-name"
+      },
+      "map_me": {
+        "q": "#ev-map-me"
+      },
+      "map_only3": {
+        "q": "#ev-map-only3"
+      }
+    },
+    "chrome_actions": [
+      {
+        "name": "충전소판 첫 줄 누름",
+        "q": "#ev-ahead-list > *",
+        "wait_ms": 5000
+      }
+    ],
+    "map_min_ratio": 0.35,
+    "report_file": "try_a4_last.md"
   },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",

@@ -19,10 +19,23 @@ function latLng(v, r) {
   return { lat, lng };
 }
 
-// meta.json — 모양 판 번호만 본다(신선함은 A4 relay_fresh). 틀리면 던진다
+// meta.json — 모양 판 번호를 보고, 신선함 판단(relay_fresh)에 쓰는 칸만 꺼낸다: at(마지막 차례 시각 글) · ok(상태 받기 성공) · fresh(목록을 받은 지역 코드).
+// 틀리면 던진다. 칸이 없거나 꼴이 틀리면 '믿지 않음' 쪽 값(null · 거짓 · 빈 목록)
 export function meta(obj, r) {
   if (!isObj(obj) || obj[r.v_key] !== r.v) throw new TypeError(r.why.meta);
-  return { at: typeof obj[r.meta_at_key] === 'string' ? obj[r.meta_at_key] : null };
+  const fresh = Array.isArray(obj[r.meta_fresh_key]) ? obj[r.meta_fresh_key].filter((z) => isStr(z, r.id_max)) : [];
+  return { at: typeof obj[r.meta_at_key] === 'string' ? obj[r.meta_at_key] : null, ok: obj[r.meta_ok_key] === true, fresh };
+}
+
+// 충전기 하나: id 는 꼭, 종류·출력은 꼴이 틀리면 null(모름). id 가 틀리면 그 충전기만 뺀다
+function charger(ch, r) {
+  if (!isObj(ch) || !isStr(ch[r.charger_id_key], r.id_max)) return null;
+  const kw = ch[r.charger_kw_key];
+  return {
+    id: ch[r.charger_id_key],
+    type: isStr(ch[r.charger_type_key], r.name_max) ? ch[r.charger_type_key] : null,
+    kw: typeof kw === 'number' && Number.isFinite(kw) && kw >= 0 && kw <= r.kw_max ? kw : null,
+  };
 }
 
 // stations/<zscode>.json → {zscode, good: [충전소], bad: [{i, why}]}. 파일 꼴이 틀리면 던진다
@@ -31,6 +44,8 @@ export function stations(obj, r) {
   if (obj[r.stations_key].length > r.max_stations) throw new TypeError(r.why.too_many);
   const good = [];
   const bad = [];
+  const zscode = isStr(obj[r.zscode_key], r.id_max) ? obj[r.zscode_key] : null;
+  const zcodes = Array.isArray(obj[r.zcodes_key]) ? obj[r.zcodes_key].filter((z) => isStr(z, r.id_max)) : [];
   obj[r.stations_key].forEach((s, i) => {
     if (!isObj(s)) { bad.push({ i, why: r.why.item }); return; }
     if (!isStr(s.id, r.id_max)) { bad.push({ i, why: r.why.id }); return; }
@@ -47,10 +62,13 @@ export function stations(obj, r) {
       lng: loc.lng,
       rest: s.rest === true,
       indoor: s.indoor === true,
-      chargers: s.chargers.length,
+      // 충전기마다 id·종류·출력(정보 칸 — A4). 상태는 여기 없다(status/ 파일 — relay_read)
+      chargers: s.chargers.map((ch) => charger(ch, r)).filter((ch) => ch !== null),
+      zscode,
+      zcodes,
     });
   });
-  return { zscode: isStr(obj[r.zscode_key], r.id_max) ? obj[r.zscode_key] : null, good, bad };
+  return { zscode, good, bad };
 }
 
 // 고속도로 선 파일 → {name, highway, direction, points}. 꼭짓점 하나라도 틀리면 선 전체를 버린다(던짐)

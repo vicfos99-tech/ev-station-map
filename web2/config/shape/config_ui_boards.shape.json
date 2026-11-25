@@ -12,6 +12,8 @@
   "vw_unit": {"t": "str", "one_of": ["vw"]},
   "rule.min_interval_ms": {"t": "num", "int": true, "min": 50, "max": 600000},
   "rule.max_topics": {"t": "num", "int": true, "min": 1, "max": 50},
+  "rule.max_sends": {"t": "num", "int": true, "min": 0, "max": 20},
+  "board_owner_prefix": {"t": "str", "min": 1, "max": 20},
   "rule.slot_names": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 1, "max": 20}},
   "box_tag": {"t": "str", "one_of": ["div", "section"]},
   "box_class": {"t": "str", "min": 1, "max": 40},

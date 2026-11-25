@@ -1,0 +1,15 @@
+{"keys": {
+  "s_key": {"t": "str", "min": 1, "max": 20},
+  "at_key": {"t": "str", "min": 1, "max": 20},
+  "at_max": {"t": "num", "int": true, "min": 1, "max": 100},
+  "id_max": {"t": "num", "int": true, "min": 1, "max": 200},
+  "stat_index": {"t": "num", "int": true, "min": 0, "max": 10},
+  "stat_max": {"t": "num", "int": true, "min": 1, "max": 20},
+  "max_chargers": {"t": "num", "int": true, "min": 1, "max": 1000000},
+  "stat_state": {"t": "map", "of": {"t": "str", "min": 1, "max": 20}},
+  "unknown_state": {"t": "str", "min": 1, "max": 20},
+  "states": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 1, "max": 20}},
+  "why.file": {"t": "str", "min": 1, "max": 30},
+  "why.too_many": {"t": "str", "min": 1, "max": 30},
+  "why.station": {"t": "str", "min": 1, "max": 30}
+}}

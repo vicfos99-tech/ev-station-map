@@ -1,0 +1,25 @@
+{
+  "note": "내비로 넘길 주소 글(navlink — 설계 5-8 마). geo = 방법 1(위치 주소 — 안드로이드 고르기 창). apps = 방법 2 의 앱별 주소 무늬(블로그·문서에서 본 것 — 묘성 폰에서 확인한 뒤 고치거나 빼는 줄. 웹은 깔린 앱을 몰라 안 깔린 앱 단추도 보인다). 자리 표시: {lat}·{lng}(coord_digits 자리) · {label}(주소에 넣게 바꾼 이름 — encodeURIComponent + extra_escape) · {appname}. 이름 꼴: 방향을 아는 휴게소면 name_with_dir — dir_names[선 이름][선 방향 낱말(config_locate.dir_words)], 아니면 이름 그대로(name_max 자까지). copy = '좌표·이름 복사' 글({label} 은 바꾸지 않은 이름). appname = 네이버 지도가 요구하는 부른 앱 이름(폰에서 확인할 값)",
+  "geo": "geo:{lat},{lng}?q={lat},{lng}({label})",
+  "apps": [
+    {"key": "tmap", "text": "티맵", "url": "tmap://route?goalx={lng}&goaly={lat}&goalname={label}"},
+    {"key": "kakaomap", "text": "카카오맵", "url": "kakaomap://route?ep={lat},{lng}&by=car"},
+    {"key": "nmap", "text": "네이버 지도", "url": "nmap://route/car?dlat={lat}&dlng={lng}&dname={label}&appname={appname}"},
+    {"key": "google", "text": "구글 지도", "url": "google.navigation:q={lat},{lng}"}
+  ],
+  "appname": "ev-charge-planner",
+  "copy": "{label}\n{lat}, {lng}",
+  "name_with_dir": "{name}({dir})",
+  "dir_names": {
+    "gyeongbu_down": {"forward": "부산 방향", "backward": "서울 방향"}
+  },
+  "name_max": 80,
+  "coord_digits": 6,
+  "lat_min": 33.0,
+  "lat_max": 38.7,
+  "lng_min": 124.5,
+  "lng_max": 132.0,
+  "slot_re": "\\{(\\w+)\\}",
+  "extra_escape": {"(": "%28", ")": "%29", "'": "%27", "!": "%21", "*": "%2A"},
+  "why": {"name": "nav_name", "coord": "nav_coord"}
+}

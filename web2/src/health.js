@@ -32,6 +32,19 @@ export function judgeApp(input, r) {
   return { stage: s.starting, why: null };
 }
 
+// 연결 알림마다의 마지막 결과 → 출처마다 하나: 한 출처에 알림이 여럿이면(충전소 목록·충전기 상태 — 둘 다 다리 자료 길) 하나라도 실패면 실패(먼저 적힌 것의 까닭)
+// byName = {알림 이름: {src, ok, code}} → {출처: {ok, code}}
+export function bySource(byName) {
+  const out = {};
+  for (const v of Object.values(byName || {})) {
+    if (!v || !v.src) continue;
+    const had = out[v.src];
+    if (!had) out[v.src] = { ok: !!v.ok, code: v.ok ? null : v.code };
+    else if (had.ok && !v.ok) out[v.src] = { ok: false, code: v.code };
+  }
+  return out;
+}
+
 // ② 출처마다: {출처: {ok, why, since}} — conn = {출처: {ok, code}}, prev = 앞 판정
 export function judgeSources(input, r) {
   const out = {};

@@ -3,14 +3,23 @@
 // '주변'(고속도로 밖 — C8)이면 머리 글이 바뀌고 줄마다 '주변' 꼬리표, 거리 앞에 '직선'(길 따라 잰 거리가 아님).
 // 계산·받기·구독은 하지 않는다(판 틀이 구독해 넘겨 준다). 까닭 글은 쓰지 않는다 — 값이 없으면 비움(F7).
 // 밖에서 온 글(충전소 이름·업체)은 글로만 넣는다(textContent — HTML 로 넣지 않음, 5-7 (1)). 글·자리·간격·꼴은 config_ui_ahead.
-// 줄 누름(station.select.ahead)은 정보 칸(A4)과 함께 — 지금은 없다.
+// 줄 전체를 누르면 State 에 요청만 낸다(station.select.ahead — A4 정보 칸이 듣는다. 판 틀이 needs().sends 로 주인을 잡아 send 로 넘김).
 export const KIND = 'board';
-export const NEEDS = ['cfg', 'doc', 'board'];
+export const NEEDS = ['cfg', 'doc', 'board', 'send'];
 
 export function create(deps) {
   const c = deps.cfg.section('config_ui_ahead');
   const doc = deps.doc;
   const x = c.texts;
+  let line = null;
+
+  // 고른 자리: 묶인 충전소 id 들·이름·방향(선 방향 낱말)·선·그 자리 좌표(방향 충전소 자리)
+  function pick(item) {
+    deps.send(c.select_piece, {
+      key: item.key, ids: Array.isArray(item.ids) ? item.ids.slice() : [item.key], name: item.name,
+      dir: item.dir || null, line: item.dir ? line : null, lat: item.lat, lng: item.lng, rest: !!item.rest,
+    });
+  }
 
   function el(id) {
     const e = doc.getElementById(id);
@@ -46,16 +55,19 @@ export function create(deps) {
     r.appendChild(part(c.classes.kind, kind));
     r.appendChild(part(c.classes.ops, opsText(item.ops)));
     r.appendChild(part(c.classes.dist, (around ? x.straight + ' ' : '') + distText(item.dist_km) + ' ' + x.km_unit));
+    r.setAttribute(c.role_attr, c.role_button);
+    r.addEventListener(c.click_event, () => pick(item));
     return r;
   }
 
   return deps.board.define({
-    needs: () => ({ topics: [c.ahead_piece, c.health_piece], interval_ms: c.interval_ms, slot: c.slot }),
+    needs: () => ({ topics: [c.ahead_piece, c.health_piece], interval_ms: c.interval_ms, slot: c.slot, sends: [c.select_piece] }),
     show(data) {
       const a = data[c.ahead_piece];
       const h = data[c.health_piece];
       const usable = !(h && h.ok === false) && !!a && Array.isArray(a.items);
       const around = usable && a.mode === c.around_mode;
+      line = usable ? a.line : null;
       const list = el(c.ids.list);
       const rows = usable ? a.items.map((it) => row(it, around)) : [];
       list.replaceChildren(...rows);

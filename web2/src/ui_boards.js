@@ -15,9 +15,16 @@ export function createBoardHost(deps) {
   const mounted = [];
 
   function mount(entry) {
-    const made = entry.module[c.factory]({ cfg: deps.cfg, log, doc, timefmt: deps.timefmt, board: deps.board });
+    // 판의 누름 → State 요청(needs().sends 에 밝힌 이름만 — 주인은 그 판). 밝히기 전이나 밝히지 않은 이름이면 던진다(판이 잡아 로그)
+    let sendPub = null;
+    const send = (name, value) => {
+      if (!sendPub) throw new Error(name);
+      sendPub(name, value);
+    };
+    const made = entry.module[c.factory]({ cfg: deps.cfg, log, doc, timefmt: deps.timefmt, board: deps.board, send });
     if (!made || typeof made.needs !== 'function' || typeof made.show !== 'function') throw new TypeError(entry.name);
     const n = deps.board.checkNeeds(made.needs(), c.rule);
+    if (n.sends && n.sends.length) sendPub = state.claim(c.board_owner_prefix + entry.name, n.sends);
     const slot = doc.getElementById(c.slots[n.slot]);
     if (!slot) throw new Error(c.slots[n.slot]);
     // 자리의 가장 좁은 폭(설정) — 판 글이 자리 밖으로 밀려 잘리지 않게(속도판 세 자리 잘림 고침).
@@ -57,7 +64,7 @@ export function createBoardHost(deps) {
     deps.clock.setInterval(tick, Math.max(c.rule.min_interval_ms, n.interval_ms));
     tick();
     mounted.push(entry.name);
-    log.info(c.where, c.word_mounted, { name: entry.name, slot: n.slot, topics: n.topics, interval_ms: n.interval_ms });
+    log.info(c.where, c.word_mounted, { name: entry.name, slot: n.slot, topics: n.topics, interval_ms: n.interval_ms, sends: n.sends || [] });
   }
 
   for (const entry of deps.boards || []) {

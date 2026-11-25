@@ -1,0 +1,15 @@
+{"keys": {
+  "esc_re": {"t": "str", "min": 3, "max": 40},
+  "esc_map": {"t": "map", "of": {"t": "str", "min": 2, "max": 10}},
+  "esc_map.&": {"t": "str", "one_of": ["&amp;"]},
+  "esc_map.<": {"t": "str", "one_of": ["&lt;"]},
+  "esc_map.>": {"t": "str", "one_of": ["&gt;"]},
+  "esc_map.\"": {"t": "str", "one_of": ["&quot;"]},
+  "esc_map.'": {"t": "str", "one_of": ["&#39;"]},
+  "balloon.box": {"t": "str", "min": 1, "max": 400},
+  "balloon.line": {"t": "str", "min": 1, "max": 200},
+  "marks.title": {"t": "str", "min": 1, "max": 20},
+  "marks.lines": {"t": "str", "min": 1, "max": 20},
+  "marks.text": {"t": "str", "min": 1, "max": 20},
+  "why.input": {"t": "str", "min": 1, "max": 30}
+}}

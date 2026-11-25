@@ -5,7 +5,7 @@
 //   · 고속도로 밖('around'): 곧은 거리로 가까운 충전소 r.count 곳('주변' — 거리는 곧은 거리 표시). 선에서 r.around_after_m 넘게 떨어져야 바뀌고(깜빡임 여유),
 //     선 위(Locate 의 on_line)로 돌아오면 다시 'ahead'. 그 사이(여유 띠)에서는 앞 결과를 그대로 둔다.
 // 진행 방향: pos.dir(Locate — 진행 방향 각도) → 없으면 앞 결과와의 km 변화(r.dir_min_move_km 이상) → 없으면 앞 방향 → 없으면 모름(빈 목록 — 지어내지 않는다).
-// ahead = {t, mode, dir, line, km, items: [{no, key, name, ops, rest, dir, km, dist_km, straight, lat, lng}]} — lat·lng = 그 자리(묶인 첫 충전소) 좌표(지도의 1·2·3번 표시, A3). 로그 없음, 틀린 입력은 던진다.
+// ahead = {t, mode, dir, line, km, items: [{no, key, ids, name, ops, rest, dir, km, dist_km, straight, lat, lng}]} — lat·lng = 그 자리(묶인 첫 충전소) 좌표(지도의 1·2·3번 표시, A3), ids = 그 자리에 묶인 충전소 id 들(정보 칸, A4). 로그 없음, 틀린 입력은 던진다.
 export const NEEDS = [];
 
 const placeCache = new WeakMap();
@@ -92,6 +92,7 @@ function placesOf(st, r, lib, rl) {
     for (const m of x.members) if (m.op && !ops.includes(m.op)) ops.push(m.op);
     return {
       key: x.members[0].id,
+      ids: x.members.map((m) => m.id),
       name: pickName(x.members.map((m) => m.name), r),
       ops,
       rest: x.rest,
@@ -139,7 +140,7 @@ export function aheadOf(inputs, done, r, lib, own) {
       .filter((x) => x.d <= r.around_max_km)
       .sort((a, b) => a.d - b.d)
       .slice(0, r.count)
-      .map((x) => ({ key: x.p.key, name: x.p.name, ops: x.p.ops, rest: x.p.rest, dir: null, km: null, dist_km: round(x.d, r.km_round), straight: true, lat: x.p.lat, lng: x.p.lng }));
+      .map((x) => ({ key: x.p.key, ids: x.p.ids, name: x.p.name, ops: x.p.ops, rest: x.p.rest, dir: null, km: null, dist_km: round(x.d, r.km_round), straight: true, lat: x.p.lat, lng: x.p.lng }));
     return { t: fix.t, mode, dir: null, line: null, km: null, items: numbered(near) };
   }
 
@@ -155,6 +156,6 @@ export function aheadOf(inputs, done, r, lib, own) {
     .filter((x) => x.rem >= -r.pass_margin_km)
     .sort((a, b) => a.rem - b.rem)
     .slice(0, r.count)
-    .map((x) => ({ key: x.p.key, name: x.p.name, ops: x.p.ops, rest: x.p.rest, dir: x.p.dir, km: round(x.p.km, r.km_round), dist_km: round(Math.max(0, x.rem), r.km_round), straight: false, lat: x.p.lat, lng: x.p.lng }));
+    .map((x) => ({ key: x.p.key, ids: x.p.ids, name: x.p.name, ops: x.p.ops, rest: x.p.rest, dir: x.p.dir, km: round(x.p.km, r.km_round), dist_km: round(Math.max(0, x.rem), r.km_round), straight: false, lat: x.p.lat, lng: x.p.lng }));
   return { t: fix.t, mode, dir, line: pos.line, km: pos.km, items: numbered(front) };
 }

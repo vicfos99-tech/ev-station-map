@@ -1,8 +1,10 @@
 {
-  "note": "지도(ui_map + mapview). 바탕 그림(타일) 주소는 이 파일에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). 카메라 규칙 값은 config_mapcam. attribution.compact false = 좁은 지도에서도 저작권 글을 접지 않음(고칠 것 ③). others = 다른 충전소 점 층('세 곳만'이면 숨김), marks = 1·2·3번 표시(HTML 표시 — 글꼴 파일 없이, 다른 점보다 크고 위에; kinds 는 앞의 충전소·주변 모양). events.user_starts = 손으로 만진 시작 알림 → 종류(originalEvent 가 있는 것만), move_end 에 한 번 알림. store_key = 카메라 상태를 저장하는 데이터 폴더 키(config_store.keys)",
+  "note": "지도(ui_map + mapview). 바탕 그림(타일) 주소는 이 파일에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). 카메라 규칙 값은 config_mapcam. attribution.compact false = 좁은 지도에서도 저작권 글을 접지 않음(고칠 것 ③). others = 다른 충전소 점 층('세 곳만'이면 숨김 — 점 속성 id_prop = 충전소 id, 누르면 정보 칸 A4), marks = 1·2·3번 표시(HTML 표시 — 글꼴 파일 없이, 다른 점보다 크고 위에; kinds 는 앞의 충전소·주변 모양). events.user_starts = 손으로 만진 시작 알림 → 종류(originalEvent 가 있는 것만), move_end 에 한 번 알림. store_key = 카메라 상태를 저장하는 데이터 폴더 키(config_store.keys). select_piece = 번호·점을 누르면 내는 요청(정보 칸이 들음, pick = 누른 것의 종류 이름)",
   "owner": "ui_map",
   "tiles_piece": "conn.tiles",
   "cam_piece": "map.cam",
+  "select_piece": "station.select.map",
+  "pick": {"mark": "mark", "dot": "dot"},
   "fix_piece": "fix",
   "ahead_piece": "ahead",
   "stations_piece": "stations",
@@ -49,7 +51,8 @@
     "paint": {"circle-radius": 4, "circle-color": "#6b7280", "circle-stroke-color": "#ffffff", "circle-stroke-width": 1, "circle-opacity": 0.8},
     "visibility_key": "visibility",
     "shown_word": "visible",
-    "hidden_word": "none"
+    "hidden_word": "none",
+    "id_prop": "id"
   },
   "marks": {
     "tag": "div",
@@ -59,9 +62,11 @@
     "anchor": "center",
     "sig_join": "|",
     "ahead_kind": "ahead",
-    "around_kind": "around"
+    "around_kind": "around",
+    "role_attr": "role",
+    "role_button": "button"
   },
-  "events": {"load": "load", "data": "data", "error": "error", "move_end": "moveend", "user_starts": {"dragstart": "moved", "rotatestart": "rotated", "zoomstart": "zoomed"}},
+  "events": {"load": "load", "data": "data", "error": "error", "move_end": "moveend", "click": "click", "user_starts": {"dragstart": "moved", "rotatestart": "rotated", "zoomstart": "zoomed"}},
   "tiles_wait_ms": 15000,
   "tiles_code": "tiles",
   "tiles_wait_code": "tiles_wait",
@@ -74,10 +79,12 @@
   "act_load": "load",
   "act_marks": "marks",
   "act_stations": "stations",
+  "act_pick": "pick",
   "word_tiles_bad": "tiles_bad",
   "word_user": "map_user",
   "word_me": "map_me",
   "word_only3": "map_only3",
   "word_save_failed": "map_save_failed",
-  "word_load_failed": "map_load_failed"
+  "word_load_failed": "map_load_failed",
+  "word_pick": "map_pick"
 }

@@ -3,6 +3,7 @@
 //   · 손으로 만진 것(mapview 가 알림) → MapCam · '내 위치' 단추 → MapCam(따라가기 켬·진행 방향으로 되돌림)
 //   · ahead 구독 → 1·2·3번 표시(충전소판과 같은 조각 하나를 둘이 구독 — 번호가 바뀌면 같이 바뀜), stations 구독 → 다른 충전소 층
 //   · '세 곳만' 단추 → 다른 충전소 층 숨김·보임
+//   · (A4) 번호·충전소 점을 누르면 station.select.map 으로 요청만(정보 칸이 듣는다 — 카메라는 그대로)
 //   · 카메라 상태(따라가기·굳음·확대·방향·'세 곳만')는 폰 데이터 폴더에 저장(손·단추로 바뀔 때만)하고 다시 열면 읽는다. map.cam 으로 알린다('이상해' 기록에 담김)
 // 바탕 그림(타일) 주소는 config_ui_map 에만 있고 지도 라이브러리가 직접 받는다(설계 원칙 '바깥 주소는 하나'의 예외). 바탕 그림 성공·실패는 conn.tiles 로(바뀔 때만).
 import { createMapView } from './mapview.js';
@@ -17,7 +18,7 @@ export function createMapScreen(deps) {
   const log = deps.log;
   const doc = deps.doc;
   const clock = deps.clock;
-  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece]);
+  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, c.select_piece]);
   let view = null;
   let last = null;
   let tilesOk = null;
@@ -73,7 +74,26 @@ export function createMapScreen(deps) {
   function drawStations(st) {
     if (!view) return;
     const list = st && Array.isArray(st[c.stations_list_key]) ? st[c.stations_list_key].filter((x) => x && typeof x.lat === 'number' && typeof x.lng === 'number') : [];
-    view.setStations(list.map((x) => ({ lat: x.lat, lng: x.lng })));
+    view.setStations(list.map((x) => ({ id: x.id, lat: x.lat, lng: x.lng })));
+  }
+
+  // 누름: 번호 = 앞의 충전소 자리(묶인 id 들·이름·방향·좌표 — 충전소판 줄과 같은 꼴), 점 = 충전소 하나
+  function pick(p) {
+    try {
+      let sel = null;
+      if (p.kind === c.pick.mark) {
+        const it = lastAhead && Array.isArray(lastAhead.items) ? lastAhead.items.find((x) => String(x.key) === p.key) : null;
+        if (it) sel = { key: it.key, ids: Array.isArray(it.ids) ? it.ids.slice() : [it.key], name: it.name, dir: it.dir || null, line: it.dir ? lastAhead.line : null, lat: it.lat, lng: it.lng, rest: !!it.rest };
+      } else {
+        const list = lastStations && Array.isArray(lastStations[c.stations_list_key]) ? lastStations[c.stations_list_key] : [];
+        const st = list.find((x) => x && String(x.id) === p.key);
+        if (st) sel = { key: st.id, ids: [st.id], name: st.name, dir: null, line: null, lat: st.lat, lng: st.lng, rest: !!st.rest };
+      }
+      log.info(c.where, c.word_pick, { kind: p.kind, key: p.key, found: !!sel });
+      if (sel) pub(c.select_piece, sel);
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: c.act_pick, key: p && p.key } });
+    }
   }
 
   function open() {
@@ -83,8 +103,9 @@ export function createMapScreen(deps) {
       view = createMapView({ maplibre: deps.maplibre, doc }, {
         container: slot, style: c.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
         geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events,
-        tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code,
+        tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick,
       });
+      view.onPick(pick);
       view.watchTiles(() => tiles(true, null), (why) => tiles(false, why));
       view.onUser((ev) => {
         try {
@@ -185,5 +206,5 @@ export function createMapScreen(deps) {
     lastStations = st;
     try { drawStations(st); } catch (e) { log.error(e, { where: c.where, params: { act: c.act_stations } }); }
   });
-  return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3 };
+  return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3, pick };
 }

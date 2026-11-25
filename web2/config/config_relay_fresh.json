@@ -1,0 +1,18 @@
+{
+  "note": "충전기 상태의 신선함(relay_fresh — 중계 모양 문서 ref/relay_format.md 규칙 1). kst14_re = 중계 시각 글(한국 시각 14자리)의 무늬, 이름 붙은 묶음은 kst14_groups, 되돌려 쓴 글이 같아야 맞는 시각(kst14_pattern — timefmt 꼴). future_ms = 지금보다 이만큼 넘게 앞선 시각이면 '시각 모름'. 낡음 문턱은 정보 칸 설정(config_ui_station.old_ms). levels: fresh 믿음 · unsure meta 가 보증하지 않음(낡았을 수 있음) · old 문턱을 넘음 · unknown 시각을 모름. ago = '○분 전' 글(큰 단위부터 — 그 단위 이상이면 그 글), 가장 작은 단위보다 짧으면 ago_now",
+  "kst14_re": "^(?<Y>\\d{4})(?<M>\\d{2})(?<D>\\d{2})(?<h>\\d{2})(?<m>\\d{2})(?<s>\\d{2})$",
+  "kst14_groups": {"year": "Y", "month": "M", "day": "D", "hour": "h", "minute": "m", "second": "s"},
+  "kst14_pattern": "YYYYMMDDhhmmss",
+  "future_ms": 300000,
+  "by": {"meta": "meta", "file": "file", "none": "none"},
+  "levels": {"fresh": "fresh", "unsure": "unsure", "old": "old", "unknown": "unknown"},
+  "ago": [
+    {"ms": 86400000, "text": "{n}일 전"},
+    {"ms": 3600000, "text": "{n}시간 전"},
+    {"ms": 60000, "text": "{n}분 전"}
+  ],
+  "ago_now": "방금",
+  "ago_unknown": "언제인지 모름",
+  "n_mark": "{n}",
+  "why": {"input": "fresh_input", "age": "fresh_age"}
+}

@@ -1,0 +1,14 @@
+{
+  "note": "충전기 상태 읽기(relay_read — 지역 상태 파일 status/<zscode>.json, 꼴은 ref/relay_format.md). stat_index = 충전기 값 배열에서 stat 코드 자리. stat_state = 중계 stat 코드 → 상태 이름(1 통신 이상·9 미확인 = 모름, 2 대기 = 빈자리, 3 충전 중 = 사용 중, 4 운영 중지·5 점검 중 = 고장). 상태 파일에 없는 충전기는 unknown_state(빈자리가 아님 — 모양 문서 규칙 2). states = 셀 때 0 부터 시작하는 상태 이름들",
+  "s_key": "s",
+  "at_key": "at",
+  "at_max": 20,
+  "id_max": 40,
+  "stat_index": 0,
+  "stat_max": 4,
+  "max_chargers": 20000,
+  "stat_state": {"1": "unknown", "2": "free", "3": "busy", "4": "broken", "5": "broken", "9": "unknown"},
+  "unknown_state": "unknown",
+  "states": ["free", "busy", "broken", "unknown"],
+  "why": {"file": "status_shape", "too_many": "status_too_many", "station": "station_shape"}
+}

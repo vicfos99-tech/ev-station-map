@@ -1,6 +1,10 @@
 {
   "note": "충전소판(ui_ahead — 알림판). 거리 글: decimals_below_km 보다 가까우면 소수 decimals 자리, 아니면 정수. 업체는 ops_max 개까지 보이고 나머지는 '외 n'. around_mode = ahead 조각의 '주변' 모드 이름(config_ahead.modes.around 와 같게)",
   "ahead_piece": "ahead",
+  "select_piece": "station.select.ahead",
+  "click_event": "click",
+  "role_attr": "role",
+  "role_button": "button",
   "health_piece": "health.ahead",
   "interval_ms": 1000,
   "slot": "right",

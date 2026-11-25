@@ -64,7 +64,9 @@ export function srcViews(app, tc) {
 }
 
 export function fakeWin() {
-  return { innerWidth: 1280, innerHeight: 720, listeners: {}, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, navigator: { clipboard: { writeText: async () => {} } }, Blob, URL };
+  // copied = 복사 단추가 넘긴 글(A4). navigator.clipboard 를 null 로 바꾸면 복사 실패 길
+  const copied = [];
+  return { innerWidth: 1280, innerHeight: 720, listeners: {}, copied, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, navigator: { clipboard: { writeText: async (t) => { copied.push(t); } } }, Blob, URL };
 }
 
 // 가짜 지도 라이브러리: 'load' 와 첫 그림 조각을 곧바로 알리고, 점 옮김(moves)·카메라 명령(jumps)·층 켬끔·번호 표시(Marker)를 적는다.
@@ -79,8 +81,13 @@ export function fakeMapLib(tileSourceId) {
       maps.push(this);
       setTimeout(() => { this.fire('load', {}); this.fire('data', { tile: {}, sourceId: tileSourceId }); }, 0);
     }
-    on(ev, fn) { (this.h[ev] = this.h[ev] || []).push(fn); }
+    // on(ev, fn) 또는 on(ev, 층 id, fn) — 층에 건 것은 clickLayer 로만 부른다(A4 충전소 점 누름)
+    on(ev, a, b) {
+      if (typeof a === 'function') (this.h[ev] = this.h[ev] || []).push(a);
+      else (this.lh = this.lh || []).push({ ev, layer: a, fn: b });
+    }
     fire(ev, e) { for (const f of this.h[ev] || []) f(e); }
+    clickLayer(layer, props) { for (const x of this.lh || []) if (x.ev === 'click' && x.layer === layer) x.fn({ features: [{ properties: props }] }); }
     addSource(id, o) {
       this.data[id] = o && o.data;
       this.sources[id] = { setData: (d) => { this.data[id] = d; if (d && d.geometry) this.moves.push(d.geometry.coordinates); } };
@@ -206,6 +213,7 @@ export function startApp(ctx, opts) {
     fetch: (url, init) => { fetchCalls.push({ url: String(url), headers: { ...((init && init.headers) || {}) } }); return realFetch(url, init); },
   };
   const made = main(platform);
+  const win = platform.win;
   const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [] };
   if (made.state) {
     made.state.subscribe('ahead', (v) => seen.ahead.push({ v, at: Date.now() }));
@@ -217,12 +225,13 @@ export function startApp(ctx, opts) {
   }
   let stopped = false;
   return {
-    made, doc, disk, consoleLines, lib, fetchCalls, seen, raw,
+    made, doc, disk, consoleLines, lib, fetchCalls, seen, raw, win,
     stop() {
       if (stopped) return;
       stopped = true;
       if (made.loc_watch) made.loc_watch.halt();
       if (made.relay_stations) made.relay_stations.halt();
+      if (made.relay_status) made.relay_status.halt();
       for (const h of timers) clearTimeout(h);
       for (const h of intervals) clearInterval(h);
     },

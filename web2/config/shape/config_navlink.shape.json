@@ -1,0 +1,18 @@
+{"keys": {
+  "geo": {"t": "str", "min": 1, "max": 200, "re": "^geo:"},
+  "apps": {"t": "arr", "max": 10, "of": {"t": "obj"}},
+  "appname": {"t": "str", "min": 1, "max": 80},
+  "copy": {"t": "str", "min": 1, "max": 200},
+  "name_with_dir": {"t": "str", "min": 1, "max": 80},
+  "dir_names": {"t": "map", "of": {"t": "obj"}},
+  "name_max": {"t": "num", "int": true, "min": 1, "max": 500},
+  "coord_digits": {"t": "num", "int": true, "min": 4, "max": 8},
+  "lat_min": {"t": "num", "min": -90, "max": 90},
+  "lat_max": {"t": "num", "min": -90, "max": 90},
+  "lng_min": {"t": "num", "min": -180, "max": 180},
+  "lng_max": {"t": "num", "min": -180, "max": 180},
+  "slot_re": {"t": "str", "min": 1, "max": 40},
+  "extra_escape": {"t": "map", "of": {"t": "str", "min": 3, "max": 3, "re": "^%[0-9A-F]{2}$"}},
+  "why.name": {"t": "str", "min": 1, "max": 30},
+  "why.coord": {"t": "str", "min": 1, "max": 30}
+}}

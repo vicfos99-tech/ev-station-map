@@ -35,7 +35,7 @@ export function createHealthRunner(deps) {
         clock.clearInterval(timer);
         timer = null;
       }
-      const nextSrc = health.judgeSources({ conn, prev: srcs, now }, r);
+      const nextSrc = health.judgeSources({ conn: health.bySource(conn), prev: srcs, now }, r);
       if (!health.same(nextSrc, srcs)) {
         for (const [s, v] of Object.entries(nextSrc)) {
           const before = srcs[s];
@@ -67,15 +67,16 @@ export function createHealthRunner(deps) {
     if (c.start_conns.includes(name)) {
       if (v && v.need) start[v.need] = { ok: !!v.ok, code: v.code, src: v.src };
     } else {
+      // 알림 이름마다 따로 들고(한 출처에 알림이 여럿 — 충전소 목록·충전기 상태), 판정 때 출처로 모은다(Health.bySource)
       const src = r.conn_source[name];
-      if (src && v) conn[src] = { ok: !!v.ok, code: v.code };
+      if (src && v) conn[name] = { src, ok: !!v.ok, code: v.code };
     }
     evaluate();
   });
 
   // 기록장·저장 쓰기 실패(둘은 State 보다 먼저 만들어져 State 를 모른다 — 설계 5-1-나 알림 표)
-  deps.log.watch((s) => { conn[r.trouble_source.log] = { ok: s.ok, code: s.why }; evaluate(); });
-  deps.store.watch((s) => { conn[r.trouble_source.store] = { ok: s.ok, code: s.why }; evaluate(); });
+  deps.log.watch((s) => { conn[r.trouble_source.log] = { src: r.trouble_source.log, ok: s.ok, code: s.why }; evaluate(); });
+  deps.store.watch((s) => { conn[r.trouble_source.store] = { src: r.trouble_source.store, ok: s.ok, code: s.why }; evaluate(); });
 
   return { now: () => ({ app, srcs, feats }) };
 }

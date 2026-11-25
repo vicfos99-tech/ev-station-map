@@ -14,6 +14,10 @@ import { createStartProbe } from './startprobe.js';
 import { createRelayBase } from './relay_base.js';
 import * as relayParse from './relay_parse.js';
 import { createRelayStations } from './relay_stations.js';
+import * as relayRead from './relay_read.js';
+import * as relayFresh from './relay_fresh.js';
+import { createRelayStatus } from './relay_status.js';
+import * as navlink from './navlink.js';
 import * as geo from './geo.js';
 import * as fixcheck from './fixcheck.js';
 import { createLocWatch } from './loc_watch.js';
@@ -34,6 +38,7 @@ import { createBoardHost } from './ui_boards.js';
 import { createLogScreen } from './ui_log.js';
 import { createLocateGuide } from './ui_locate.js';
 import { createOddButton } from './ui_odd.js';
+import { createStationCard } from './ui_station.js';
 
 export const NEEDS = ['platform'];
 
@@ -89,6 +94,7 @@ export function main(platform) {
     make('startprobe', () => createStartProbe({ ...s, netcore: made.netcore }));
     make('relay_base', () => createRelayBase({ ...base, netcore: made.netcore }));
     if (made.relay_base) make('relay_stations', () => createRelayStations({ ...s, relay_base: made.relay_base, relay_parse: relayParse }));
+    if (made.relay_base) make('relay_status', () => createRelayStatus({ ...s, relay_base: made.relay_base, relay_parse: relayParse, relay_read: relayRead }));
     make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo, fixcheck, geomath: geo }));
   }
   make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, speed, ahead } }));
@@ -101,6 +107,7 @@ export function main(platform) {
   make('ui_log', () => createLogScreen(screen));
   make('ui_locate', () => createLocateGuide(screen));
   make('ui_odd', () => createOddButton({ ...screen, formcheck }));
+  make('ui_station', () => createStationCard({ ...screen, relay_read: relayRead, relay_fresh: relayFresh, navlink }));
 
   try {
     made.state.claim(c.owner, [c.events.start])(c.events.start, { at: p.clock.now() });

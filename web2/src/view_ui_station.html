@@ -1,0 +1,21 @@
+<!-- 충전소 정보 칸(ui_station): 처음엔 숨김. ui_station.js 가 운전 화면 가운데 칸(ev-center — 지도 아래)으로 옮겨 꽂고, 충전소를 고르면 아래에서 올라온다(지도를 다 가리지 않음). 단추 줄은 이름 바로 아래(좁은 창에서도 넘기지 않고 보임). 글은 설정(config_ui_station)에서 -->
+<section id="ev-station" class="ev-station" hidden>
+  <div class="ev-station-head">
+    <div class="ev-station-title">
+      <div id="ev-station-name" class="ev-station-name"></div>
+      <div id="ev-station-kind" class="ev-station-kind"></div>
+    </div>
+    <button id="ev-station-close" class="ev-station-close" type="button"></button>
+  </div>
+  <div class="ev-station-acts">
+    <button id="ev-station-refresh" class="ev-station-btn ev-station-refresh" type="button"></button>
+    <a id="ev-station-nav" class="ev-station-btn ev-station-nav"></a>
+    <button id="ev-station-copy" class="ev-station-btn ev-station-copy" type="button"></button>
+  </div>
+  <div id="ev-station-answer" class="ev-station-answer"></div>
+  <div id="ev-station-hint" class="ev-station-hint"></div>
+  <div id="ev-station-body" class="ev-station-body"></div>
+  <div id="ev-station-copytext" class="ev-station-copytext"></div>
+  <div id="ev-station-apps" class="ev-station-apps"></div>
+  <div id="ev-station-always" class="ev-station-always"></div>
+</section>

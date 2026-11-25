@@ -1,0 +1,8 @@
+{
+  "note": "HTML 에 넣는 글의 이스케이프 한 곳(relay_html — 설계 5-7 (1)). esc_re 에 걸린 글자를 esc_map 으로 바꾼다. balloon = 지도 풍선 같은 HTML 칸의 틀(자리 표시 marks 에 넣는 글은 모두 이스케이프). 지금 화면은 모두 글(textContent)로만 넣어 이 틀을 쓰는 화면은 아직 없다(지도 풍선을 넣을 때 씀)",
+  "esc_re": "[&<>\"']",
+  "esc_map": {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"},
+  "balloon": {"box": "<div class=\"ev-balloon\"><b class=\"ev-balloon-title\">{title}</b>{lines}</div>", "line": "<div class=\"ev-balloon-line\">{text}</div>"},
+  "marks": {"title": "{title}", "lines": "{lines}", "text": "{text}"},
+  "why": {"input": "balloon_input"}
+}

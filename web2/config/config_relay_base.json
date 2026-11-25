@@ -2,7 +2,7 @@
   "note": "RelayClient 받기 바탕: 다리의 자료 길 이름과 묻는 파일 이름의 허용 무늬(중계 모양 문서 relay_format 의 이름 + R0 의 선 파일). 주소는 config_gateway, 시간 한도·다시 받기는 config_netcore 의 clients.relay",
   "client": "relay",
   "route": "data",
-  "file_res": ["^meta\\.json$", "^stations/[0-9]{5}\\.json$", "^lines/[a-z0-9_]{1,40}\\.json$"],
+  "file_res": ["^meta\\.json$", "^stations/[0-9]{5}\\.json$", "^status/[0-9]{5}\\.json$", "^lines/[a-z0-9_]{1,40}\\.json$"],
   "file_max_chars": 64,
   "code_bad_name": "bad_name",
   "where": "relay_base",

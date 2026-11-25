@@ -1,6 +1,7 @@
 // 지도 라이브러리(MapLibre)를 감싼 한 파일 — 라이브러리를 바꿔도 여기만 바뀐다(설계 5-1-나 mapview).
 // 값(바탕 그림 꼴·처음 자리·점 모양·층·이벤트 이름·번호 표시 모양)은 모두 부르는 쪽(ui_map)이 설정에서 넘긴다. 로그는 쓰지 않고 알림 함수로 돌려준다.
-// 하는 일: 내 위치 점 · 카메라 명령 옮기기(효과 없이 — L068) · 손으로 한 일 알리기 · 1·2·3번 표시 · 다른 충전소 층과 그 켬·끔.
+// 하는 일: 내 위치 점 · 카메라 명령 옮기기(효과 없이 — L068) · 손으로 한 일 알리기 · 1·2·3번 표시 · 다른 충전소 층과 그 켬·끔 ·
+// (A4) 번호·충전소 점을 누름 알리기(onPick — 카메라는 건드리지 않는다).
 // 카메라 규칙은 여기 없다(MapCam). 손으로 만지는 동안에는 카메라 명령을 옮기지 않는다(손이 먼저 — 설계 5-8 다).
 export const NEEDS = ['maplibre', 'doc'];
 
@@ -16,15 +17,17 @@ export function createMapView(deps, o) {
   let othersShown = true;
   let touching = null;
   let onUser = null;
+  let onPick = null;
   let markers = [];
   let markSig = '';
 
-  function point(lnglat) {
-    return { type: o.geo.feature, geometry: { type: o.geo.point, coordinates: lnglat }, properties: {} };
+  function point(lnglat, props) {
+    return { type: o.geo.feature, geometry: { type: o.geo.point, coordinates: lnglat }, properties: props || {} };
   }
 
+  // 다른 충전소 점: 속성에 충전소 id(누르면 그 id 를 알림)
   function collection(list) {
-    return { type: o.geo.collection, features: list.map((p) => point([p.lng, p.lat])) };
+    return { type: o.geo.collection, features: list.map((p) => point([p.lng, p.lat], { [o.others.id_prop]: p.id })) };
   }
 
   function jump(cmd) {
@@ -40,6 +43,12 @@ export function createMapView(deps, o) {
     map.addLayer({ id: o.others.layer_id, type: o.others.layer_type, source: o.others.source_id, paint: o.others.paint, layout: { [o.others.visibility_key]: othersShown ? o.others.shown_word : o.others.hidden_word } });
     map.addSource(o.dot.source_id, { type: o.dot.source_type, data: point(o.center) });
     map.addLayer({ id: o.dot.layer_id, type: o.dot.layer_type, source: o.dot.source_id, paint: o.dot.paint });
+    // 충전소 점 누름 → 그 점의 충전소 id(A4 정보 칸)
+    map.on(o.events.click, o.others.layer_id, (e) => {
+      const f = e && e.features && e.features[0];
+      const id = f && f.properties ? f.properties[o.others.id_prop] : null;
+      if (onPick && id !== null && id !== undefined) onPick({ kind: o.pick.dot, key: String(id) });
+    });
     ready = true;
     pendingStations = null;
     if (pendingDot) { map.getSource(o.dot.source_id).setData(point(pendingDot)); pendingDot = null; }
@@ -75,6 +84,7 @@ export function createMapView(deps, o) {
       return true;
     },
     onUser(fn) { onUser = fn; },
+    onPick(fn) { onPick = fn; },
     // 1·2·3번: items = [{no, key, lat, lng}], kind = 모양 이름(o.marks.kinds 의 키 — 앞의 충전소·주변). 같으면 다시 그리지 않는다
     setNumbered(items, kind) {
       const sig = kind + o.marks.sig_join + items.map((it) => [it.no, it.key, it.lng, it.lat].join(o.marks.sig_join)).join(o.marks.sig_join);
@@ -86,6 +96,8 @@ export function createMapView(deps, o) {
         el.className = o.marks.class + ' ' + o.marks.kinds[kind];
         el.textContent = String(it.no);
         el.setAttribute(o.marks.key_attr, String(it.key));
+        el.setAttribute(o.marks.role_attr, o.marks.role_button);
+        el.addEventListener(o.events.click, () => { if (onPick) onPick({ kind: o.pick.mark, key: String(it.key) }); });
         return new lib.Marker({ element: el, anchor: o.marks.anchor }).setLngLat([it.lng, it.lat]).addTo(map);
       });
     },
