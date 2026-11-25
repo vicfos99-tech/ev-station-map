@@ -20,7 +20,7 @@
 | `limits` | 꼭(비워도 됨) | 제한 속도 구간 — `leg`·`from_km`·`to_km`·`limit_kmh`. `limit_kmh: null` = 자료 없음(S4 일반 도로). 겹치면 안 됨, 빈틈은 '자료 없음'과 같다 |
 | `stations` | 꼭(비워도 됨) | 앞쪽 충전소 자리 목록(아래) |
 | `timeline` | 꼭(비워도 됨) | 시간표 사건(아래). **시각 순서**여야 하고, 주행 시간 안이어야 한다(검사함) |
-| `responses` | | 묻는 길(예: `/v1/place`)마다 정해 둔 답 목록 — `mode`(이름)·`status`(HTTP 코드)·`delay_ms`(늦게 줄 때)·`body` 또는 `body_file`·`match`(물음 글 무늬). S9·S10 용 |
+| `responses` | | 묻는 길(예: `/v1/place`)마다 정해 둔 답 목록 — `mode`(이름)·`status`(HTTP 코드)·`delay_ms`(늦게 줄 때)·`body` 또는 `body_file`(장면 폴더 기준)·`build`(`scene_route` 장면 길을 길 답으로 / `odd_check` '이상해' 검사)·`match`(물음 글 무늬). 처음 것의 mode 가 기본. 없으면 `responses/default.json`. S9·S10 용 |
 | `compose` | | 이어 달리기 — `scenes`(장면 이름 목록)·`repeat_until_s`(모두 몇 초까지 되풀이). S12 용 |
 
 ## 길 조각 (`route.legs[]`) — 둘 가운데 하나
@@ -41,7 +41,7 @@
 | `direction` | 휴게소 방향(예: `부산 방향`) |
 | `line` · `km` | 어느 선의 몇 km 에 있나. 고속도로 밖이면 둘 다 `null` |
 | `loc` | [위도, 경도] |
-| `operators[]` | 그 자리의 충전소들: `station_id`(중계 자료의 충전소 id) · `operator` · `maker` · `loc` · `chargers[]`(`id`·`type` fast/slow·`kw`·`status` 처음 상태) |
+| `operators[]` | 그 자리의 충전소들: `station_id`(중계 자료의 충전소 id) · `operator` · `maker` · `loc` · `chargers[]`(`id`·`type` fast/slow·`kw`·`status` 처음 상태). T2 부터 `name`·`zscode`·`zcodes`·`rest`·`indoor`(중계 사본에서 `tools/match_ids.py` 가 채움 — 시험 다리가 `stations/<zscode>.json` 꼴로 내줄 때 씀) |
 
 - 충전기 상태 낱말(`available`·`charging`·`out_of_service`·`maintenance`·`comm_error`·`unknown`)은 설정 `status_codes` 의 이름이다. 설정은 낱말 → 중계 stat 코드(`ref/relay_format.md`: 1 통신 이상 · 2 대기 · 3 충전 중 · 4 운영 중지 · 5 점검 중 · 9 미확인)를 갖는다. 낱말이 설정에 없으면 검사기가 틀림으로 본다.
 
@@ -81,5 +81,6 @@
 | `S2_제한속도.json` | S1 길, km 40~48 시속 115(제한 100), km 64~70 제한 80 | 길·충전소는 예, 제한 속도는 시험용 |
 | `S5_충전기상태.json` | 경부선 선 km 50→62(12 km), 안성휴게소 ME18B303 1번: 빈자리 → 60초 사용 중 → 180초 고장 → 300초 빈자리 | 길·충전소는 예, 시간표는 시험용 |
 
-- 실제 자료가 어디서 왔나: 선은 `lines/gyeongbu_down.json`(옛 앱 `web/live.js` 의 경부선 꼭짓점 — 실제 API 휴게소 좌표를 이은 선, 점 사이는 곧은 선). 휴게소·충전소는 같은 `live.js` 의 `live-gb-down` 목록(2026-11-16 09:40 스냅숏). `live.js` 에 충전기 id 가 없어 `01`·`02`… 는 목록 차례로 붙였다.
+- (T2) 충전기 id 는 중계 실제 자료 사본(`90_임시/중계자료_사본_2026-11-25`)에 맞췄다 — `py tools/match_ids.py config/testbed.json <사본 폴더> --write`. 13곳 모두 찾았고, 차례·출력이 같아 id 만 바꾼 곳은 ME18B303(02·03→11·12)·SGMAC044(01·02→03·04)·ME22A354(01·02→31·32).
+- 실제 자료가 어디서 왔나: 선은 `lines/gyeongbu_down.json`(옛 앱 `web/live.js` 의 경부선 꼭짓점 — 실제 API 휴게소 좌표를 이은 선, 점 사이는 곧은 선). 휴게소·충전소는 같은 `live.js` 의 `live-gb-down` 목록(2026-11-16 09:40 스냅숏). `live.js` 에 충전기 id 가 없어 T1 은 `01`·`02`… 를 목록 차례로 붙였다(T2 에서 위처럼 실제 id 로 바꿈).
 - 뽑은 법(다시 할 때): `web/live.js` 의 `var d = ` 뒤 JSON 을 읽어 `config.highways.gb.points` 와 `routes[key=live-gb-down].rest_areas` 에서 나들목(`kind: ic`)을 빼고 km 28~115 인 휴게소를 옮겼다.

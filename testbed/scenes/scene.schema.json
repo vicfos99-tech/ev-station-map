@@ -142,6 +142,11 @@
         "station_id": {"type": "string", "minLength": 1},
         "operator": {"type": "string", "minLength": 1},
         "maker": {"type": "string"},
+        "name": {"type": "string", "minLength": 1},
+        "zscode": {"type": "string", "minLength": 1},
+        "zcodes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "rest": {"type": "boolean"},
+        "indoor": {"type": "boolean"},
         "loc": {"$ref": "#/$defs/latlng"},
         "chargers": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/charger"}}
       }
@@ -243,6 +248,7 @@
         "delay_ms": {"type": "number", "minimum": 0},
         "body": {},
         "body_file": {"type": "string"},
+        "build": {"enum": ["scene_route", "odd_check"]},
         "note": {"type": "string"}
       }
     },

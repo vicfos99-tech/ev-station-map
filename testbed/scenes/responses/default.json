@@ -1,0 +1,62 @@
+{
+  "$comment": "장면에 responses 가 없을 때 시험 다리가 쓰는 정해 둔 답(길마다 목록, 처음 것이 기본 mode). 칸 꼴은 scene.schema.json 의 $defs.response. build: scene_route = 장면의 길을 우리 모양 길 답으로, odd_check = '이상해' 기록을 검사해 받음·거절.",
+  "/v1/place": [
+    {
+      "mode": "found",
+      "status": 200,
+      "delay_ms": 0,
+      "body": {
+        "v": 1,
+        "ok": true,
+        "source": "store",
+        "places": [
+          {"kind": "place", "name": "안성휴게소(부산방향)", "addr": "(시험용 — 주소 없음)", "loc": [37.01347, 127.14472]},
+          {"kind": "place", "name": "천안호두휴게소(부산방향)", "addr": "(시험용 — 주소 없음)", "loc": [36.73043, 127.26335]}
+        ]
+      },
+      "note": "이름·좌표는 장면의 실제 휴게소 자리. 주소 글은 지어내지 않고 비워 둠"
+    },
+    {
+      "mode": "empty",
+      "status": 200,
+      "delay_ms": 0,
+      "body": {"v": 1, "ok": true, "source": "store", "places": []}
+    },
+    {
+      "mode": "slow",
+      "status": 200,
+      "delay_ms": 3000,
+      "body": {"v": 1, "ok": true, "source": "kakao", "places": []}
+    }
+  ],
+  "/v1/route": [
+    {
+      "mode": "scene",
+      "status": 200,
+      "delay_ms": 0,
+      "build": "scene_route",
+      "note": "장면의 길 조각을 그대로 우리 모양 길 답({v, ok, source, at, stored_at, dist_km, pieces})으로"
+    },
+    {
+      "mode": "none",
+      "status": 404,
+      "delay_ms": 0,
+      "body": {"v": 1, "ok": false, "code": "none", "src": "home"}
+    }
+  ],
+  "/v1/odd": [
+    {
+      "mode": "accept",
+      "status": 200,
+      "delay_ms": 0,
+      "build": "odd_check",
+      "note": "꼴·크기·메모 길이를 보고 맞으면 받음({v, ok, name}), 틀리면 bad"
+    },
+    {
+      "mode": "reject",
+      "status": 400,
+      "delay_ms": 0,
+      "body": {"v": 1, "ok": false, "code": "bad", "src": "home"}
+    }
+  ]
+}

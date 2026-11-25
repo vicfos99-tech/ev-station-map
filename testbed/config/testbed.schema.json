@@ -2,7 +2,7 @@
   "$comment": "testbed.json 의 꼴. tools/tbconfig.py 가 읽을 때 이것으로 검사한다(쓰는 부분 — JSON Schema 일부, tools/schemacheck.py 참고).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "config_schema", "kst_offset_hours", "tick_interval_s", "server", "active_scene", "scenes", "log", "db", "status_codes", "sources", "startup_fail_targets", "geo", "units", "checks"],
+  "required": ["version", "config_schema", "kst_offset_hours", "tick_interval_s", "server", "active_scene", "scenes", "log", "db", "status_codes", "sources", "startup_fail_targets", "geo", "units", "bridge", "try", "checks"],
   "properties": {
     "version": {"type": "integer", "const": 1},
     "config_schema": {"type": "string", "minLength": 1},
@@ -76,10 +76,122 @@
     "units": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["seconds_per_hour", "report_decimals"],
+      "required": ["seconds_per_hour", "report_decimals", "ms_per_second", "m_per_km", "json_indent", "coord_decimals"],
       "properties": {
         "seconds_per_hour": {"type": "number", "exclusiveMinimum": 0},
-        "report_decimals": {"type": "integer", "minimum": 0}
+        "report_decimals": {"type": "integer", "minimum": 0},
+        "ms_per_second": {"type": "number", "exclusiveMinimum": 0},
+        "m_per_km": {"type": "number", "exclusiveMinimum": 0},
+        "json_indent": {"type": "integer", "minimum": 0},
+        "coord_decimals": {"type": "integer", "minimum": 0}
+      }
+    },
+    "bridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v", "script", "run_seconds", "secret_header", "secret_env", "secret_min_chars", "lock_max_wrong", "lock_block_s", "allowed_origins", "cors_max_age_s", "max_body_bytes", "paths", "methods", "no_secret_paths", "source_of_path", "gate_source", "loc_source", "data_files", "data_file_max_chars", "startup_fail_files", "startup_fail_lock", "fail_http", "codes", "down_code", "health_words", "relay_time_format", "relay_source_note", "default_responses_file", "place_q_max_chars", "odd", "route_source", "stream_events", "content_types"],
+      "properties": {
+        "v": {"type": "integer", "minimum": 1},
+        "script": {"type": "string", "minLength": 1},
+        "run_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "secret_header": {"type": "string", "minLength": 1},
+        "secret_env": {"type": "string", "minLength": 1},
+        "secret_min_chars": {"type": "integer", "minimum": 1},
+        "lock_max_wrong": {"type": "integer", "minimum": 1},
+        "lock_block_s": {"type": "number", "exclusiveMinimum": 0},
+        "allowed_origins": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "cors_max_age_s": {"type": "integer", "minimum": 0},
+        "max_body_bytes": {"type": "integer", "minimum": 1},
+        "paths": {
+          "type": "object", "additionalProperties": false,
+          "required": ["data", "place", "route", "odd", "health", "stream", "scene"],
+          "properties": {
+            "data": {"type": "string", "minLength": 1}, "place": {"type": "string", "minLength": 1},
+            "route": {"type": "string", "minLength": 1}, "odd": {"type": "string", "minLength": 1},
+            "health": {"type": "string", "minLength": 1}, "stream": {"type": "string", "minLength": 1},
+            "scene": {"type": "string", "minLength": 1}
+          }
+        },
+        "methods": {"type": "object", "minProperties": 1, "additionalProperties": {"enum": ["GET", "POST"]}},
+        "no_secret_paths": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "source_of_path": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+        "gate_source": {"type": "string", "minLength": 1},
+        "loc_source": {"type": "string", "minLength": 1},
+        "data_files": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+        "data_file_max_chars": {"type": "integer", "minimum": 1},
+        "startup_fail_files": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string", "minLength": 1}}},
+        "startup_fail_lock": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "fail_http": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "integer", "minimum": 100, "maximum": 599}},
+        "codes": {
+          "type": "object", "additionalProperties": false,
+          "required": ["lock", "busy", "bad", "none", "upstream", "home_off", "gate"],
+          "properties": {
+            "lock": {"type": "string", "minLength": 1}, "busy": {"type": "string", "minLength": 1},
+            "bad": {"type": "string", "minLength": 1}, "none": {"type": "string", "minLength": 1},
+            "upstream": {"type": "string", "minLength": 1}, "home_off": {"type": "string", "minLength": 1},
+            "gate": {"type": "string", "minLength": 1}
+          }
+        },
+        "down_code": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+        "health_words": {
+          "type": "object", "additionalProperties": false, "required": ["good", "bad"],
+          "properties": {"good": {"type": "string", "minLength": 1}, "bad": {"type": "string", "minLength": 1}}
+        },
+        "relay_time_format": {"type": "string", "minLength": 1},
+        "relay_source_note": {"type": "string", "minLength": 1},
+        "default_responses_file": {"type": "string", "minLength": 1},
+        "place_q_max_chars": {"type": "integer", "minimum": 1},
+        "odd": {
+          "type": "object", "additionalProperties": false,
+          "required": ["fields", "required", "memo_max_chars", "max_per_run", "name_format"],
+          "properties": {
+            "fields": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+            "required": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "memo_max_chars": {"type": "integer", "minimum": 0},
+            "max_per_run": {"type": "integer", "minimum": 1},
+            "name_format": {"type": "string", "minLength": 1}
+          }
+        },
+        "route_source": {"type": "string", "minLength": 1},
+        "stream_events": {
+          "type": "object", "additionalProperties": false, "required": ["hello", "tick", "end"],
+          "properties": {"hello": {"type": "string", "minLength": 1}, "tick": {"type": "string", "minLength": 1}, "end": {"type": "string", "minLength": 1}}
+        },
+        "content_types": {
+          "type": "object", "additionalProperties": false, "required": ["json", "sse"],
+          "properties": {"json": {"type": "string", "minLength": 1}, "sse": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "try": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["health_wait_s", "poll_s", "http_timeout_s", "stream_ticks", "seek_lead_ticks", "stream_wait_ticks", "tick_tolerance", "exit_grace_s", "scene_a", "scene_b", "drop_source", "drop_source_home", "wrong_tries", "place_q", "bad_origin", "files"],
+      "properties": {
+        "health_wait_s": {"type": "number", "exclusiveMinimum": 0},
+        "poll_s": {"type": "number", "exclusiveMinimum": 0},
+        "http_timeout_s": {"type": "number", "exclusiveMinimum": 0},
+        "stream_ticks": {"type": "integer", "minimum": 1},
+        "seek_lead_ticks": {"type": "integer", "minimum": 1},
+        "stream_wait_ticks": {"type": "integer", "minimum": 1},
+        "tick_tolerance": {"type": "integer", "minimum": 0},
+        "exit_grace_s": {"type": "number", "exclusiveMinimum": 0},
+        "scene_a": {"type": "string", "minLength": 1},
+        "scene_b": {"type": "string", "minLength": 1},
+        "drop_source": {"type": "string", "minLength": 1},
+        "drop_source_home": {"type": "string", "minLength": 1},
+        "wrong_tries": {"type": "integer", "minimum": 1},
+        "place_q": {"type": "string", "minLength": 1},
+        "bad_origin": {"type": "string", "minLength": 1},
+        "files": {
+          "type": "object", "additionalProperties": false,
+          "required": ["meta", "stations", "status", "rest", "outside", "missing_zscode"],
+          "properties": {
+            "meta": {"type": "string", "minLength": 1}, "stations": {"type": "string", "minLength": 1},
+            "status": {"type": "string", "minLength": 1}, "rest": {"type": "string", "minLength": 1},
+            "outside": {"type": "string", "minLength": 1}, "missing_zscode": {"type": "string", "minLength": 1}
+          }
+        }
       }
     },
     "checks": {

@@ -6,6 +6,7 @@
 """
 import datetime
 import os
+import threading
 
 MASK = "(가림)"
 CUT_MARK = "…"
@@ -19,6 +20,7 @@ class Log:
         self.time_format = time_format
         self.max_chars = max_value_chars
         self.secret_words = [w.lower() for w in secret_words]
+        self._lock = threading.Lock()
         folder = os.path.dirname(path)
         if folder:
             os.makedirs(folder, exist_ok=True)
@@ -37,8 +39,9 @@ class Log:
     def write(self, where, event, **params):
         parts = [self.now_text(), where, event]
         parts.extend(k + "=" + self._value(k, v) for k, v in params.items())
-        with open(self.path, "a", encoding="utf-8", newline="\n") as f:
-            f.write(SEP.join(parts) + "\n")
+        with self._lock:
+            with open(self.path, "a", encoding="utf-8", newline="\n") as f:
+                f.write(SEP.join(parts) + "\n")
 
 
 def from_config(cfg, resolve):

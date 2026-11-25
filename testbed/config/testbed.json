@@ -48,7 +48,121 @@
   },
   "units": {
     "seconds_per_hour": 3600,
-    "report_decimals": 1
+    "report_decimals": 1,
+    "ms_per_second": 1000,
+    "m_per_km": 1000,
+    "json_indent": 2,
+    "coord_decimals": 6
+  },
+  "bridge": {
+    "v": 1,
+    "script": "../server/bridge.py",
+    "run_seconds": 75,
+    "secret_header": "X-EV-App-Secret",
+    "secret_env": "EV_TESTBED_APP_SECRET",
+    "secret_min_chars": 16,
+    "lock_max_wrong": 5,
+    "lock_block_s": 30,
+    "allowed_origins": ["http://127.0.0.1:5173", "http://localhost:5173"],
+    "cors_max_age_s": 600,
+    "max_body_bytes": 16384,
+    "paths": {
+      "data": "/v1/data/",
+      "place": "/v1/place",
+      "route": "/v1/route",
+      "odd": "/v1/odd",
+      "health": "/v1/health",
+      "stream": "/v1/test/stream",
+      "scene": "/v1/test/scene"
+    },
+    "methods": {
+      "data": "GET",
+      "place": "POST",
+      "route": "POST",
+      "odd": "POST",
+      "health": "GET",
+      "stream": "GET",
+      "scene": "POST"
+    },
+    "no_secret_paths": ["stream", "scene"],
+    "source_of_path": {"data": "data", "place": "home", "route": "home", "odd": "home"},
+    "gate_source": "gate",
+    "loc_source": "loc",
+    "data_files": {
+      "meta": "^meta\\.json$",
+      "stations": "^stations/([0-9]{5})\\.json$",
+      "status": "^status/([0-9]{5})\\.json$",
+      "status_rest": "^status/rest/([A-Za-z0-9]{1,16})\\.json$"
+    },
+    "data_file_max_chars": 64,
+    "startup_fail_files": {
+      "stations": ["meta", "stations", "status", "status_rest"],
+      "lines": []
+    },
+    "startup_fail_lock": ["app_secret"],
+    "fail_http": {
+      "lock": 401,
+      "busy": 429,
+      "quota": 429,
+      "bad": 400,
+      "none": 404,
+      "upstream": 502,
+      "home_off": 504,
+      "gate": 500
+    },
+    "codes": {
+      "lock": "lock",
+      "busy": "busy",
+      "bad": "bad",
+      "none": "none",
+      "upstream": "upstream",
+      "home_off": "home_off",
+      "gate": "gate"
+    },
+    "down_code": {"data": "upstream", "home": "home_off"},
+    "health_words": {"good": "good", "bad": "bad"},
+    "relay_time_format": "%Y%m%d%H%M%S",
+    "relay_source_note": "테스트 베드 시험 다리 — 장면 자료(실제 중계 꼴)",
+    "default_responses_file": "../scenes/responses/default.json",
+    "place_q_max_chars": 100,
+    "odd": {
+      "fields": ["v", "at", "memo", "state"],
+      "required": ["v", "at"],
+      "memo_max_chars": 200,
+      "max_per_run": 50,
+      "name_format": "odd_%Y%m%d_%H%M%S_"
+    },
+    "route_source": "own",
+    "stream_events": {"hello": "hello", "tick": "tick", "end": "end"},
+    "content_types": {
+      "json": "application/json; charset=utf-8",
+      "sse": "text/event-stream; charset=utf-8"
+    }
+  },
+  "try": {
+    "health_wait_s": 15,
+    "poll_s": 0.2,
+    "http_timeout_s": 5,
+    "stream_ticks": 3,
+    "seek_lead_ticks": 2,
+    "stream_wait_ticks": 6,
+    "tick_tolerance": 2,
+    "exit_grace_s": 15,
+    "scene_a": "S1_고속도로",
+    "scene_b": "S5_충전기상태",
+    "drop_source": "data",
+    "drop_source_home": "home",
+    "wrong_tries": 2,
+    "place_q": "안성휴게소",
+    "bad_origin": "https://evil.example",
+    "files": {
+      "meta": "meta.json",
+      "stations": "stations/{}.json",
+      "status": "status/{}.json",
+      "rest": "status/rest/{}.json",
+      "outside": "..%2Fconfig%2Ftestbed.json",
+      "missing_zscode": "00000"
+    }
   },
   "checks": {
     "root": "..",
@@ -76,7 +190,12 @@
       "tblog": [],
       "tbconfig": ["schemacheck"],
       "check_scenes": ["tbconfig", "tblog", "schemacheck", "geo"],
-      "check4": ["tbconfig", "tblog", "check_scenes"]
+      "check4": ["tbconfig", "tblog", "check_scenes"],
+      "match_ids": ["tbconfig", "tblog"],
+      "try_server": ["tbconfig", "tblog", "check_scenes"],
+      "relay_view": [],
+      "scene_play": ["tbconfig", "schemacheck", "geo"],
+      "bridge": ["tbconfig", "tblog", "schemacheck", "scene_play", "relay_view"]
     }
   }
 }

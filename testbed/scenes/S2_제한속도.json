@@ -133,7 +133,13 @@
               "kw": 50.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "기흥(부산) 휴게소",
+          "zscode": "41460",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
         },
         {
           "station_id": "ST414634",
@@ -192,7 +198,13 @@
               "kw": 200.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "기흥휴게소 (부산)",
+          "zscode": "41460",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
         }
       ]
     },
@@ -253,7 +265,13 @@
               "kw": 100.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
         },
         {
           "station_id": "ME18B303",
@@ -271,18 +289,24 @@
               "status": "available"
             },
             {
-              "id": "02",
+              "id": "11",
               "type": "fast",
               "kw": 200.0,
               "status": "available"
             },
             {
-              "id": "03",
+              "id": "12",
               "type": "fast",
               "kw": 200.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "안성(부산) 휴게소",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
         },
         {
           "station_id": "ST601529",
@@ -317,7 +341,13 @@
               "kw": 350.0,
               "status": "charging"
             }
-          ]
+          ],
+          "name": "안성휴게소 (부산)",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
         }
       ]
     },
@@ -343,18 +373,24 @@
           ],
           "chargers": [
             {
-              "id": "01",
+              "id": "03",
               "type": "fast",
               "kw": 200.0,
               "status": "available"
             },
             {
-              "id": "02",
+              "id": "04",
               "type": "fast",
               "kw": 200.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "망향휴게소(부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
         },
         {
           "station_id": "ST441324",
@@ -395,7 +431,13 @@
               "kw": 200.0,
               "status": "charging"
             }
-          ]
+          ],
+          "name": "망향휴게소 (부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
         }
       ]
     },
@@ -444,7 +486,13 @@
               "kw": 200.0,
               "status": "charging"
             }
-          ]
+          ],
+          "name": "천안호두휴게소 (부산방향) (급)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
         },
         {
           "station_id": "ME21A209",
@@ -467,7 +515,13 @@
               "kw": 100.0,
               "status": "comm_error"
             }
-          ]
+          ],
+          "name": "천안호두(부산) 휴게소",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
         }
       ]
     },
@@ -504,7 +558,13 @@
               "kw": 200.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "옥산(부산)휴게소 (급)",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
         },
         {
           "station_id": "ME178014",
@@ -521,7 +581,13 @@
               "kw": 50.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "옥산(부산) 휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
         },
         {
           "station_id": "ME18C510",
@@ -538,7 +604,13 @@
               "kw": 100.0,
               "status": "available"
             }
-          ]
+          ],
+          "name": "옥산(부산) 휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
         },
         {
           "station_id": "ME22A354",
@@ -550,18 +622,24 @@
           ],
           "chargers": [
             {
-              "id": "01",
+              "id": "31",
               "type": "fast",
               "kw": 300.0,
               "status": "available"
             },
             {
-              "id": "02",
+              "id": "32",
               "type": "fast",
               "kw": 300.0,
               "status": "charging"
             }
-          ]
+          ],
+          "name": "옥산(부산)휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
         }
       ]
     }

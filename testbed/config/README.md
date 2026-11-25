@@ -30,6 +30,24 @@
 | `geo.accuracy_max_m` | 5000 | 장면 정확도 상한 | 검사기 |
 | `units.seconds_per_hour` | 3600 | 시속 → 초 셈 | 검사기 |
 | `units.report_decimals` | 1 | 찍는 수의 소수 자리 | 검사기 · check4 |
+| `units.ms_per_second` · `m_per_km` | 1000 · 1000 | 밀리초·미터 셈 | T2 |
+| `units.json_indent` · `coord_decimals` | 2 · 6 | 장면 파일 다시 쓸 때 들여쓰기(match_ids) · 다리가 내는 좌표 소수 자리 | T2 |
+| `bridge.script` · `run_seconds` | `../server/bridge.py` · 75 | 시험 다리 파일 · **시험 모드 — 이 초 뒤 스스로 끝남**(앱과 오래 붙여 볼 때는 늘림) | 다리 · try_server |
+| `bridge.secret_header` · `secret_env` · `secret_min_chars` | X-EV-App-Secret · EV_TESTBED_APP_SECRET · 16 | 앱 비밀 값 머리 이름 · **값을 읽을 환경변수 이름**(값은 설정에 없다) · 값 최소 길이(짧으면 다리가 시작하지 않음) | 다리 |
+| `bridge.lock_max_wrong` · `lock_block_s` | 5 · 30 | 같은 주소가 비밀 값을 이만큼 틀리면 이 초 동안 `busy` | 다리 |
+| `bridge.allowed_origins` · `cors_max_age_s` | 127.0.0.1:5173 · localhost:5173 · 600 | 브라우저 받기를 허락할 출처(앱 개발 서버) · 사전 물음 담아 둘 초 | 다리 |
+| `bridge.max_body_bytes` · `data_file_max_chars` · `place_q_max_chars` | 16384 · 64 · 100 | 물음 크기 · 자료 파일 이름 길이 · 찾을 글 길이 한도 | 다리 |
+| `bridge.paths` · `methods` | 설계 5-5 (가)의 다섯 길 + `/v1/test/stream` · `/v1/test/scene` | 길 이름과 방식(조종 길은 GET 도 받음 = 지금 상태) | 다리 · try_server |
+| `bridge.no_secret_paths` | stream · scene | 비밀 값 없이 받는 시험 길(브라우저 EventSource 는 머리를 못 붙임) | 다리 |
+| `bridge.source_of_path` · `gate_source` · `loc_source` | data→data · place·route·odd→home · gate · loc | 길마다 기대는 출처(끊김 사건이 그 길을 실패시킴) · 다리 자체 · 위치 | 다리 |
+| `bridge.data_files` | meta · stations/<5자리> · status/<5자리> · status/rest/<id> | `/v1/data/` 뒤 파일 이름 허용 목록(정규식 전체 맞음) | 다리 |
+| `bridge.startup_fail_files` · `startup_fail_lock` | stations → 네 파일 · lines → 없음 · app_secret | 켤 때 실패 사건이 막는 파일 · 모든 길을 `lock` 으로 만드는 대상 | 다리 |
+| `bridge.fail_http` · `codes` · `down_code` | lock 401 · busy 429 · bad 400 · none 404 · upstream 502 · home_off 504 · gate 500 | 실패 코드 → HTTP 코드, 실패 낱말, 출처가 끊겼을 때의 코드(data→upstream, home→home_off) | 다리 |
+| `bridge.health_words` · `relay_time_format` | good·bad · %Y%m%d%H%M%S | health 의 출처 값 · 중계 꼴 시각(UTC+kst_offset_hours) | 다리 |
+| `bridge.default_responses_file` | `../scenes/responses/default.json` | 장면에 `responses` 가 없을 때 쓰는 정해 둔 답 | 다리 |
+| `bridge.odd` | 칸 v·at·memo·state(꼭: v·at) · 메모 200자 · 한 번 켤 때 50개 · 이름 꼴 | '이상해' 받기 검사 | 다리 |
+| `bridge.route_source` · `stream_events` · `content_types` | own · hello/tick/end · JSON·SSE | 길 답의 source · 흐름 이벤트 이름 · 답 꼴 | 다리 |
+| `try.*` | 기다림 15초 · 흐름 3틱 · 앞당김 2틱 · 기다릴 틱 6 · 틱 수 허용 차 2 · 끝 여유 15초 · 장면 S1·S5 · 파일 이름 꼴 | 스스로 시험(try_server)의 값 | try_server |
 | `checks.root` | `..` | 기계 검사가 보는 폴더(= `testbed/`) | check4 |
 | `checks.py_glob` · `json_glob` | `**/*.py` · `**/*.json` | 볼 파일 무늬 | check4 |
 | `checks.skip_dirs` | __pycache__·logs·data·.git | 안 볼 폴더 | check4 |
