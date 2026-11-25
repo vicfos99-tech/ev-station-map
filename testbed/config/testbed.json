@@ -3,6 +3,7 @@
   "config_schema": "testbed.schema.json",
   "kst_offset_hours": 9,
   "tick_interval_s": 1.0,
+  "time_scale": 1,
   "server": {
     "host": "127.0.0.1",
     "port": 8787
@@ -64,6 +65,22 @@
   },
   "sources": ["data", "home", "gate", "loc", "tiles"],
   "startup_fail_targets": ["stations", "lines", "app_secret", "gateway_url"],
+  "bad_payload": {
+    "note": "S11 나쁜 자료. targets = 대상(시험 다리 길 이름) → 낼 수 있는 나쁜 자료 종류. 값은 모두 시험용",
+    "targets": {
+      "stream": ["broken_json", "out_of_range", "negative_speed", "oversize"],
+      "data": ["broken_json", "out_of_range", "oversize"],
+      "place": ["broken_json", "out_of_range", "oversize"],
+      "route": ["broken_json", "out_of_range", "oversize"]
+    },
+    "coord_keys": ["loc", "line"],
+    "out_of_range_latlng": [99.0, 999.0],
+    "negative_speed_kmh": -30,
+    "broken_keep_ratio": 0.5,
+    "oversize_bytes": 2097152,
+    "filler_key": "pad",
+    "filler_char": "x"
+  },
   "geo": {
     "earth_radius_km": 6371.0088,
     "lat_min": 33.0,
@@ -127,6 +144,9 @@
       "lines": []
     },
     "startup_fail_lock": ["app_secret"],
+    "startup_fail_close": ["gateway_url"],
+    "stream_target": "stream",
+    "time_scale_max": 1000,
     "fail_http": {
       "lock": 401,
       "busy": 429,
@@ -191,6 +211,36 @@
       "missing_zscode": "00000"
     }
   },
+  "try_t4": {
+    "note": "T4 스스로 시험(tools/try_t4.py). 배속은 여기서만 키운다 — 위 time_scale 은 1 그대로",
+    "scale": 60,
+    "per_scene_s": 8,
+    "margin_s": 40,
+    "http_timeout_s": 10,
+    "db_wait_s": 10,
+    "poll_s": 0.2,
+    "tick_tolerance": 2,
+    "near_km": 1.5,
+    "off_line_km": 2.0,
+    "line_sample_km": 0.1,
+    "heading_flip_min_deg": 150,
+    "edge_ticks": 10,
+    "jump_ratio": 0.8,
+    "probe_after_ticks": 5,
+    "place_q_hit": "안성휴게소",
+    "place_q_miss": "서울역",
+    "odd_good": {"v": 1, "at": "2026-11-25T00:00:00Z", "memo": "T4 시험 — 받음", "state": {"where": "S10"}},
+    "odd_unknown": {"evil": "x"},
+    "odd_memo_char": "가",
+    "order": ["S1_고속도로", "S2_제한속도", "S3_상행하행", "S4_나들목일반도로", "S5_충전기상태", "S6_정차출발튐", "S7_출처끊김",
+              "S8_켤때실패_목록", "S8_켤때실패_비밀값", "S8_켤때실패_다리주소", "S9_주소검색경로", "S10_이상해기록", "S11_나쁜자료", "S12_긴주행"],
+    "checks": {
+      "S1_고속도로": "plain", "S2_제한속도": "speeding", "S3_상행하행": "updown", "S4_나들목일반도로": "exit",
+      "S5_충전기상태": "charger", "S6_정차출발튐": "stop", "S7_출처끊김": "down",
+      "S8_켤때실패_목록": "startup", "S8_켤때실패_비밀값": "startup", "S8_켤때실패_다리주소": "startup",
+      "S9_주소검색경로": "ask", "S10_이상해기록": "odd", "S11_나쁜자료": "bad", "S12_긴주행": "long"
+    }
+  },
   "checks": {
     "root": "..",
     "py_glob": "**/*.py",
@@ -226,7 +276,9 @@
       "tbdb": [],
       "recorder": ["tbdb"],
       "db_peek": ["tbconfig", "tblog", "tbdb"],
-      "try_db": ["tbconfig", "tblog", "tbdb", "db_peek", "try_server", "recorder"]
+      "try_db": ["tbconfig", "tblog", "tbdb", "db_peek", "try_server", "recorder"],
+      "pick_stations": ["geo", "match_ids", "tbconfig", "tblog"],
+      "try_t4": ["tbconfig", "tblog", "tbdb", "geo", "check_scenes", "try_server"]
     }
   }
 }

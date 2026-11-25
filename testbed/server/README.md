@@ -1,4 +1,4 @@
-# 시험 다리 (테스트 베드 T2 · 시험 DB T3, 2026-11-25)
+# 시험 다리 (테스트 베드 T2 · 시험 DB T3 · 남은 장면 T4, 2026-11-25)
 
 앱(web2)이 Workers 다리에 묻는 길을 그대로 흉내 내는 집 PC 의 작은 서버다. 앱은 다리 주소 설정(`config_gateway.json`)만 이 서버로 바꿔 붙인다. 파이썬 기본 모듈만 쓴다. 숫자·길 이름·머리 이름·포트는 모두 `config/testbed.json` 의 `bridge`·`server` 칸(칸 뜻은 `config/README.md`).
 
@@ -20,7 +20,7 @@ py server/bridge.py config/testbed.json
 | `GET /v1/health` | `{v, ok, at, src:{data, home}}` — 끊김 사건이 있으면 그 출처 `bad` |
 | `GET /v1/test/stream` | 서버 보냄 이벤트. `hello`(장면 상태) → 틱마다 `tick` `{scene, gen, tick, t_s, pos:{t, lat, lng, speed_kmh, heading_deg, accuracy_m}, events, down, startup_fail}` → 장면 끝 `end`. 위치(`loc`) 끊김 사건이면 `pos` 가 `null` |
 | `GET /v1/test/scene` | 지금 상태 |
-| `POST /v1/test/scene` | `{action}`: `select`(+`name`) · `restart` · `pause` · `resume` · `seek`(+`tick`) · `inject`(+`event` — 장면 시간표 사건 꼴, 지금 틱에 붙음) |
+| `POST /v1/test/scene` | `{action}`: `select`(+`name`, `paused`) · `restart` · `pause` · `resume` · `seek`(+`tick`) · `inject`(+`event` — 장면 시간표 사건 꼴, 지금 틱에 붙음) |
 
 - 실패 답은 설계 꼴 `{v, ok:false, code, src}`. 들어올 때 검사 차례: 허용 출처 → (다리 끊김이면 답 없이 닫음) → 막힌 주소 `busy` → 앱 비밀 값(없음·틀림 `lock`, src `gate` — 상수 시간 비교) → 아는 길 → 방식 → 물음 크기 → 출처 끊김.
 - 사건이 길에 주는 영향: `source_down data` → `/v1/data` 가 `upstream`(src data) · `home` → place·route·odd 가 `home_off`(src home) · `gate` → 시험 길 말고 모두 답 없이 연결 닫음 · `loc` → 흐름의 `pos` 가 `null`. `startup_fail stations` → 자료 파일 넷이 `upstream` · `app_secret` → 모든 길 `lock`. `restart` 로 지워진다.
@@ -36,7 +36,15 @@ py server/bridge.py config/testbed.json
 - 스스로 시험: `py tools/try_db.py config/testbed.json` (약 6분 — S5 를 실제 시간으로 돌림)
 - 다리 둘째 인자로 돈 초를 줄 수 있다: `py server/bridge.py config/testbed.json 340`(없으면 `bridge.run_seconds`).
 
-## 아직 안 하는 것 (T4 와 그 뒤)
+## T4 에서 더한 것
+- **배속**: `py server/bridge.py config/testbed.json <돈 초> <배속>` — 틱 하나가 실제로 `간격 ÷ 배속` 초. 없으면 설정 `time_scale`(1). 흐름의 `t`·중계 꼴 시각은 장면 시각이라 앱에는 보통 빠르기로 보인다. 정해 둔 답의 늦춤(`delay_ms`)은 배속과 관계없이 실제 ms(앱 시간 한도 시험용). 상한 `bridge.time_scale_max`.
+- **이어 달리기(S12 `compose`)**: 장면들을 차례로 이어(끝나면 처음부터) `repeat_until_s` 까지 한 길로 편다. 장면이 바뀌는 틱에 `scene_part` 사건 `{part, index}`. 충전소·길 조각·제한 속도는 처음 나온 것만 모은다. 장면 사이에서는 다음 장면의 처음 자리로 넘어간다(장면마다 따로 잡은 길). 상태(`GET /v1/test/scene`)의 `parts` 에 장면마다 시작 틱.
+- **나쁜 자료(S11 `bad_payload`)**: 사건의 틱부터 `ticks` 틱 동안 그 대상의 답을 망가뜨린다 — 흐름(`stream`): 범위 밖 좌표·음수 속도·깨진 JSON·너무 큰 답 / `data`·`place`·`route`: 깨진 JSON·범위 밖 좌표(`loc`·`line` 칸)·너무 큰 답. 값은 설정 `bad_payload`. 기록장의 그 물음 끝 줄 `why` 에 '나쁜 자료 <종류>'. 시험 DB 흐름 줄에는 **장면의 참 자리**를 쓰고(망가진 값은 표 검사에 걸리므로), 무엇을 냈는지는 같은 틱의 `bad_payload` 사건 줄에 남는다.
+- **켤 때 실패 `gateway_url`(S8)**: 설정 `bridge.startup_fail_close` 대상이면 앱 길(시험 길 빼고)은 답 없이 연결을 닫는다 — 앱의 다리 주소가 틀린 것과 같게.
+- **고르기를 멈춘 채로**: `{action: select, name, paused: true}` — 흐름을 먼저 열고 틱 0 부터 받을 때.
+- 시험 DB 표 `board_speed.limit_kmh` 가 NULL(제한속도 자료 없음, S4)을 받게 고침. **옛 표 모양 DB 는 새 표 정의가 적용되지 않으므로** 옛 파일을 `data/testbed_T4전_2026-11-25.db` 로 옮겨 두고 새로 만들었다.
+- 스스로 시험: `py tools/try_t4.py config/testbed.json [장면 이름 …]` — 배속 60 으로 장면 14개를 끝까지 돌려 장면마다 핵심을 흐름·길·DB 에서 표로(약 6분 30초 — 다리가 스스로 끝날 때까지 기다림).
+
+## 아직 안 하는 것
 - `routes.json`·고속도로 선 파일(R0 꼴이 아직 없음) — 켤 때 실패 `lines` 는 지금 막을 파일이 없다.
-- 이어 달리기(`compose`, S12) 재생, `bad_payload`(S11) 사건의 나쁜 자료 만들기 — T4.
 - 시험 DB 의 보관 날 수(`keep_days`)로 지우기 — 아직 지우지 않는다.

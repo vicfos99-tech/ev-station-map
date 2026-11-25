@@ -1,0 +1,451 @@
+{
+  "schema_version": 1,
+  "name": "S8_켤때실패_다리주소",
+  "title": "켤 때 실패 — 다리 주소 설정 틀림",
+  "description": "S8 켤 때 실패 세 갈래 가운데 하나. 장면을 켜는 순간(0초)부터 끝까지 앱이 묻는 길에 다리가 답하지 않고 연결을 닫는다 — 앱의 다리 주소 설정이 틀려 엉뚱한 곳에 묻는 것과 같게(설정 bridge.startup_fail_close). 흐름(위치)은 경부고속도로 부산 방향 선 km 28→31 을 시속 90 으로 그대로 쏜다. 시험하는 것: 다리에 닿지 못하면 페이지가 뜨지 않고 '앱 점검 중'(F6①), 시간 한도 안에 포기.",
+  "data_source": {
+    "real": true,
+    "from": "선: scenes/lines/gyeongbu_down.json. 휴게소·충전소·충전기 id·처음 상태: 중계 자료 사본 90_임시/중계자료_사본_2026-11-25 의 routes.json + stations/<시군구>.json — tools/pick_stations.py 로 뽑음",
+    "taken_at": "2026-11-25 10:17 (중계 자료 사본, 한국 시각)",
+    "note": "길·휴게소·충전소는 실제 자료다. 켤 때 실패는 시험용 사건이다(앱 설정을 정말 바꾸지 않고 다리가 답 없이 닫는다)."
+  },
+  "route": {
+    "legs": [
+      {
+        "kind": "line",
+        "line": "gyeongbu_down",
+        "from_km": 28.0,
+        "to_km": 31.0,
+        "note": "수원신갈 나들목 앞 → 기흥휴게소 앞"
+      }
+    ]
+  },
+  "speeds": [
+    {
+      "leg": 0,
+      "from_km": 28.0,
+      "to_km": 31.0,
+      "kmh": 90
+    }
+  ],
+  "stops": [],
+  "emit": {
+    "fields": [
+      "t",
+      "lat",
+      "lng",
+      "speed_kmh",
+      "heading_deg",
+      "accuracy_m"
+    ],
+    "accuracy_m": 5,
+    "heading": "from_path",
+    "speed": "device",
+    "note": "S1 과 같음"
+  },
+  "limits": [],
+  "stations": [
+    {
+      "id": "live-gb-down-2",
+      "name": "기흥휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down",
+      "km": 33.9,
+      "loc": [
+        37.23572,
+        127.10385
+      ],
+      "operators": [
+        {
+          "station_id": "ME178003",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            37.23566,
+            127.10502
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 50.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 50.0,
+              "status": "available"
+            }
+          ],
+          "name": "기흥(부산) 휴게소",
+          "zscode": "41460",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST414634",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            37.23573,
+            127.10356
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "07",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "08",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "기흥휴게소 (부산)",
+          "zscode": "41460",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-down-3",
+      "name": "안성휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down",
+      "km": 58.8,
+      "loc": [
+        37.01329,
+        127.14488
+      ],
+      "operators": [
+        {
+          "station_id": "HD000003",
+          "operator": "현대자동차",
+          "maker": "채비",
+          "loc": [
+            37.0129,
+            127.14522
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "HY001966",
+          "operator": "현대엔지니어링",
+          "maker": "이브이시스",
+          "loc": [
+            37.0129,
+            127.14522
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "comm_error"
+            }
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME18B303",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            37.01341,
+            127.1448
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "11",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "12",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "안성(부산) 휴게소",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST601529",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            37.01437,
+            127.14392
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "charging"
+            }
+          ],
+          "name": "안성휴게소 (부산)",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-down-4",
+      "name": "망향휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down",
+      "km": 77.4,
+      "loc": [
+        36.85422,
+        127.18044
+      ],
+      "operators": [
+        {
+          "station_id": "SGMAC044",
+          "operator": "SK시그넷",
+          "maker": "시그넷",
+          "loc": [
+            36.85431,
+            127.18047
+          ],
+          "chargers": [
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "망향휴게소(부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST441324",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            36.85418,
+            127.18043
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "망향휴게소 (부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        }
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "t_s": 0,
+      "type": "startup_fail",
+      "target": "gateway_url",
+      "note": "다리 주소 설정 틀림 — 끝까지"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "name": "S12_긴주행",
+  "title": "긴 주행(오래 돌리기)",
+  "description": "S1~S5 장면을 이어 1시간(3600초) 달린다(이어 달리기). 차례: S5 충전기 상태 바뀜 → S3 상행·하행 → S4 나들목 나가 일반 도로 → S2 제한속도 넘기 → S1 고속도로 평범 주행(끝나면 처음부터 되풀이, 3600초에서 자름). 한 시간 안에 S2 의 앞 약 22분(1320초)까지 닿고 S1 은 닿지 않는다(S1 은 S2 와 같은 길에서 속도만 다름). 장면이 바뀌는 틱에 scene_part 사건이 흐름에 온다. 장면마다 따로 잡은 길이라 장면 사이에서 자리가 다음 장면의 처음 자리로 넘어간다(틱 번호·흐름은 끊기지 않음). 시험하는 것: 메모리·기록장 크기·느려짐 — 앱을 1시간 켜 둬도 그대로인가.",
+  "data_source": {
+    "real": false,
+    "from": "장면 S5·S3·S4·S2·S1 을 이음 — 각 장면의 data_source 참고",
+    "note": "이어 붙인 장면들의 자료를 그대로 쓴다(S4 의 일반 도로는 손으로 찍은 좌표라 real 은 false). 이어 붙이는 차례·3600초는 시험용 값이다."
+  },
+  "route": {"legs": []},
+  "speeds": [],
+  "stops": [],
+  "emit": {
+    "fields": ["t", "lat", "lng", "speed_kmh", "heading_deg", "accuracy_m"],
+    "accuracy_m": 5,
+    "heading": "from_path",
+    "speed": "device",
+    "note": "S1 과 같음(이어 붙인 장면의 emit 대신 이것을 쓴다)"
+  },
+  "limits": [],
+  "stations": [],
+  "timeline": [],
+  "compose": {
+    "scenes": ["S5_충전기상태", "S3_상행하행", "S4_나들목일반도로", "S2_제한속도", "S1_고속도로"],
+    "repeat_until_s": 3600,
+    "note": "S1~S5 를 이어 1시간"
+  }
+}

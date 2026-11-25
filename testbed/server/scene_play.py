@@ -4,6 +4,8 @@
   멈춤(stops)은 그 km 에서 정한 초만큼 시속 0, 위치 튐(gps_jump)은 그 틱들만 자리를 옮긴다.
 - 사건: 시간표의 t_s 를 틱 번호로 바꿔 틱마다 묶는다. 조종 길로 넣은 사건(inject)은 그때의 틱에 붙는다.
 - 상태: 어느 틱에서든 '처음 상태 + 그 틱까지의 사건'으로 다시 셈한다(앞으로 건너뛰기·뒤로 가기가 같은 셈).
+  나쁜 자료(bad_payload)는 그 틱부터 ticks 틱 동안만 상태의 bad 에 남는다.
+- 이어 달리기(compose, T4): 장면들을 차례로 이어 repeat_until_s 까지 한 길로 편다. 장면이 바뀌는 틱에 scene_part 사건.
 숫자·경로는 모두 설정과 장면 파일에서 온다.
 """
 import bisect
@@ -28,6 +30,8 @@ EV_UP = "source_up"
 EV_STARTUP = "startup_fail"
 EV_JUMP = "gps_jump"
 EV_MODE = "response_mode"
+EV_BAD = "bad_payload"
+EV_PART = "scene_part"
 KIND_LINE = "line"
 CHARGING_WORD = "charging"
 
@@ -185,21 +189,70 @@ class Scene:
         errors = schemacheck.validate(data, schema)
         if errors:
             raise SceneError("장면 '" + name + "' 이(가) 꼴에 맞지 않음: " + "; ".join(errors))
-        if data.get("compose") is not None:
-            raise SceneError("이어 달리기(compose) 장면은 아직 재생하지 않음(T4)")
         self.name = name
-        self.data = data
         self.event_schema = schema["$defs"]["event"]
         self.schema_root = schema
-        self.track = build_track(cfg, data)
-        _apply_jumps(cfg, self.track, data["timeline"])
         dt = cfg["tick_interval_s"]
-        self.events = {}
-        for ev in data["timeline"]:
-            self.events.setdefault(int(ev["t_s"] // dt), []).append(ev)
-        self.operators = [op for place in data["stations"] for op in place["operators"]]
+        if data.get("compose") is not None:
+            self._compose(cfg, data, dt)
+        else:
+            self.data = data
+            self.track = build_track(cfg, data)
+            _apply_jumps(cfg, self.track, data["timeline"])
+            self.events = {}
+            for ev in data["timeline"]:
+                self.events.setdefault(int(ev["t_s"] // dt), []).append(ev)
+            self.parts = []
+        self.operators = [op for place in self.data["stations"] for op in place["operators"]]
         self.initial = {(op["station_id"], ch["id"]): ch["status"]
                         for op in self.operators for ch in op["chargers"]}
+
+    def _compose(self, cfg, data, dt):
+        """이어 달리기: 장면들을 차례로 이어(끝나면 처음 장면부터 다시) repeat_until_s 까지 한 길로 편다.
+
+        - 자리: 장면마다 편 자리를 그대로 잇는다(장면 사이는 그 장면의 처음 자리로 넘어감 — 장면마다 따로 잡은 길이라서).
+        - 사건: 장면마다 사건을 그 장면이 시작한 틱만큼 미뤄 붙이고, 장면이 바뀌는 틱에 scene_part 사건을 넣는다.
+        - 충전소·길 조각·제한 속도: 처음 나온 것만 모은다(같은 충전소 id 는 한 번).
+        """
+        comp = data["compose"]
+        members = []
+        known = scene_files(cfg)
+        for n in comp["scenes"]:
+            if n not in known:
+                raise SceneError("이어 달리기의 장면 '" + n + "' 이(가) 장면 목록에 없음")
+            try:
+                raw = tbconfig.read_json(known[n])
+            except (OSError, ValueError) as e:
+                raise SceneError("이어 달리기의 장면 '" + n + "' 을(를) 읽지 못함: " + str(e))
+            if isinstance(raw, dict) and raw.get("compose") is not None:
+                raise SceneError("이어 달리기 안에 이어 달리기 장면 '" + n + "' 을(를) 넣을 수 없음")
+            members.append(Scene(cfg, n))
+        want = int(round(comp["repeat_until_s"] / dt)) + 1
+        track, events, parts = [], {}, []
+        legs, limits, places, seen_ops = [], [], [], set()
+        i = 0
+        while len(track) < want:
+            m = members[i % len(members)]
+            off = len(track)
+            parts.append({"index": i, "scene": m.name, "first_tick": off, "ticks": len(m.track)})
+            events.setdefault(off, []).append({"t_s": off * dt, "type": EV_PART, "part": m.name, "index": i})
+            for t, evs in sorted(m.events.items()):
+                events.setdefault(off + t, []).extend(dict(e, t_s=e["t_s"] + off * dt) for e in evs)
+            track.extend(m.track)
+            if i < len(members):
+                base = len(legs)
+                legs.extend(m.data["route"]["legs"])
+                limits.extend(dict(lim, leg=lim["leg"] + base) for lim in m.data["limits"])
+                for place in m.data["stations"]:
+                    ops = [op for op in place["operators"] if op["station_id"] not in seen_ops]
+                    seen_ops.update(op["station_id"] for op in ops)
+                    if ops:
+                        places.append(dict(place, operators=ops))
+            i += 1
+        self.track = track[:want]
+        self.events = {t: evs for t, evs in events.items() if t < want}
+        self.parts = [p for p in parts if p["first_tick"] < want]
+        self.data = dict(data, route={"legs": legs}, limits=limits, stations=places, timeline=[])
 
     @property
     def last_tick(self):
@@ -232,12 +285,13 @@ class Player:
         self.gen += 1
         self.cond.notify_all()
 
-    def select(self, name):
+    def select(self, name, paused=False):
+        """장면을 골라 틱 0 부터. paused 면 멈춘 채로 둔다(흐름을 먼저 열고 틱 0 부터 받을 때)."""
         scene = Scene(self.cfg, name)
         with self.cond:
             self.scene = scene
             self.injected = {}
-            self.paused = False
+            self.paused = bool(paused)
             self._reset(0)
         return scene
 
@@ -291,7 +345,7 @@ class Player:
         """그 틱까지의 사건을 처음 상태에 얹은 상태(잠금 안에서 부른다)."""
         chargers = {k: {"word": w, "since_tick": 0, "last_end_tick": None}
                     for k, w in self.scene.initial.items()}
-        down, startup, modes = {}, [], {}
+        down, startup, modes, bad = {}, [], {}, {}
         codes = self.cfg["status_codes"]
         ticks = sorted(t for t in set(self.scene.events) | set(self.injected) if t <= tick)
         for t in ticks:
@@ -315,7 +369,11 @@ class Player:
                         startup.append(ev["target"])
                 elif kind == EV_MODE:
                     modes[ev["path"]] = ev["mode"]
-        return {"chargers": chargers, "down": down, "startup_fail": startup, "modes": modes}
+                elif kind == EV_BAD:
+                    # 나쁜 자료: 그 틱부터 ticks 틱 동안 그 대상(설정 bad_payload.targets)에 나쁜 답
+                    bad[ev["target"]] = (ev["bad"], t + ev["ticks"])
+        bad = {target: kind for target, (kind, until) in bad.items() if tick < until}
+        return {"chargers": chargers, "down": down, "startup_fail": startup, "modes": modes, "bad": bad}
 
     def wall_of(self, tick):
         return self.start_wall + datetime.timedelta(seconds=tick * self.dt)

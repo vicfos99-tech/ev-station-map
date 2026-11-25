@@ -219,6 +219,12 @@ def _check_timeline(scene, chargers_of, duration, ctx, err):
             modes = [r["mode"] for r in responses.get(ev["path"], [])]
             if ev["mode"] not in modes:
                 err(at + ": 길 '" + ev["path"] + "' 의 답 '" + ev["mode"] + "' 이(가) responses 에 없음")
+        elif kind == "bad_payload":
+            allowed = cfg["bad_payload"]["targets"]
+            if ev["target"] not in allowed:
+                err(at + ": 나쁜 자료 대상 '" + ev["target"] + "' 이(가) 설정 bad_payload.targets 에 없음")
+            elif ev["bad"] not in allowed[ev["target"]]:
+                err(at + ": 대상 '" + ev["target"] + "' 은(는) 나쁜 자료 '" + ev["bad"] + "' 을(를) 낼 수 없음(설정 bad_payload.targets)")
 
 
 def check_scene(path, ctx, scene_names):
@@ -246,9 +252,18 @@ def check_scene(path, ctx, scene_names):
     if not scene["route"]["legs"] and compose is None:
         err("$.route.legs: 길 조각이 없음(compose 장면만 비울 수 있음)")
     if compose is not None:
+        folder = os.path.dirname(path)
         for j, name in enumerate(compose["scenes"]):
             if name not in scene_names or name == scene["name"]:
                 err("$.compose.scenes[" + str(j) + "]: 장면 '" + name + "' 이(가) 없거나 자기 자신")
+                continue
+            try:
+                member = tbconfig.read_json(os.path.join(folder, name + os.path.splitext(label)[1]))
+            except (OSError, ValueError) as e:
+                err("$.compose.scenes[" + str(j) + "]: 장면 '" + name + "' 을(를) 읽지 못함 — " + str(e))
+                continue
+            if isinstance(member, dict) and member.get("compose") is not None:
+                err("$.compose.scenes[" + str(j) + "]: 장면 '" + name + "' 도 이어 달리기 — 이어 달리기 안에 넣지 않는다")
     if scene["emit"]["accuracy_m"] > ctx.geo["accuracy_max_m"]:
         err("$.emit.accuracy_m: 설정 상한 " + repr(ctx.geo["accuracy_max_m"]) + " 을(를) 넘음")
 
@@ -256,6 +271,8 @@ def check_scene(path, ctx, scene_names):
     _check_cover(scene["speeds"], ranges, "speeds", err, True)
     _check_cover(scene["limits"], ranges, "limits", err, False)
     duration = _duration_s(scene, ranges, ctx, err)
+    if compose is not None:
+        duration = compose["repeat_until_s"]  # 이어 달리기는 그 초까지 되풀이해 자른다
     chargers_of = _check_stations(scene, ctx, err)
     _check_timeline(scene, chargers_of, None if compose is not None else duration, ctx, err)
 

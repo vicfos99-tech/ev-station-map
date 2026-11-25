@@ -1,9 +1,14 @@
 """시험 다리 — 앱이 다리에 묻는 길 다섯 + 1초 흐름 + 조종 길(파이썬 기본 모듈만).
 
-쓰는 법:  py server/bridge.py <설정 파일 경로> [돈 초]
+쓰는 법:  py server/bridge.py <설정 파일 경로> [돈 초] [배속]
   예)    py server/bridge.py config/testbed.json
+         py server/bridge.py config/testbed.json 120 30     (120초 동안, 장면 시간을 30배로 — 시험 때만)
   - 앱 비밀 값은 설정 bridge.secret_env 이름의 환경변수에서 읽는다(설정·코드에 값이 없다). 없으면 시작하지 않는다.
   - 시험 모드만 있다: 설정 bridge.run_seconds 초(또는 둘째 인자로 준 초) 뒤 스스로 끝난다.
+  - 배속(T4): 설정 time_scale(기본 1) 또는 셋째 인자. 틱 하나가 실제로는 간격 ÷ 배속 초. 흐름의 시각(t)·중계 꼴 시각은
+    장면 시각(시작 + 틱 × 간격)이라 앱에는 보통 빠르기로 보인다. 정해 둔 답의 늦춤(delay_ms)은 배속과 관계없이 실제 ms.
+  - 나쁜 자료(T4, S11): 장면의 bad_payload 사건이 켜진 틱 동안 그 대상(흐름·길)의 답을 설정 bad_payload 값으로 망가뜨려 낸다.
+  - 켤 때 실패 gateway_url(T4, S8): 설정 bridge.startup_fail_close 의 대상이면 앱 길은 답 없이 닫는다(엉뚱한 주소와 같게).
   - 쏜 것(틱·사건·충전기 상태 바뀜)과 /v1/odd 로 받은 것을 시험 DB(설정 db)에 쌓는다(server/recorder.py).
     장면 고르기·처음부터 한 번이 실행 하나(실행 번호)다.
 
@@ -47,9 +52,17 @@ FAIL_CODE = 1
 SCENE_NAME_KEY = "name"
 ACTIONS = ("select", "restart", "pause", "resume", "seek", "inject", "status")
 SSE_SEP = "\n"
-USAGE_ARGS = ("<설정 파일 경로>", "[돈 초 — 없으면 설정 bridge.run_seconds]")
+USAGE_ARGS = ("<설정 파일 경로>", "[돈 초 — 없으면 설정 bridge.run_seconds]", "[배속 — 없으면 설정 time_scale]")
 START_WHY = "다리 시작"
 END_WHY = "다리 끝"
+BAD_RANGE = "out_of_range"
+BAD_SPEED = "negative_speed"
+BAD_BIG = "oversize"
+BAD_BROKEN = "broken_json"
+POS_KEY = "pos"
+SPEED_KEY = "speed_kmh"
+POS_LATLNG = ("lat", "lng")
+PAUSED_KEY = "paused"
 
 
 class Fail(Exception):
@@ -63,11 +76,13 @@ class Fail(Exception):
 
 
 class Bridge:
-    def __init__(self, cfg, log, secret):
+    def __init__(self, cfg, log, secret, scale=None):
         self.cfg = cfg
         self.b = cfg["bridge"]
         self.log = log
         self._secret = secret.encode("utf-8")
+        self.scale = scale if scale is not None else cfg["time_scale"]
+        self.bad_cfg = cfg["bad_payload"]
         self.player = scene_play.Player(cfg)
         self.stop = threading.Event()
         self.lock = threading.Lock()
@@ -92,6 +107,8 @@ class Bridge:
             self.record_tick(snap)
 
     def record_tick(self, snap):
+        # 나쁜 자료(S11)를 쏜 틱도 DB 흐름 줄에는 장면의 참 자리를 쓴다 — 무엇을 망가뜨려 냈는지는 같은 틱의
+        # bad_payload 사건 줄(board_event)에 남는다. (망가진 값을 넣으면 표 검사(시속 ≥ 0 등)에 걸려 흐름 줄이 빠진다)
         payload = self.tick_payload(snap, snap["tick"], snap["tick"], snap["inject_count"])
         self.rec.flow(payload)
         for ev in payload["events"]:
@@ -127,6 +144,50 @@ class Bridge:
 
     def check_secret(self, value):
         return value is not None and hmac.compare_digest(value.encode("utf-8"), self._secret)
+
+    # ---- 나쁜 자료(S11) ----
+    def bad_of(self, target, snap):
+        """지금 틱에 그 대상(길 이름)에 내야 할 나쁜 자료 종류, 없으면 None."""
+        return snap["state"]["bad"].get(target)
+
+    def mangle(self, obj, kind):
+        """답을 나쁜 자료로 바꾼다. (바꾼 답, 깨뜨려 보낼지). 값은 설정 bad_payload 에서."""
+        c = self.bad_cfg
+        out = json.loads(json.dumps(obj, ensure_ascii=False))
+        broken = False
+        if kind == BAD_RANGE:
+            bad_ll = list(c["out_of_range_latlng"])
+            lat_key, lng_key = POS_LATLNG
+
+            def walk(node):
+                if isinstance(node, dict):
+                    for k, v in node.items():
+                        if k in c["coord_keys"] and isinstance(v, list):
+                            node[k] = [list(bad_ll) if isinstance(x, list) else x for x in v] \
+                                if v and isinstance(v[0], list) else list(bad_ll)
+                        else:
+                            walk(v)
+                    if lat_key in node and lng_key in node:
+                        node[lat_key], node[lng_key] = bad_ll
+                elif isinstance(node, list):
+                    for v in node:
+                        walk(v)
+            walk(out)
+        elif kind == BAD_SPEED:
+            pos = out.get(POS_KEY) if isinstance(out, dict) else None
+            if isinstance(pos, dict) and SPEED_KEY in pos:
+                pos[SPEED_KEY] = c["negative_speed_kmh"]
+        elif kind == BAD_BIG:
+            out[c["filler_key"]] = c["filler_char"] * c["oversize_bytes"]
+        elif kind == BAD_BROKEN:
+            broken = True
+        return out, broken
+
+    def encode(self, obj, broken):
+        data = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        if broken:
+            data = data[:int(len(data) * self.bad_cfg["broken_keep_ratio"])]
+        return data
 
     # ---- 길 고르기 ----
     def route_name(self, path):
@@ -276,7 +337,7 @@ class Bridge:
             try:
                 with self.player.cond:
                     if action == "select":
-                        self.player.select(str(body.get(SCENE_NAME_KEY, "")))
+                        self.player.select(str(body.get(SCENE_NAME_KEY, "")), body.get(PAUSED_KEY) is True)
                         self.start_run(action)
                     elif action == "restart":
                         self.player.restart()
@@ -307,7 +368,8 @@ class Bridge:
         return {"scene": snap["scene"].name, "run": self.rec.current_run(), "gen": snap["gen"], "tick": snap["tick"],
                 "last_tick": snap["scene"].last_tick, "t_s": snap["tick"] * self.player.dt,
                 "paused": snap["paused"], "ended": snap["ended"], "down": sorted(st["down"]),
-                "startup_fail": st["startup_fail"], "modes": st["modes"]}
+                "startup_fail": st["startup_fail"], "modes": st["modes"], "bad": st["bad"], "scale": self.scale,
+                "parts": snap["scene"].parts}
 
     # ---- 흐름 ----
     def tick_payload(self, snap, first, last, inj_from):
@@ -360,8 +422,8 @@ def make_handler(bridge):
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Vary", "Origin")
 
-        def _send_json(self, status, obj):
-            data = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        def _send_json(self, status, obj, broken=False):
+            data = bridge.encode(obj, broken)
             self.send_response(status)
             self.send_header("Content-Type", b["content_types"]["json"])
             self.send_header("Content-Length", str(len(data)))
@@ -447,6 +509,12 @@ def make_handler(bridge):
                 result["why"] = "다리 끊김 사건 — 답 없이 닫음"
                 self.close_connection = True
                 return
+            closing = [t for t in snap["state"]["startup_fail"] if t in b["startup_fail_close"]]
+            if closing and not exempt:
+                # 다리 주소 설정 틀림(S8): 앱이 엉뚱한 곳에 묻는 것과 같게 — 답 없이 닫음
+                result["why"] = "켤 때 실패 사건 " + ",".join(closing) + " — 답 없이 닫음"
+                self.close_connection = True
+                return
             now = time.monotonic()
             with bridge.lock:
                 until = bridge.blocked.get(ip)
@@ -490,11 +558,16 @@ def make_handler(bridge):
                 status, out = bridge.do_ask(name, body, snap)
                 if name == "odd" and isinstance(out, dict):
                     result["name"] = out.get("name")
+            broken = False
+            kind = bridge.bad_of(name, snap)
+            if kind:
+                out, broken = bridge.mangle(out, kind)
+                result["why"] = "나쁜 자료 " + kind
             result["status"] = status
-            result["bytes"] = self._send_json(status, out)
+            result["bytes"] = self._send_json(status, out, broken)
 
-        def _sse(self, event, obj):
-            data = json.dumps(obj, ensure_ascii=False)
+        def _sse(self, event, obj, broken=False):
+            data = bridge.encode(obj, broken).decode("utf-8", "ignore")
             text = "event: " + event + SSE_SEP + "data: " + data + SSE_SEP + SSE_SEP
             self.wfile.write(text.encode("utf-8"))
             self.wfile.flush()
@@ -521,7 +594,11 @@ def make_handler(bridge):
                     gen_seen, last, end_sent, inj_seen = snap["gen"], snap["tick"] - 1, False, 0
                 if snap["tick"] != last or snap["inject_count"] != inj_seen:
                     first = last + 1 if last is not None and last < snap["tick"] else snap["tick"] + 1
-                    self._sse(ev["tick"], bridge.tick_payload(snap, first, snap["tick"], inj_seen))
+                    payload, broken = bridge.tick_payload(snap, first, snap["tick"], inj_seen), False
+                    kind = bridge.bad_of(b["stream_target"], snap)
+                    if kind:
+                        payload, broken = bridge.mangle(payload, kind)
+                    self._sse(ev["tick"], payload, broken)
                     last, inj_seen = snap["tick"], snap["inject_count"]
                     sent += 1
                     if snap["ended"] and not end_sent:
@@ -537,7 +614,7 @@ def make_handler(bridge):
 
 def main(argv):
     args = argv[1:]
-    if len(args) not in (len(USAGE_ARGS) - 1, len(USAGE_ARGS)):
+    if not args or len(args) > len(USAGE_ARGS):
         print("쓰는 법: py bridge.py " + " ".join(USAGE_ARGS))
         return FAIL_CODE
     try:
@@ -547,15 +624,23 @@ def main(argv):
         return FAIL_CODE
     log = tblog.from_config(cfg, cfg.resolve)
     b = cfg["bridge"]
-    run_seconds = b["run_seconds"]
-    if len(args) == len(USAGE_ARGS):
+    numbers = []
+    for text, label in zip(args[1:], ("돈 초", "배속")):
         try:
-            run_seconds = float(args[-1])
+            value = float(text)
         except ValueError:
-            run_seconds = None
-        if run_seconds is None or not run_seconds > 0:
-            print("돈 초는 0 보다 큰 수: " + args[-1])
+            value = None
+        if value is None or not value > 0:
+            print(label + "은(는) 0 보다 큰 수: " + text)
+            log.write(WHERE + ".main", "시작 못 함", why=label + " 꼴", value=text)
             return FAIL_CODE
+        numbers.append(value)
+    run_seconds = numbers[0] if numbers else b["run_seconds"]
+    scale = numbers[1] if numbers[1:] else cfg["time_scale"]
+    if scale > b["time_scale_max"]:
+        print("배속 " + str(scale) + " 이(가) 설정 상한 " + str(b["time_scale_max"]) + " 을(를) 넘음")
+        log.write(WHERE + ".main", "시작 못 함", why="배속 상한", scale=scale)
+        return FAIL_CODE
     secret = os.environ.get(b["secret_env"])
     if secret is None or len(secret) < b["secret_min_chars"]:
         msg = "앱 비밀 값 환경변수 " + b["secret_env"] + " 이(가) 없거나 짧음 — 시작하지 않음"
@@ -564,7 +649,7 @@ def main(argv):
         return FAIL_CODE
     bridge = None
     try:
-        bridge = Bridge(cfg, log, secret)
+        bridge = Bridge(cfg, log, secret, scale)
         bridge.player.select(cfg["active_scene"])
         server = ThreadingHTTPServer((cfg["server"]["host"], cfg["server"]["port"]), make_handler(bridge))
     except (tbconfig.ConfigError, scene_play.SceneError, OSError, ValueError) as e:
@@ -577,10 +662,10 @@ def main(argv):
     bridge.start_run(START_WHY)
 
     def ticker():
-        # 정해 둔 박자(시작 + n × 간격)에 맞춰 나아간다 — 한 번씩 늦어도 밀림이 쌓이지 않게
+        # 정해 둔 박자(시작 + n × 간격 ÷ 배속)에 맞춰 나아간다 — 한 번씩 늦어도 밀림이 쌓이지 않게
         beat = time.monotonic()
         while True:
-            beat += bridge.player.dt
+            beat += bridge.player.dt / bridge.scale
             if bridge.stop.wait(max(beat - time.monotonic(), 0)):
                 break
             bridge.advance_and_record()
@@ -599,9 +684,10 @@ def main(argv):
     snap = bridge.player.snapshot()
     log.write(WHERE + ".main", "시작", host=cfg["server"]["host"], port=cfg["server"]["port"],
               scene=snap["scene"].name, ticks=snap["scene"].last_tick + 1, run_seconds=run_seconds,
-              secret_env=b["secret_env"], db=bridge.rec.ok)
+              scale=scale, secret_env=b["secret_env"], db=bridge.rec.ok)
     print("시험 다리 시작: " + cfg["server"]["host"] + ":" + str(cfg["server"]["port"]) + " · 장면 " + snap["scene"].name
-          + " · " + str(run_seconds) + "초 뒤 스스로 끝남 · 시험 DB " + ("쌓음" if bridge.rec.ok else "못 엶 — 쌓지 않음"),
+          + " · " + str(run_seconds) + "초 뒤 스스로 끝남 · 배속 " + str(scale)
+          + " · 시험 DB " + ("쌓음" if bridge.rec.ok else "못 엶 — 쌓지 않음"),
           flush=True)
     try:
         server.serve_forever()

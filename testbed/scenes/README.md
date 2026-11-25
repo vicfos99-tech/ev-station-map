@@ -21,7 +21,7 @@
 | `stations` | 꼭(비워도 됨) | 앞쪽 충전소 자리 목록(아래) |
 | `timeline` | 꼭(비워도 됨) | 시간표 사건(아래). **시각 순서**여야 하고, 주행 시간 안이어야 한다(검사함) |
 | `responses` | | 묻는 길(예: `/v1/place`)마다 정해 둔 답 목록 — `mode`(이름)·`status`(HTTP 코드)·`delay_ms`(늦게 줄 때)·`body` 또는 `body_file`(장면 폴더 기준)·`build`(`scene_route` 장면 길을 길 답으로 / `odd_check` '이상해' 검사)·`match`(물음 글 무늬). 처음 것의 mode 가 기본. 없으면 `responses/default.json`. S9·S10 용 |
-| `compose` | | 이어 달리기 — `scenes`(장면 이름 목록)·`repeat_until_s`(모두 몇 초까지 되풀이). S12 용 |
+| `compose` | | 이어 달리기 — `scenes`(장면 이름 목록)·`repeat_until_s`(모두 몇 초까지 되풀이 — 그 초에서 자름). S12 용. 이어 달리기 장면을 또 넣을 수 없다(검사). 이 장면의 `emit` 을 쓰고, 길·충전소·사건은 넣은 장면들 것 |
 
 ## 길 조각 (`route.legs[]`) — 둘 가운데 하나
 
@@ -53,7 +53,7 @@
 | `source_down` · `source_up` | `source`(설정 `sources`: `data` 자료 길 · `home` 집 PC · `gate` 다리 · `loc` 위치 · `tiles` 지도 그림) · `reason` | S7 |
 | `startup_fail` | `target`(설정 `startup_fail_targets`: `stations` · `lines` · `app_secret` · `gateway_url`). `t_s` 는 0 만 | S8 |
 | `gps_jump` | `offset_m` · `bearing_deg` · `ticks`(몇 틱 동안 튄 자리를 쏘나) | S6 |
-| `bad_payload` | `target`(어느 길·파일) · `bad`(`broken_json` · `out_of_range` · `negative_speed` · `oversize`) | S11 |
+| `bad_payload` | `target`(설정 `bad_payload.targets`: `stream` 흐름 · `data` · `place` · `route`) · `bad`(`broken_json` · `out_of_range` · `negative_speed` · `oversize` — 대상마다 낼 수 있는 것은 설정에, 검사함) · `ticks`(몇 틱 동안, T4 에서 더함) | S11 |
 | `response_mode` | `path` · `mode` — 그 길의 답을 `responses` 의 그 `mode` 로 바꿈(있어야 함 — 검사) | S9·S10 |
 
 ## 계획의 장면 12개를 이 꼴로 담는 법
@@ -84,3 +84,22 @@
 - (T2) 충전기 id 는 중계 실제 자료 사본(`90_임시/중계자료_사본_2026-11-25`)에 맞췄다 — `py tools/match_ids.py config/testbed.json <사본 폴더> --write`. 13곳 모두 찾았고, 차례·출력이 같아 id 만 바꾼 곳은 ME18B303(02·03→11·12)·SGMAC044(01·02→03·04)·ME22A354(01·02→31·32).
 - 실제 자료가 어디서 왔나: 선은 `lines/gyeongbu_down.json`(옛 앱 `web/live.js` 의 경부선 꼭짓점 — 실제 API 휴게소 좌표를 이은 선, 점 사이는 곧은 선). 휴게소·충전소는 같은 `live.js` 의 `live-gb-down` 목록(2026-11-16 09:40 스냅숏). `live.js` 에 충전기 id 가 없어 T1 은 `01`·`02`… 를 목록 차례로 붙였다(T2 에서 위처럼 실제 id 로 바꿈).
 - 뽑은 법(다시 할 때): `web/live.js` 의 `var d = ` 뒤 JSON 을 읽어 `config.highways.gb.points` 와 `routes[key=live-gb-down].rest_areas` 에서 나들목(`kind: ic`)을 빼고 km 28~115 인 휴게소를 옮겼다.
+
+## T4 에서 더한 장면
+
+| 장면 | 길 · 길이 · 틱 | 실제 자료 | 핵심 |
+|---|---|---|---|
+| `S3_상행하행.json` | 경부선 km 124→138 하행, 같은 선 거꾸로 138→124 상행 · 28 km · 1,011틱 | 예(km 138 에서 바로 되도는 것만 줄임) | 죽암휴게소 부산 방향(선 km 129.3)·서울 방향(128.2), 반대 방향 신탄진휴게소(서울, 136.1), 앞쪽 옥천(부산)·청주(서울) |
+| `S4_나들목일반도로.json` | 경부선 km 55→60.6 + 손으로 찍은 일반 도로 9.6 km(안성 나들목 → 공도 → 안성 시내) · 15.2 km · 814틱 | 아니오(일반 도로 좌표가 손으로 찍은 것) | 일반 도로 제한 40·60·**자료 없음(null)**, 고속도로 밖 실제 충전소 6곳(`around`) |
+| `S6_정차출발튐.json` | 경부선 km 55→58.8(정차 180초) → 20 m 후진(시속 5) → 58.78→62 · 7 km · 529틱 | 예 | 정차·출발·후진, 위치 튐 400 m·60 m(정차 중)·1.5 km |
+| `S7_출처끊김.json` | 경부선 km 40→52 · 12 km · 456틱 | 예 | 집 PC 끊김 60~120초, 자료 길 끊김 180~240초, 둘 다 300~390초 |
+| `S8_켤때실패_목록.json` · `_비밀값.json` · `_다리주소.json` | 경부선 km 28→31 · 3 km · 122틱 | 예 | 켤 때 실패 세 갈래(장면 셋): 목록 502 / 비밀 값 401 / 다리 주소 답 없이 닫힘 |
+| `S9_주소검색경로.json` | 경부선 km 40→52 · 456틱 | 예(검색 답의 휴게소 이름·자리도 실제) | 검색·경로 답: 정해 둔 답 → 120초 느린 답(3초) → 240초 실패(502·504) → 360초 다시 |
+| `S10_이상해기록.json` | 경부선 km 40→52 · 456틱 | 예 | '이상해' 받음(꼴 검사) → 150초 꽉 참(429) → 240초 받음 → 330초 모두 거절 → 400초 받음 |
+| `S11_나쁜자료.json` | 경부선 km 40→52 · 456틱 | 예(나쁜 자료는 지어낸 것) | 흐름 범위 밖·음수 속도·깨진 JSON·너무 큰 답, 자료 길·검색·경로의 나쁜 답 |
+| `S12_긴주행.json` | 이어 달리기 S5 → S3 → S4 → S2 → S1, 3600초에서 자름 · 3,601틱 | 아니오(S4 를 이어서) | 1시간 이어짐. 한 시간 안에 S2 앞 1,320초까지(S1 은 닿지 않음) |
+
+- 충전소는 모두 중계 실제 자료 사본(`90_임시/중계자료_사본_2026-11-25` 의 `routes.json` · `stations/<시군구>.json` · `status/<시군구>.json`)에서 `tools/pick_stations.py` 로 뽑았다:
+  `py tools/pick_stations.py config/testbed.json <사본 폴더> <장면 이름> gyeongbu_down rest:<노선 key>:<휴게소 id>… around:<충전소 id>… --write`
+  휴게소는 이름·자리·방향·처음 상태를 `routes.json` 에서, 충전기 id 는 `stations/` 에서(차례·종류·출력이 다 같을 때만), 선 위 km 는 휴게소 자리를 선에 내려 셈(상행 휴게소도 같은 하행 선의 km). 주변 충전소의 처음 상태는 `status/` 의 stat 코드를 낱말로.
+- 시험(배속): `py tools/try_t4.py config/testbed.json [장면 이름 …]`.

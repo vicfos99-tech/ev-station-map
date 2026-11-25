@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS board_charger (
 CREATE INDEX IF NOT EXISTS board_charger_run_key ON board_charger (run, key);
 
 -- 디테일: 제한 속도 — 실행 시작 때 장면 limits 한 구간에 한 줄
+--   limit_kmh 가 NULL 이면 그 구간은 '제한속도 자료 없음'(S4 일반 도로, T4 에서 NULL 을 받게 고침)
 CREATE TABLE IF NOT EXISTS board_speed (
   id         INTEGER PRIMARY KEY,
   run        INTEGER NOT NULL REFERENCES tb_run(run),
@@ -122,7 +123,7 @@ CREATE TABLE IF NOT EXISTS board_speed (
   route_id   TEXT NOT NULL,
   km_from    REAL NOT NULL,
   km_to      REAL NOT NULL,
-  limit_kmh  REAL NOT NULL CHECK (limit_kmh > 0)
+  limit_kmh  REAL CHECK (limit_kmh IS NULL OR limit_kmh > 0)
 );
 CREATE INDEX IF NOT EXISTS board_speed_run_key ON board_speed (run, key);
 

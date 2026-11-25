@@ -1,0 +1,663 @@
+{
+  "schema_version": 1,
+  "name": "S3_상행하행",
+  "title": "상행·하행",
+  "description": "경부고속도로 선 km 124→138 을 부산 방향(하행)으로 달린 뒤, 같은 선을 거꾸로 km 138→124 서울 방향(상행)으로 되돌아온다(T1 선을 거꾸로). 죽암휴게소를 하행(부산 방향, km 129.3)과 상행(서울 방향, 선 km 128.2)으로 한 번씩 지나고, 신탄진휴게소(서울 방향, 선 km 136.1)는 하행 때 옆을 지나지만 반대 방향 휴게소다. 옥천휴게소(부산 방향)·청주휴게소(서울 방향)는 각 방향의 앞쪽 휴게소. 시험하는 것: 휴게소 방향 맞추기(하행 때는 부산 방향 충전소만, 상행 때는 서울 방향 충전소만 앞쪽으로), 내비로 보내기 방향, 되돌 때 진행 방향이 뒤집힘.",
+  "data_source": {
+    "real": true,
+    "from": "선: scenes/lines/gyeongbu_down.json(T1 과 같은 경부선). 휴게소·충전소·충전기 id·처음 상태: 중계 자료 사본 90_임시/중계자료_사본_2026-11-25 의 routes.json(live-gb-down·live-gb-up) + stations/<시군구>.json — tools/pick_stations.py 로 뽑음",
+    "taken_at": "2026-11-25 10:17 (중계 자료 사본, 한국 시각)",
+    "note": "길·휴게소·충전소는 실제 자료다. 상행 휴게소의 선 위 km 는 휴게소 자리를 하행 선에 내린 km(pick_stations). km 138 에서 바로 되도는 것은 시험용으로 줄인 것이다(실제로는 나들목으로 나가 돌아온다). 속도 100·제한 속도 100 은 시험용 값이다."
+  },
+  "route": {
+    "legs": [
+      {
+        "kind": "line",
+        "line": "gyeongbu_down",
+        "from_km": 124.0,
+        "to_km": 138.0,
+        "note": "하행(부산 방향) — 죽암휴게소(부산) 지나 신탄진휴게소(서울) 옆으로"
+      },
+      {
+        "kind": "line",
+        "line": "gyeongbu_down",
+        "from_km": 138.0,
+        "to_km": 124.0,
+        "note": "상행(서울 방향) — 같은 선을 거꾸로, 죽암휴게소(서울) 지남"
+      }
+    ]
+  },
+  "speeds": [
+    {
+      "leg": 0,
+      "from_km": 124.0,
+      "to_km": 138.0,
+      "kmh": 100
+    },
+    {
+      "leg": 1,
+      "from_km": 124.0,
+      "to_km": 138.0,
+      "kmh": 100
+    }
+  ],
+  "stops": [],
+  "emit": {
+    "fields": [
+      "t",
+      "lat",
+      "lng",
+      "speed_kmh",
+      "heading_deg",
+      "accuracy_m"
+    ],
+    "accuracy_m": 5,
+    "heading": "from_path",
+    "speed": "device",
+    "note": "S1 과 같음"
+  },
+  "limits": [
+    {
+      "leg": 0,
+      "from_km": 124.0,
+      "to_km": 138.0,
+      "limit_kmh": 100,
+      "note": "시험용 값"
+    },
+    {
+      "leg": 1,
+      "from_km": 124.0,
+      "to_km": 138.0,
+      "limit_kmh": 100,
+      "note": "시험용 값"
+    }
+  ],
+  "stations": [
+    {
+      "id": "live-gb-down-7",
+      "name": "죽암휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down",
+      "km": 129.3,
+      "loc": [
+        36.48697,
+        127.42919
+      ],
+      "operators": [
+        {
+          "station_id": "ST431146",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            36.48697,
+            127.42919
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "죽암휴게소 (부산)",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-down-8",
+      "name": "옥천휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down",
+      "km": 158.9,
+      "loc": [
+        36.29668,
+        127.5961
+      ],
+      "operators": [
+        {
+          "station_id": "ME18C282",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.29704,
+            127.59517
+          ],
+          "chargers": [
+            {
+              "id": "11",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "12",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "옥천(부산) 휴게소",
+          "zscode": "43730",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "SGMAC017",
+          "operator": "SK시그넷",
+          "maker": "시그넷",
+          "loc": [
+            36.29657,
+            127.59637
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "07",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            }
+          ],
+          "name": "옥천휴게소(부산)",
+          "zscode": "43730",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-up-10",
+      "name": "신탄진휴게소",
+      "kind": "rest",
+      "direction": "서울 방향",
+      "line": "gyeongbu_down",
+      "km": 136.1,
+      "loc": [
+        36.42631,
+        127.41822
+      ],
+      "operators": [
+        {
+          "station_id": "BE250818",
+          "operator": "브라이트에너지파트너스",
+          "maker": "시그넷",
+          "loc": [
+            36.42515,
+            127.41839
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "charging"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 400.0,
+              "status": "available"
+            },
+            {
+              "id": "07",
+              "type": "fast",
+              "kw": 400.0,
+              "status": "available"
+            }
+          ],
+          "name": "워터 신탄진휴게소 서울방향",
+          "zscode": "30230",
+          "zcodes": [
+            "30"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME21A906",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.42671,
+            127.41818
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "charging"
+            },
+            {
+              "id": "81",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "82",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            }
+          ],
+          "name": "신탄진(서울) 휴게소",
+          "zscode": "30230",
+          "zcodes": [
+            "30"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST302307",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            36.42849,
+            127.41785
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "신탄진휴게소 (서울)",
+          "zscode": "30230",
+          "zcodes": [
+            "30"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-up-11",
+      "name": "죽암휴게소",
+      "kind": "rest",
+      "direction": "서울 방향",
+      "line": "gyeongbu_down",
+      "km": 128.2,
+      "loc": [
+        36.49626,
+        127.43052
+      ],
+      "operators": [
+        {
+          "station_id": "BE250821",
+          "operator": "브라이트에너지파트너스",
+          "maker": "채비·시그넷",
+          "loc": [
+            36.49586,
+            127.43058
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 400.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 400.0,
+              "status": "available"
+            }
+          ],
+          "name": "워터 죽암휴게소 서울방향",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME21A308",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.49693,
+            127.43044
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "죽암(서울) 휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-up-12",
+      "name": "청주휴게소",
+      "kind": "rest",
+      "direction": "서울 방향",
+      "line": "gyeongbu_down",
+      "km": 102.7,
+      "loc": [
+        36.71646,
+        127.34815
+      ],
+      "operators": [
+        {
+          "station_id": "BE250823",
+          "operator": "브라이트에너지파트너스",
+          "maker": "시그넷",
+          "loc": [
+            36.71617,
+            127.34851
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 400.0,
+              "status": "maintenance"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 400.0,
+              "status": "maintenance"
+            }
+          ],
+          "name": "워터 청주휴게소 서울방향",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME178020",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.71625,
+            127.34879
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 50.0,
+              "status": "available"
+            }
+          ],
+          "name": "청주(서울) 휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME18C511",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.71654,
+            127.34877
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "청주(서울) 휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME21A210",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.71645,
+            127.34865
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "청주(서울) 휴게소",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST431145",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            36.71673,
+            127.34742
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "charging"
+            }
+          ],
+          "name": "청주휴게소 (서울)",
+          "zscode": "43110",
+          "zcodes": [
+            "43"
+          ],
+          "rest": true
+        }
+      ]
+    }
+  ],
+  "timeline": []
+}

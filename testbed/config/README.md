@@ -10,6 +10,7 @@
 | `config_schema` | `testbed.schema.json` | 설정 꼴 파일 | tbconfig |
 | `kst_offset_hours` | 9 | 한국 시각 = UTC + 이 값(PC 지역 시각을 쓰지 않음) | 기록장 |
 | `tick_interval_s` | 1.0 | 틱 간격(초) — 시험 다리가 쏘는 간격, 장면 검사기의 틱 수 셈 | T2 · 검사기 |
+| `time_scale` | 1 | **시간 배속**(T4). 틱 하나가 실제로는 `tick_interval_s ÷ 이 값` 초. 평소 1 — 시험 때만 다리 셋째 인자(또는 `try_t4.scale`)로 키운다 | 다리 |
 | `server.host` · `server.port` | 127.0.0.1 · 8787 | 시험 다리가 들을 주소·포트 | T2 |
 | `active_scene` | `S1_고속도로` | 켤 때 쓸 장면(장면 파일이 있어야 함 — 검사) | T2 · 검사기 |
 | `scenes.dir` | `../scenes` | 장면 폴더 | 검사기 · T2 |
@@ -36,6 +37,10 @@
 | `status_codes` | 낱말 → 중계 stat 코드 | 장면의 충전기 상태 낱말과 중계 자료 코드(`ref/relay_format.md`). 장면 낱말은 여기 있어야 한다 | 검사기 · T2 |
 | `sources` | data·home·gate·loc·tiles | 끊김 사건의 출처 이름(설계 `health.src` 의 출처) | 검사기 · T2 |
 | `startup_fail_targets` | stations·lines·app_secret·gateway_url | 켤 때 실패 사건의 대상 | 검사기 · T2 |
+| `bad_payload.targets` | stream·data·place·route → 낼 수 있는 나쁜 자료 종류 | S11 나쁜 자료 사건의 대상(다리 길 이름)과 종류(음수 속도는 흐름만). 장면 검사기가 봄 | 검사기 · 다리 (T4) |
+| `bad_payload.coord_keys` · `out_of_range_latlng` | loc·line · [99.0, 999.0] | 범위 밖 좌표로 바꿀 칸 이름(흐름은 `pos.lat·lng`) · 넣을 좌표 | 다리 (T4) |
+| `bad_payload.negative_speed_kmh` · `broken_keep_ratio` | -30 · 0.5 | 음수 속도 값 · 깨진 JSON 은 답 바이트의 이 몫만 보냄 | 다리 (T4) |
+| `bad_payload.oversize_bytes` · `filler_key` · `filler_char` | 2097152(2 MB) · pad · x | 너무 큰 답: 이 칸에 이 글자를 이 수만큼 채움 | 다리 (T4) |
 | `geo.earth_radius_km` | 6371.0088 | 거리 셈의 지구 반지름 | 검사기 · T2 |
 | `geo.lat_min`~`lng_max` | 33.0~38.7 · 124.5~132.0 | 좌표가 이 범위 밖이면 틀림(한국 둘레) | 검사기 |
 | `geo.speed_max_kmh` | 200 | 장면 시속 상한 | 검사기 |
@@ -54,12 +59,21 @@
 | `bridge.source_of_path` · `gate_source` · `loc_source` | data→data · place·route·odd→home · gate · loc | 길마다 기대는 출처(끊김 사건이 그 길을 실패시킴) · 다리 자체 · 위치 | 다리 |
 | `bridge.data_files` | meta · stations/<5자리> · status/<5자리> · status/rest/<id> | `/v1/data/` 뒤 파일 이름 허용 목록(정규식 전체 맞음) | 다리 |
 | `bridge.startup_fail_files` · `startup_fail_lock` | stations → 네 파일 · lines → 없음 · app_secret | 켤 때 실패 사건이 막는 파일 · 모든 길을 `lock` 으로 만드는 대상 | 다리 |
+| `bridge.startup_fail_close` | gateway_url | 이 켤 때 실패 대상이면 앱 길에 답 없이 연결을 닫음(다리 주소 설정 틀림 = 엉뚱한 곳에 묻는 것과 같게, S8) | 다리 (T4) |
+| `bridge.stream_target` · `time_scale_max` | stream · 1000 | 흐름의 나쁜 자료 대상 이름 · 배속 상한(넘으면 다리가 시작하지 않음) | 다리 (T4) |
 | `bridge.fail_http` · `codes` · `down_code` | lock 401 · busy 429 · bad 400 · none 404 · upstream 502 · home_off 504 · gate 500 | 실패 코드 → HTTP 코드, 실패 낱말, 출처가 끊겼을 때의 코드(data→upstream, home→home_off) | 다리 |
 | `bridge.health_words` · `relay_time_format` | good·bad · %Y%m%d%H%M%S | health 의 출처 값 · 중계 꼴 시각(UTC+kst_offset_hours) | 다리 |
 | `bridge.default_responses_file` | `../scenes/responses/default.json` | 장면에 `responses` 가 없을 때 쓰는 정해 둔 답 | 다리 |
 | `bridge.odd` | 칸 v·at·memo·state(꼭: v·at) · 메모 200자 · 한 번 켤 때 50개 · 이름 꼴 | '이상해' 받기 검사 | 다리 |
 | `bridge.route_source` · `stream_events` · `content_types` | own · hello/tick/end · JSON·SSE | 길 답의 source · 흐름 이벤트 이름 · 답 꼴 | 다리 |
 | `try.*` | 기다림 15초 · 흐름 3틱 · 앞당김 2틱 · 기다릴 틱 6 · 틱 수 허용 차 2 · 끝 여유 15초 · 장면 S1·S5 · 파일 이름 꼴 | 스스로 시험(try_server)의 값 | try_server |
+| `try_t4.scale` · `per_scene_s` · `margin_s` | 60 · 8 · 40 | T4 스스로 시험의 배속 · 장면마다 여유 초 · 다리 돈 초 여유(돈 초 = 모든 장면 틱 ÷ 배속 + 장면 수 × 여유 + 이것) | try_t4 |
+| `try_t4.http_timeout_s` · `db_wait_s` · `poll_s` | 10 · 10 · 0.2 | 물음 시간 한도(느린 답 3초보다 길게) · DB 쓰기 기다림 · 다시 볼 간격 | try_t4 |
+| `try_t4.tick_tolerance` | 2 | 흐름 줄 수와 장면 검사기 틱의 허용 차(+ 속도 구간·멈춤 수) | try_t4 |
+| `try_t4.near_km` · `off_line_km` · `line_sample_km` | 1.5 · 2.0 · 0.1 | 휴게소·주변 충전소를 '지남'으로 볼 거리 · 일반 도로로 나갔다고 볼 고속도로 선에서의 거리 · 선 거리 잴 때 찍는 간격 | try_t4 |
+| `try_t4.heading_flip_min_deg` · `edge_ticks` · `jump_ratio` · `probe_after_ticks` | 150 · 10 · 0.8 · 5 | 방향이 뒤집혔다고 볼 차 · 처음·끝에서 뺄 틱 · 튄 거리 허용 몫 · 사건 뒤 몇 틱에서 길을 불러 볼지 | try_t4 |
+| `try_t4.place_q_hit` · `place_q_miss` · `odd_*` | 안성휴게소 · 서울역 · '이상해' 받을 것·모르는 칸·메모 글자 | S9·S10 시험 물음 | try_t4 |
+| `try_t4.order` · `checks` | 장면 14개 차례 · 장면 → 시험 종류 | 돌릴 장면과 장면마다 할 시험(plain·speeding·updown·exit·charger·stop·down·startup·ask·odd·bad·long) | try_t4 |
 | `checks.root` | `..` | 기계 검사가 보는 폴더(= `testbed/`) | check4 |
 | `checks.py_glob` · `json_glob` | `**/*.py` · `**/*.json` | 볼 파일 무늬 | check4 |
 | `checks.skip_dirs` | __pycache__·logs·data·.git | 안 볼 폴더 | check4 |

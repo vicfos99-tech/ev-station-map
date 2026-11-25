@@ -154,7 +154,8 @@ class Recorder:
                                            "accuracy_m": pos.get("accuracy_m"), "down": self._text(payload["down"])})
 
     def event(self, tick, origin, ev):
-        subject = ev.get("source") or ev.get("target") or ev.get("station_id") or ev.get("path") or ev.get("action")
+        subject = (ev.get("source") or ev.get("target") or ev.get("station_id") or ev.get("path") or ev.get("action")
+                   or ev.get("part"))
         if ev.get("type") == EV_CHARGER:
             subject = ev["station_id"] + CHARGER_SEP + ev["charger_id"]
         key = str(ev.get("type")) + KEY_SEP + str(subject)

@@ -215,12 +215,13 @@
         },
         {
           "type": "object", "additionalProperties": false,
-          "required": ["t_s", "type", "target", "bad"],
+          "required": ["t_s", "type", "target", "bad", "ticks"],
           "properties": {
             "t_s": {"type": "number", "minimum": 0},
             "type": {"const": "bad_payload"},
             "target": {"type": "string", "minLength": 1},
             "bad": {"enum": ["broken_json", "out_of_range", "negative_speed", "oversize"]},
+            "ticks": {"type": "integer", "minimum": 1},
             "note": {"type": "string"}
           }
         },

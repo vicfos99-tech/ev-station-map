@@ -2,12 +2,32 @@
   "$comment": "testbed.json 의 꼴. tools/tbconfig.py 가 읽을 때 이것으로 검사한다(쓰는 부분 — JSON Schema 일부, tools/schemacheck.py 참고).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "config_schema", "kst_offset_hours", "tick_interval_s", "server", "active_scene", "scenes", "log", "db", "status_codes", "sources", "startup_fail_targets", "geo", "units", "bridge", "try", "checks"],
+  "required": ["version", "config_schema", "kst_offset_hours", "tick_interval_s", "time_scale", "server", "active_scene", "scenes", "log", "db", "status_codes", "sources", "startup_fail_targets", "bad_payload", "geo", "units", "bridge", "try", "try_t4", "checks"],
   "properties": {
     "version": {"type": "integer", "const": 1},
     "config_schema": {"type": "string", "minLength": 1},
     "kst_offset_hours": {"type": "number", "minimum": -14, "maximum": 14},
     "tick_interval_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 60},
+    "time_scale": {"type": "number", "exclusiveMinimum": 0},
+    "bad_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "coord_keys", "out_of_range_latlng", "negative_speed_kmh", "broken_keep_ratio", "oversize_bytes", "filler_key", "filler_char"],
+      "properties": {
+        "note": {"type": "string"},
+        "targets": {
+          "type": "object", "minProperties": 1,
+          "additionalProperties": {"type": "array", "minItems": 1, "items": {"enum": ["broken_json", "out_of_range", "negative_speed", "oversize"]}}
+        },
+        "coord_keys": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "out_of_range_latlng": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+        "negative_speed_kmh": {"type": "number", "maximum": 0},
+        "broken_keep_ratio": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "oversize_bytes": {"type": "integer", "minimum": 1},
+        "filler_key": {"type": "string", "minLength": 1},
+        "filler_char": {"type": "string", "minLength": 1}
+      }
+    },
     "server": {
       "type": "object",
       "additionalProperties": false,
@@ -128,7 +148,7 @@
     "bridge": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["v", "script", "run_seconds", "secret_header", "secret_env", "secret_min_chars", "lock_max_wrong", "lock_block_s", "allowed_origins", "cors_max_age_s", "max_body_bytes", "paths", "methods", "no_secret_paths", "source_of_path", "gate_source", "loc_source", "data_files", "data_file_max_chars", "startup_fail_files", "startup_fail_lock", "fail_http", "codes", "down_code", "health_words", "relay_time_format", "relay_source_note", "default_responses_file", "place_q_max_chars", "odd", "route_source", "stream_events", "content_types"],
+      "required": ["v", "script", "run_seconds", "secret_header", "secret_env", "secret_min_chars", "lock_max_wrong", "lock_block_s", "allowed_origins", "cors_max_age_s", "max_body_bytes", "paths", "methods", "no_secret_paths", "source_of_path", "gate_source", "loc_source", "data_files", "data_file_max_chars", "startup_fail_files", "startup_fail_lock", "startup_fail_close", "stream_target", "time_scale_max", "fail_http", "codes", "down_code", "health_words", "relay_time_format", "relay_source_note", "default_responses_file", "place_q_max_chars", "odd", "route_source", "stream_events", "content_types"],
       "properties": {
         "v": {"type": "integer", "minimum": 1},
         "script": {"type": "string", "minLength": 1},
@@ -160,6 +180,9 @@
         "data_file_max_chars": {"type": "integer", "minimum": 1},
         "startup_fail_files": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string", "minLength": 1}}},
         "startup_fail_lock": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "startup_fail_close": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "stream_target": {"type": "string", "minLength": 1},
+        "time_scale_max": {"type": "number", "exclusiveMinimum": 0},
         "fail_http": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "integer", "minimum": 100, "maximum": 599}},
         "codes": {
           "type": "object", "additionalProperties": false,
@@ -231,6 +254,36 @@
             "outside": {"type": "string", "minLength": 1}, "missing_zscode": {"type": "string", "minLength": 1}
           }
         }
+      }
+    },
+    "try_t4": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scale", "per_scene_s", "margin_s", "http_timeout_s", "db_wait_s", "poll_s", "tick_tolerance", "near_km", "off_line_km", "line_sample_km", "heading_flip_min_deg", "edge_ticks", "jump_ratio", "probe_after_ticks", "place_q_hit", "place_q_miss", "odd_good", "odd_unknown", "odd_memo_char", "order", "checks"],
+      "properties": {
+        "note": {"type": "string"},
+        "scale": {"type": "number", "exclusiveMinimum": 0},
+        "per_scene_s": {"type": "number", "exclusiveMinimum": 0},
+        "margin_s": {"type": "number", "exclusiveMinimum": 0},
+        "http_timeout_s": {"type": "number", "exclusiveMinimum": 0},
+        "db_wait_s": {"type": "number", "exclusiveMinimum": 0},
+        "poll_s": {"type": "number", "exclusiveMinimum": 0},
+        "tick_tolerance": {"type": "integer", "minimum": 0},
+        "near_km": {"type": "number", "exclusiveMinimum": 0},
+        "off_line_km": {"type": "number", "exclusiveMinimum": 0},
+        "line_sample_km": {"type": "number", "exclusiveMinimum": 0},
+        "heading_flip_min_deg": {"type": "number", "minimum": 0, "maximum": 180},
+        "edge_ticks": {"type": "integer", "minimum": 0},
+        "jump_ratio": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "probe_after_ticks": {"type": "integer", "minimum": 1},
+        "place_q_hit": {"type": "string", "minLength": 1},
+        "place_q_miss": {"type": "string", "minLength": 1},
+        "odd_good": {"type": "object"},
+        "odd_unknown": {"type": "object", "minProperties": 1},
+        "odd_memo_char": {"type": "string", "minLength": 1},
+        "order": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "checks": {"type": "object", "minProperties": 1,
+                   "additionalProperties": {"enum": ["plain", "speeding", "updown", "exit", "charger", "stop", "down", "startup", "ask", "odd", "bad", "long"]}}
       }
     },
     "checks": {
