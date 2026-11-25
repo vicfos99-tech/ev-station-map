@@ -343,6 +343,78 @@
     "values": [199, 115, 95, 0],
     "slot_pad_px": 16
   },
+  "chrome": {
+    "note": "진짜 크롬(창 없이)으로 실제 자리 재기(lib_chrome.mjs — try_fix7·try_a3). paths = 크롬을 찾는 자리(앞에서부터). args = 창 없이·소프트웨어 WebGL(지도 그림)·첫 실행 안내 끔. 서버 주소는 view_s1 과 같다(테스트 베드가 허용한 출처) — 보기 도구와 함께 돌리지 않는다. bridge_seconds 동안 다리가 돌고, total_wait_ms 안에 결과가 와야 한다(bridge_seconds 보다 짧게)",
+    "paths": ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"],
+    "args": ["--headless=new", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-first-run", "--no-default-browser-check", "--disable-extensions", "--mute-audio", "--window-size=1400,900"],
+    "profile_arg": "--user-data-dir=",
+    "kill_cmd": "taskkill",
+    "kill_args_before_pid": ["/PID"],
+    "kill_args_after_pid": ["/T", "/F"],
+    "measure_path": "/measure",
+    "result_path": "/measure-result",
+    "bridge_seconds": 130,
+    "total_wait_ms": 115000,
+    "exit_grace_ms": 20000,
+    "ready_wait_ms": 25000,
+    "poll_ms": 250,
+    "settle_ms": 2500,
+    "hit_inset_px": 2,
+    "tol_px": 1
+  },
+  "layout": {
+    "note": "덮임·배치 시험(try_fix7 ⑧ · try_a3)에서 재는 것. frames = iframe 크기(넓은 가로 · 좁은 가로 · 좁은 세로 둘). sel = 재는 상자(q = CSS 고르개, hit = 그 자리에 실제로 그것이 보이는지 elementFromPoint 로 봄, styles = 읽을 모양 값). contents = 가려지면 안 되는 것, controls = 단추·메모 칸(contents 와 겹치면 안 됨). ready = 재기 전에 있어야 할 것(min 개, text 면 글이 있어야)",
+    "scene": "S1_고속도로",
+    "tick": 0,
+    "frames": [
+      {"name": "넓은 가로 1280×720", "w": 1280, "h": 720},
+      {"name": "좁은 가로 800×600", "w": 800, "h": 600},
+      {"name": "좁은 세로 400×800", "w": 400, "h": 800},
+      {"name": "폰 세로 360×740", "w": 360, "h": 740}
+    ],
+    "sel": {
+      "slot_left": {"q": "#ev-slot-left"},
+      "slot_center": {"q": "#ev-slot-center"},
+      "slot_right": {"q": "#ev-slot-right"},
+      "ahead_root": {"q": "#ev-ahead"},
+      "ahead_rows": {"q": "#ev-ahead-list > *", "hit": true, "styles": ["background-color", "border-top-width", "border-top-style", "border-radius", "box-shadow"], "attrs": ["data-key"]},
+      "ahead_dist": {"q": "#ev-ahead-list .ev-ahead-dist", "hit": true},
+      "ahead_name": {"q": "#ev-ahead-list .ev-ahead-name", "hit": true},
+      "speed_root": {"q": "#ev-speed"},
+      "speed_value": {"q": "#ev-speed-value", "hit": true},
+      "attrib": {"q": ".maplibregl-ctrl-attrib-inner", "hit": true},
+      "attrib_box": {"q": ".maplibregl-ctrl-attrib"},
+      "odd": {"q": "#ev-odd"},
+      "odd_memo": {"q": "#ev-odd-memo"},
+      "odd_button": {"q": "#ev-odd-button"},
+      "log_open": {"q": "#ev-log-open"}
+    },
+    "contents": ["ahead_rows", "ahead_dist", "speed_value", "attrib"],
+    "controls": ["odd", "odd_memo", "odd_button", "log_open"],
+    "touch": ["odd_memo", "odd_button", "log_open"],
+    "touch_min_px": 48,
+    "ready": {"ahead_rows": {"min": 3, "text": true}, "speed_value": {"min": 1, "text": true}, "attrib": {"min": 1, "text": true}},
+    "list_bg": "rgba(0, 0, 0, 0)",
+    "list_radius": "0px",
+    "list_line_style": "solid",
+    "rows": 3
+  },
+  "try_fix7": {
+    "note": "고칠 것 일곱 시험(try_fix7.mjs). around = ⑥ 순수 셈 시험: 장면 선의 km 자리에서 선과 직각으로 off_m 만큼 떨어진 점을 차례로 넣어 ahead 조각의 mode 를 본다(앞 결과를 이어서). s2 = ④ 보기 bat 과 같은 S2 창(틱·초)을 가상 창으로 돌려 속도판 글을 1초마다 적는다. 좌표는 장면 선 파일에서 셈한다(지어낸 좌표 아님)",
+    "around": {"km": 40.0, "steps": [
+      {"off_m": 0, "expect": "ahead"},
+      {"off_m": 100, "expect": "ahead"},
+      {"off_m": 250, "expect": "ahead"},
+      {"off_m": 320, "expect": "around"},
+      {"off_m": 800, "expect": "around"},
+      {"off_m": 2000, "expect": "around"},
+      {"off_m": 250, "expect": "around"},
+      {"off_m": 100, "expect": "ahead"},
+      {"off_m": 0, "expect": "ahead"}
+    ], "heading_step_km": 0.05, "speed_kmh": 95, "accuracy_m": 5, "t_step_ms": 1000},
+    "s2": {"scene": "S2_제한속도", "tick": 460, "window_s": 60, "tail_s": 25, "sample_ms": 1000, "kmh": 115, "start_wait_ms": 20000},
+    "report_file": "try_fix7_last.md"
+  },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",
     "host": "127.0.0.1",

@@ -1,5 +1,6 @@
-/* 기록 칸 */
-.ev-log-open { position: fixed; right: 8px; bottom: 8px; z-index: 5; padding: 6px 12px; font-size: 14px; }
+/* 기록 칸: 여는 단추는 화면 아래 띠의 오른쪽 칸(격자 자리 log — style_ui_drive.css). 떠 있지 않아 충전소판 3번 거리를 가리지 않는다(고칠 것 ①).
+   펼친 기록 칸은 묘성이 연 것이라 화면 위에 덮는다(닫기 단추) */
+.ev-log-open { grid-area: log; align-self: center; margin: 8px; min-height: 48px; min-width: 64px; padding: 0 12px; font-size: 14px; }
 .ev-log-open[hidden], .ev-log[hidden] { display: none; }
 .ev-log { position: fixed; inset: 10% 4% 4% 4%; z-index: 6; display: flex; flex-direction: column; background: #f9fafb; color: #111827; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, .4); }
 .ev-log-head { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #d1d5db; flex-wrap: wrap; }

@@ -1,5 +1,6 @@
 /* 상태 자리 — 운전 화면 맨 위 띠 한 줄 */
 .ev-status {
+  grid-area: status;
   white-space: pre-line;
   padding: 8px 12px;
   font: 600 15px/1.4 system-ui, sans-serif;

@@ -23,7 +23,7 @@
   "start_zoom": 12,
   "follow_min_zoom": 14,
   "ease_ms": 800,
-  "attribution": true,
+  "attribution": {"compact": false},
   "geo": {"feature": "Feature", "point": "Point"},
   "dot": {
     "source_id": "me",

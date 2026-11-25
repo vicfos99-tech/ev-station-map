@@ -1,11 +1,23 @@
-/* 운전 화면 세 칸: 왼편 속도 · 가운데 지도 · 오른편 앞의 충전소 */
+/* 운전 화면 세 칸: 왼편 속도 · 가운데 지도 · 오른편 앞의 충전소 — 가로·세로 모두 같은 배치(묘성 11/25 고칠 것 ⑦: 세로에서도 한 줄로 바꾸지 않음).
+   화면 전체는 격자 넷 줄: 상태 자리 / 안내 / 운전 화면 / 아래 띠(지도 단추 · '이상해' · '기록').
+   단추·메모 칸은 아래 띠에 **흐름으로** 놓아(떠 있는 겹이 아님) 폭과 상관없이 판 내용·지도 저작권 표시를 가리지 않는다(고칠 것 ①③⑤). */
 html, body { margin: 0; height: 100%; }
-body { display: flex; flex-direction: column; background: #111827; }
-.ev-drive { flex: 1; display: flex; min-height: 0; }
+body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "status status status" "notice notice notice" "drive drive drive" "tools odd log";
+  background: #111827;
+}
+.ev-drive { grid-area: drive; display: flex; min-height: 0; min-width: 0; }
 .ev-drive[hidden] { display: none; }
-.ev-slot-side { flex: 1; background: #1f2937; }
-.ev-slot-center { flex: 3; position: relative; }
-@media (orientation: portrait) {
-  .ev-drive { flex-direction: column; }
-  .ev-slot-side { flex: 0 0 64px; }
+.ev-slot-side { flex: 1; background: #1f2937; container-type: inline-size; min-width: 0; }
+.ev-slot-center { flex: 3; position: relative; min-width: 0; }
+/* 좁은 창: 아래 띠를 두 줄로(지도 단추·기록 / 이상해) — 여전히 흐름이라 겹치지 않는다 */
+@media (max-width: 560px) {
+  body {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "status status status" "notice notice notice" "drive drive drive" "tools . log" "odd odd odd";
+  }
 }

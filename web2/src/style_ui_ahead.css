@@ -1,8 +1,11 @@
-/* 충전소판: 줄마다 번호 · 이름(종류) · 업체 · 남은 거리(크게). '주변'이면 꼬리표 색이 다르다. 판 폭을 넘는 글은 말줄임 */
-.ev-ahead { display: flex; flex-direction: column; gap: 6px; color: #f9fafb; font-family: system-ui, sans-serif; box-sizing: border-box; max-width: 100%; min-width: 0; }
-.ev-ahead-head { font-size: 14px; color: #9ca3af; padding: 0 4px; }
-.ev-ahead-list { display: flex; flex-direction: column; gap: 6px; }
-.ev-ahead-row { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "no name" "no kind" "no ops" "dist dist"; column-gap: 8px; padding: 8px; border-radius: 10px; background: #374151; min-height: 48px; min-width: 0; }
+/* 충전소판: 카드가 아니라 **구분선 있는 목록**(디자인 규칙 — 줄마다 배경·둥근 모서리 없음, 줄 사이 가는 선).
+   줄마다 번호 · 이름 · 종류 · 업체 · 남은 거리(크게). '주변'이면 번호·꼬리표 색이 다르다.
+   자리 폭이 좁으면(세로 창 — 자리 폭으로 재는 @container) 글자 크기 단계를 낮추고 이름·업체는 줄을 바꾼다. 배치(오른편)는 그대로. */
+.ev-ahead { display: flex; flex-direction: column; gap: 4px; color: #f9fafb; font-family: system-ui, sans-serif; box-sizing: border-box; max-width: 100%; min-width: 0; }
+.ev-ahead-head { font-size: 14px; color: #9ca3af; padding: 0 4px 4px; }
+.ev-ahead-list { display: flex; flex-direction: column; }
+.ev-ahead-row { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "no name" "no kind" "no ops" "dist dist"; column-gap: 8px; padding: 8px 4px; min-height: 48px; min-width: 0; background: transparent; border-radius: 0; }
+.ev-ahead-row + .ev-ahead-row { border-top: 1px solid #4b5563; }
 .ev-ahead-no { grid-area: no; font-size: 24px; font-weight: 700; color: #fbbf24; align-self: start; }
 .ev-ahead-name { grid-area: name; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .ev-ahead-kind { grid-area: kind; font-size: 12px; color: #9ca3af; }
@@ -10,9 +13,19 @@
 .ev-ahead-dist { grid-area: dist; font-size: 28px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-ahead[data-mode="around"] .ev-ahead-kind { color: #93c5fd; }
 .ev-ahead[data-mode="around"] .ev-ahead-no { color: #93c5fd; }
-@media (orientation: portrait) {
-  .ev-ahead-list { flex-direction: row; }
-  .ev-ahead-row { grid-template-areas: "no name" "no dist"; min-height: 0; padding: 2px 6px; }
-  .ev-ahead-kind, .ev-ahead-ops, .ev-ahead-head { display: none; }
+/* 글자 크기 단계 둘: 자리 폭 200px 아래 · 140px 아래(세로 창) — 이름·업체는 말줄임 대신 줄바꿈 */
+@container (max-width: 200px) {
+  .ev-ahead-row { column-gap: 4px; padding: 6px 2px; }
+  .ev-ahead-no { font-size: 18px; }
+  .ev-ahead-name { font-size: 15px; white-space: normal; word-break: break-all; }
+  .ev-ahead-ops { font-size: 12px; white-space: normal; word-break: break-all; }
+  .ev-ahead-dist { font-size: 22px; }
+}
+@container (max-width: 140px) {
+  .ev-ahead-head { font-size: 12px; }
+  .ev-ahead-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "no" "name" "kind" "ops" "dist"; }
+  .ev-ahead-no { font-size: 16px; }
+  .ev-ahead-name { font-size: 13px; }
+  .ev-ahead-kind, .ev-ahead-ops { font-size: 11px; }
   .ev-ahead-dist { font-size: 18px; text-align: left; }
 }

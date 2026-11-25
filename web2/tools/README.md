@@ -61,6 +61,17 @@ node web2/tools/try_speedfit.mjs
 - 다리 없이 몇 초. 판 폭(가상 창에 정해 넣는 `clientWidth`, 설정 `speedfit.widths_px`)마다 속도판이 고른 숫자 크기로 '자리 수 × 숫자 한 자 폭 + 여백 ≤ 판 폭'인지 셈하고, 왼편 자리 가장 좁은 폭(`config_ui_boards.slot_min_px.left`)이 판 폭보다 좁지 않은지 본다.
 - **한계**: 가상 창에는 글꼴이 없어 실제 폭을 재지 못한다 — 숫자 한 자 폭은 설정 `config_ui_speed.fit.digit_em`(고정폭 숫자의 어림)으로 셈한다. 진짜 크롬에서 눈으로 한 번 봐야 한다.
 
+## 고칠 것 일곱 — `try_fix7.mjs` (진짜 크롬으로 자리 재기)
+```
+node web2/tools/try_fix7.mjs            # 전부(약 4분)
+node web2/tools/try_fix7.mjs chrome     # 크롬 재기만(약 2분) · around · s2 도 따로
+node web2/tools/try_fix7.mjs chrome-old <앱 사본 폴더>   # 같은 재기를 다른 앱 사본에(시험이 옛 화면에서 실패하는지)
+```
+- ⑥ 장면 선의 km 자리에서 직각으로 떨어진 점을 차례로 넣어(순수 셈) 300m 넘게 벗어나면 '주변', 선 위로 돌아오면 '앞의 충전소'.
+- ④ 보기 bat 과 같은 S2 창(틱 460·60초)을 가상 창으로 돌려 속도판 글을 1초마다 적는다(다리 창 동안 / 끝난 뒤).
+- ①②③⑤⑦ `lib_chrome.mjs`: 앱을 빌드해 작은 서버(`127.0.0.1:5173` — 보기 도구와 함께 돌리지 않는다)에 내고, **크롬을 창 없이** 띄워 정한 크기의 iframe(넓은 가로·좁은 가로·좁은 세로 둘 — `layout.frames`)에 앱을 차례로 연다. 실제로 그린 상자(`getBoundingClientRect`)와 **그 자리에 실제로 보이는 것**(`elementFromPoint` — 가운데와 네 귀퉁이)을 재서: 충전소판 줄·거리·속도 숫자·지도 저작권 글이 가려지지 않음, 단추·메모 칸과 겹치는 넓이 0, 구분선 목록 모양, 세 칸 배치(세로 창도 왼편·가운데·오른편), 숫자 잘림, 누르는 높이 48px. 잰 값 통째는 `tools/logs/try_fix7_chrome.json`.
+- 한계: 창 없는 크롬의 글꼴·그림(소프트웨어 WebGL)이라 묘성 폰·PC 크롬과 글꼴 폭이 조금 다를 수 있다.
+
 ## 크롬으로 보기 — `view_s1.mjs`
 ```
 node web2/tools/view_s1.mjs [초] [장면] [틱]

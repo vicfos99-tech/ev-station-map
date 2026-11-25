@@ -9,8 +9,8 @@
 .ev-speed-limit { margin-left: 6px; font-weight: 700; }
 .ev-speed[data-judge="over"] { background: #b91c1c; }
 .ev-speed[data-judge="over"] .ev-speed-unit { color: #fee2e2; }
-@media (orientation: portrait) {
-  .ev-speed { flex-direction: row; gap: 12px; padding: 4px 8px; }
-  .ev-speed-value { font-size: 40px; }
-  .ev-speed-limit-row { margin-top: 0; }
+/* 세로 창도 같은 배치(왼편 자리) — 숫자 크기는 ui_speed.js 가 판 폭으로 고른 단계, 좁으면 단위만 작게 */
+@container (max-width: 140px) {
+  .ev-speed { padding: 12px 4px; }
+  .ev-speed-unit, .ev-speed-limit-row { font-size: 14px; }
 }

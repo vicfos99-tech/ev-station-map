@@ -20,9 +20,15 @@ export function createBoardHost(deps) {
     const n = deps.board.checkNeeds(made.needs(), c.rule);
     const slot = doc.getElementById(c.slots[n.slot]);
     if (!slot) throw new Error(c.slots[n.slot]);
-    // 자리의 가장 좁은 폭(설정) — 판 글이 자리 밖으로 밀려 잘리지 않게(속도판 세 자리 잘림 고침)
+    // 자리의 가장 좁은 폭(설정) — 판 글이 자리 밖으로 밀려 잘리지 않게(속도판 세 자리 잘림 고침).
+    // 세로(좁은) 창에서도 배치를 바꾸지 않으므로 창 폭의 비율(slot_min_vw)을 넘지 않게 둘 가운데 작은 값(고칠 것 ⑦)
     const minPx = c.slot_min_px[n.slot];
-    if (typeof minPx === 'number' && slot.style) slot.style.minWidth = minPx + c.px_unit;
+    const minVw = c.slot_min_vw[n.slot];
+    if (typeof minPx === 'number' && slot.style) {
+      slot.style.minWidth = typeof minVw === 'number'
+        ? c.slot_min_css.split(c.px_mark).join(minPx + c.px_unit).split(c.vw_mark).join(minVw + c.vw_unit)
+        : minPx + c.px_unit;
+    }
     const box = doc.createElement(c.box_tag);
     box.className = c.box_class;
     box.setAttribute(c.name_attr, entry.name);

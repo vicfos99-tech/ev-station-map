@@ -176,9 +176,11 @@ async function main2() {
     const mounted = a.made.ui_boards ? a.made.ui_boards.mounted() : [];
     const right = a.el(UB.slots.right);
     const left = a.el(UB.slots.left);
-    row('①-1', 'S1 켜기 — 두 판 꽂힘(충전소판 오른편 · 속도판 왼편) · 왼편 자리 가장 좁은 폭', '좋음 · ui_ahead·ui_speed · 오른편 상자 1 · 왼편 상자 1 · 왼편 min-width ' + UB.slot_min_px.left + UB.px_unit,
+    // 왼편 자리 가장 좁은 폭: 고칠 것 ⑦(세로 창도 같은 배치) 뒤로는 min(px, 창 폭 비율) — 설정에서 만든 글과 견줌
+    const minLeft = UB.slot_min_css.split(UB.px_mark).join(UB.slot_min_px.left + UB.px_unit).split(UB.vw_mark).join(UB.slot_min_vw.left + UB.vw_unit);
+    row('①-1', 'S1 켜기 — 두 판 꽂힘(충전소판 오른편 · 속도판 왼편) · 왼편 자리 가장 좁은 폭', '좋음 · ui_ahead·ui_speed · 오른편 상자 1 · 왼편 상자 1 · 왼편 min-width ' + minLeft,
       a.stage() + ' · ' + JSON.stringify(mounted) + ' · 오른편 ' + (right ? right.children.length : '-') + ' · 왼편 ' + (left ? left.children.length : '-') + ' · min-width ' + (left && left.style.minWidth),
-      a.stage() === HC.stages.good && mounted.includes('ui_ahead') && mounted.includes('ui_speed') && right && right.children.length === 1 && left && left.children.length === 1 && left.style.minWidth === UB.slot_min_px.left + UB.px_unit);
+      a.stage() === HC.stages.good && mounted.includes('ui_ahead') && mounted.includes('ui_speed') && right && right.children.length === 1 && left && left.children.length === 1 && left.style.minWidth === minLeft);
     const v1 = a.get('ahead');
     const e1 = expectedAhead(s1, v1.km, v1.dir);
     const m1 = matchAhead(v1.items, e1);
