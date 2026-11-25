@@ -13,152 +13,25 @@ import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { loadToolsConfig, appDir, toolLog, kstText, TOOLS_DIR } from './lib_tools.mjs';
-import { loadAppConfig } from './lib_appfiles.mjs';
-import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, referenceStream } from './lib_testbed.mjs';
+import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, referenceStream, fetchWithLines } from './lib_testbed.mjs';
+import { sleep, fakeDoc, fakeMapLib, fakeOpfs, loadBoards, setPath, startApp as runApp, waitFor as waitUntil } from './lib_apprun.mjs';
 
+// (A2) 가짜 화면·지도·저장소와 앱 띄우기는 try_a2ga 와 함께 쓰는 lib_apprun.mjs 로 옮겼다.
+// 고속도로 선은 R0 전이라 시험 다리가 내주지 않아, 선 파일만 lib_testbed.fetchWithLines 가 대신 답한다(앱 코드는 그대로).
 const tc = loadToolsConfig();
 const T = tc.try_a1;
 const APP = appDir(tc);
 const log = toolLog(tc, 'try_a1');
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { main } = await import(pathToFileURL(path.join(APP, tc.build.src_dir, 'app.js')).href);
+const BOARDS = await loadBoards(APP, tc);
+let FETCH = null; // 다리를 띄운 뒤 선 파일 대신 답하기를 붙인 fetch
 
-// ---------- 가짜 화면(아주 작은 DOM) ----------
-class El {
-  constructor(tag, id) { this.tag = tag; this.id = id; this.textContent = ''; this.hidden = false; this.attrs = {}; this.listeners = {}; this.children = []; }
-  setAttribute(k, v) { this.attrs[k] = String(v); }
-  getAttribute(k) { return this.attrs[k]; }
-  hasAttribute(k) { return k in this.attrs; }
-  addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }
-  appendChild(c) { this.children.push(c); }
-  click() { for (const f of this.listeners.click || []) f(); }
-}
-function srcViews() {
-  return fs.readdirSync(path.join(APP, tc.build.src_dir)).filter((n) => n.startsWith(tc.build.view_prefix))
-    .map((f) => fs.readFileSync(path.join(APP, tc.build.src_dir, f), 'utf8'));
-}
-function fakeDoc(htmls) {
-  const els = {};
-  for (const html of htmls || srcViews()) {
-    for (const m of html.matchAll(/<(\w+)([^>]*)>/g)) {
-      const id = (m[2].match(/\bid="([^"]+)"/) || [])[1];
-      if (!id) continue;
-      const el = new El(m[1], id);
-      el.hidden = /\shidden(\s|$|>)/.test(m[2] + ' ');
-      els[id] = el;
-    }
-  }
-  const body = new El('body', 'body');
-  return { els, body, visibilityState: 'visible', listeners: {}, getElementById: (id) => els[id] || null, createElement: (tag) => new El(tag, ''), addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); } };
-}
-function fakeWin() {
-  return { innerWidth: 1280, innerHeight: 720, listeners: {}, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, navigator: { clipboard: { writeText: async () => {} } }, Blob, URL };
-}
-// 가짜 지도 라이브러리: 'load' 와 첫 그림 조각을 곧바로 알리고, 점 옮김을 센다
-function fakeMapLib(tileSourceId) {
-  const maps = [];
-  class Map {
-    constructor(o) {
-      this.o = o; this.h = {}; this.sources = {}; this.moves = [];
-      maps.push(this);
-      setTimeout(() => { this.fire('load', {}); this.fire('data', { tile: {}, sourceId: tileSourceId }); }, 0);
-    }
-    on(ev, fn) { (this.h[ev] = this.h[ev] || []).push(fn); }
-    fire(ev, e) { for (const f of this.h[ev] || []) f(e); }
-    addSource(id) { this.sources[id] = { setData: (d) => this.moves.push(d.geometry.coordinates) }; }
-    addLayer() {}
-    getSource(id) { return this.sources[id]; }
-    easeTo() {}
-    getZoom() { return this.o.zoom; }
-    remove() {}
-  }
-  return { Map, maps };
-}
-// 브라우저 개인 파일 저장소(OPFS) 가짜 — 빌드한 페이지의 disk_web.js 가 그대로 쓴다
-function fakeOpfs() {
-  const files = {};
-  const fileHandle = (key) => ({
-    async getFile() { const t = files[key] || ''; return { size: t.length, text: async () => t }; },
-    async createWritable(o) {
-      let buf = o && o.keepExistingData ? files[key] || '' : '';
-      let pos = buf.length;
-      return { async seek(p) { pos = p; }, async write(t) { buf = buf.slice(0, pos) + t; pos = buf.length; }, async close() { files[key] = buf; } };
-    },
-  });
-  const dir = (prefix) => ({ async getDirectoryHandle(n) { return dir(prefix + n + '/'); }, async getFileHandle(n) { return fileHandle(prefix + n); } });
-  return { files, storage: { getDirectory: async () => dir('') } };
-}
-// 기록장 폴더 가짜(메모리)
-function memDisk() {
-  const files = {};
-  const key = (d, f) => d + '/' + f;
-  return {
-    files,
-    async append(d, f, t) { files[key(d, f)] = (files[key(d, f)] || '') + t; },
-    async read(d, f) { return files[key(d, f)] || ''; },
-    async write(d, f, t) { files[key(d, f)] = t; },
-  };
-}
-
-function setPath(obj, dotted, value) {
-  const parts = dotted.split('.');
-  let cur = obj;
-  for (const p of parts.slice(0, -1)) cur = cur[p];
-  cur[parts[parts.length - 1]] = value;
-}
-
-// 앱 하나를 띄운다. opts = {secretFile, overrides, countFetch}
 function startApp(opts) {
-  const { raw, errors } = loadAppConfig(APP, tc.build, { secretPath: opts.secretFile, buildInfo: { stamp: 'try-a1', at: kstText(tc), commit: 'try' }, overrides: opts.overrides });
-  if (errors.length) throw new Error('설정 읽기 실패: ' + JSON.stringify(errors));
-  const doc = fakeDoc();
-  const disk = memDisk();
-  const consoleLines = [];
-  const con = { error: (...a) => consoleLines.push(a.map(String).join(' ')), log: (...a) => consoleLines.push(a.map(String).join(' ')) };
-  const lib = fakeMapLib(raw.files.config_ui_map.tile_source_id);
-  const fetchCalls = [];
-  const timers = new Set();
-  const intervals = new Set();
-  const clock = {
-    now: () => Date.now(),
-    setTimeout: (f, ms) => { const h = setTimeout(() => { timers.delete(h); f(); }, ms); timers.add(h); return h; },
-    clearTimeout: (h) => { clearTimeout(h); timers.delete(h); },
-    setInterval: (f, ms) => { const h = setInterval(f, ms); intervals.add(h); return h; },
-    clearInterval: (h) => { clearInterval(h); intervals.delete(h); },
-  };
-  const platform = {
-    config: raw, doc, win: fakeWin(), disk, console: con, clock, geo: null, maplibre: lib,
-    fetch: (url, init) => { fetchCalls.push(String(url)); return fetch(url, init); },
-  };
-  const made = main(platform);
-  const seen = { app: [], fixes: [] };
-  if (made.state) {
-    made.state.subscribe('health.app', (v) => seen.app.push({ ...v, at: Date.now() }));
-    made.state.subscribe('fix', (v) => seen.fixes.push({ ...v, at: Date.now() }));
-  }
-  return {
-    made, doc, disk, consoleLines, lib, fetchCalls, seen, raw,
-    stop() {
-      if (made.loc_watch) made.loc_watch.halt();
-      for (const h of timers) clearTimeout(h);
-      for (const h of intervals) clearInterval(h);
-    },
-    statusText: () => doc.els[raw.files.config_ui_status.element_id].textContent,
-    driveHidden: () => doc.els[raw.files.config_ui_drive.root_id].hidden,
-    // health.app 은 main() 안에서 곧바로 올라올 수 있어(설정 문제) 구독 대신 State 의 지금 값을 본다
-    app: () => (made.state && made.state.get('health.app')) || {},
-    stage: () => ((made.state && made.state.get('health.app')) || {}).stage || null,
-    async logText() { if (made.log) await made.log.flush(); return Object.values(disk.files).join(''); },
-  };
+  return runApp({ app: APP, tc, main, boards: BOARDS }, { ...opts, fetchFn: FETCH, stamp: 'try-a1' });
 }
 
 async function waitFor(fn, ms) {
-  const until = Date.now() + ms;
-  while (Date.now() < until) {
-    if (fn()) return true;
-    await sleep(tc.testbed.poll_ms);
-  }
-  return fn();
+  return waitUntil(fn, ms, tc.testbed.poll_ms);
 }
 
 function textAt(obj, dotted) {
@@ -206,6 +79,7 @@ async function main2() {
   const hc = JSON.parse(fs.readFileSync(path.join(APP, 'config', 'config_health.json'), 'utf8'));
   const sceneFile = (name) => JSON.parse(fs.readFileSync(path.join(path.resolve(path.dirname(info.cfgPath), info.tb.scenes.dir), name + '.json'), 'utf8'));
   const bridge = await startBridge(tc, info, T.run_seconds, secret);
+  FETCH = fetchWithLines(tc, info, secret);
   const allLogs = [];
   const allConsole = [];
   try {
@@ -349,7 +223,7 @@ async function main2() {
       const ctx = {
         document: doc, navigator: { storage: opfs.storage, geolocation: null }, maplibregl: lib,
         console: { error: (...x) => pageConsole.push(x.map(String).join(' ')), log: (...x) => pageConsole.push(x.map(String).join(' ')) },
-        fetch: (u, init) => (closed ? Promise.reject(new Error('closed')) : fetch(u, init)), TextDecoder, AbortController, URL, Blob,
+        fetch: (u, init) => (closed ? Promise.reject(new Error('closed')) : FETCH(u, init)), TextDecoder, Response, AbortController, URL, Blob,
         setTimeout: (f, ms) => { if (closed) return null; const h = setTimeout(f, ms); timers.push(h); return h; }, clearTimeout,
         setInterval: (f, ms) => { if (closed) return null; const h = setInterval(f, ms); timers.push(h); return h; }, clearInterval,
         innerWidth: 1280, innerHeight: 720, listeners: {},

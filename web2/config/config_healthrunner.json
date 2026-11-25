@@ -6,7 +6,7 @@
   "start_event": "app.start",
   "conn_prefix": "conn.",
   "wildcard": "*",
-  "start_conn": "conn.start",
+  "start_conns": ["conn.start", "conn.start.relay"],
   "recheck_ms": 1000,
   "where": "healthrunner",
   "word_app": "health_app",

@@ -1,0 +1,18 @@
+{
+  "note": "받은 위치 검사(FixCheck) 값. 범위는 한국 둘레(테스트 베드 geo 와 같은 상자). 튐 = 앞에서 받아들인 위치에서 (빠른 쪽 속도 × 지난 초 + 여유 + 두 정확도)보다 멂. 잇달아 reset_after 번 거르면 새 기준으로 받음(터널 뒤 등)",
+  "lat_min": 33.0,
+  "lat_max": 38.7,
+  "lng_min": 124.5,
+  "lng_max": 132.0,
+  "speed_min_kmh": 0,
+  "speed_max_kmh": 250,
+  "accuracy_max_m": 1000,
+  "accuracy_unknown_m": 30,
+  "heading_min_deg": 0,
+  "heading_max_deg": 360,
+  "jump_slack_m": 30,
+  "reset_after": 10,
+  "kmh_to_mps": 0.2777777777777778,
+  "ms_per_s": 1000,
+  "codes": {"range": "range", "speed_neg": "speed_neg", "speed_high": "speed_high", "accuracy": "accuracy", "heading": "heading", "time_back": "time_back", "jump": "jump"}
+}

@@ -1,0 +1,16 @@
+{"keys": {
+  "fix_input": {"t": "str", "min": 1, "max": 40},
+  "limit_input": {"t": "str", "min": 1, "max": 40},
+  "limit_key": {"t": "str", "min": 1, "max": 40},
+  "geo_part": {"t": "str", "min": 1, "max": 40},
+  "geo_rule": {"t": "str", "min": 1, "max": 60},
+  "ms_per_s": {"t": "num", "min": 1000, "max": 1000},
+  "kmh_to_mps": {"t": "num", "min": 0.2777, "max": 0.2778},
+  "max_kmh": {"t": "num", "min": 100, "max": 400},
+  "over_margin_kmh": {"t": "num", "min": 0, "max": 30},
+  "src_words.device": {"t": "str", "min": 1, "max": 20},
+  "src_words.calc": {"t": "str", "min": 1, "max": 20},
+  "judge_words.ok": {"t": "str", "min": 1, "max": 20},
+  "judge_words.over": {"t": "str", "min": 1, "max": 20},
+  "judge_words.none": {"t": "str", "min": 1, "max": 20}
+}}

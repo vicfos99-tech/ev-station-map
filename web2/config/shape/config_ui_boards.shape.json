@@ -1,0 +1,16 @@
+{"keys": {
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "needs_piece": {"t": "str", "min": 1, "max": 40},
+  "factory": {"t": "str", "min": 1, "max": 40},
+  "slots": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
+  "rule.min_interval_ms": {"t": "num", "int": true, "min": 50, "max": 600000},
+  "rule.max_topics": {"t": "num", "int": true, "min": 1, "max": 50},
+  "rule.slot_names": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 1, "max": 20}},
+  "box_tag": {"t": "str", "one_of": ["div", "section"]},
+  "box_class": {"t": "str", "min": 1, "max": 40},
+  "name_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "word_mounted": {"t": "str", "min": 1, "max": 40},
+  "word_mount_failed": {"t": "str", "min": 1, "max": 40},
+  "word_show_failed": {"t": "str", "min": 1, "max": 40}
+}}

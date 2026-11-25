@@ -1,0 +1,14 @@
+/* 속도판: 지금 속도를 크게, 제한 속도는 작게. 넘음(data-judge="over")이면 경고 모양 */
+.ev-speed { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 8px; color: #f9fafb; font-family: system-ui, sans-serif; border-radius: 12px; }
+.ev-speed-now { display: flex; align-items: baseline; gap: 6px; }
+.ev-speed-value { font-size: 64px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.ev-speed-unit { font-size: 18px; color: #9ca3af; }
+.ev-speed-limit-row { margin-top: 8px; font-size: 18px; color: #d1d5db; min-height: 24px; }
+.ev-speed-limit { margin-left: 6px; font-weight: 700; }
+.ev-speed[data-judge="over"] { background: #b91c1c; }
+.ev-speed[data-judge="over"] .ev-speed-unit { color: #fee2e2; }
+@media (orientation: portrait) {
+  .ev-speed { flex-direction: row; gap: 12px; padding: 4px 8px; }
+  .ev-speed-value { font-size: 40px; }
+  .ev-speed-limit-row { margin-top: 0; }
+}

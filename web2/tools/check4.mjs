@@ -180,11 +180,14 @@ function checkDirect(mods) {
   const bad = [];
   const usesRx = new RegExp(c4.deps_use, 'g');
   const everywhere = c4.banned_everywhere.map((p) => new RegExp(p));
+  const kindRx = new RegExp(c4.kind_decl);
   let looked = 0;
   for (const m of mods) {
     const where = rel(m.path);
     const info = e[m.name];
-    const layer = c4.module_layer[m.name];
+    // 층: 층 표에 적힌 것, 없으면 파일 머리의 종류 선언(KIND — 예: 판은 화면 층)으로. 판을 더할 때 층 표를 고치지 않게(설계 5-1-다)
+    const kind = (m.src.match(kindRx) || [])[1];
+    const layer = c4.module_layer[m.name] || (kind && c4.kind_layer[kind]);
     if (!layer) bad.push(where + ': 층 표(module_layer)에 없는 모듈');
     for (const b of info.badImports) bad.push(where + ':' + b.line + ': 허용하지 않는 import 꼴 — ' + b.text);
     const allowed = c4.imports_allowed[m.name];

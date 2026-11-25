@@ -1,5 +1,5 @@
 {
-  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A1: 다리 상태 + 중계 자료 머리 — A2 에서 충전소 목록·선으로)",
+  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선)",
   "stages": {"starting": "starting", "good": "good", "broken": "broken"},
   "app_grade": "app",
   "unknown_grade": "app",
@@ -22,20 +22,31 @@
     "config_calcrunner": "calc",
     "config_loc_watch": "loc",
     "config_ui_map": "map",
-    "config_ui_log": "log"
+    "config_ui_log": "log",
+    "config_relay_base": "app",
+    "config_relay_parse": "app",
+    "config_relay_stations": "app",
+    "config_geo": "loc",
+    "config_fixcheck": "loc",
+    "config_locate": "calc",
+    "config_speed": "speed",
+    "config_ui_speed": "speed",
+    "config_ui_boards": "boards"
   },
   "reason_of_file": {"config_gateway": "gateway", "config_app_secret": "secret"},
   "reason_default": "config",
   "reason_need": "need",
   "reason_timeout": "start_timeout",
-  "start_needs": ["health", "meta"],
+  "start_needs": ["health", "stations", "lines"],
   "start_timeout_ms": 15000,
-  "conn_source": {"conn.loc": "loc", "conn.tiles": "tiles"},
+  "conn_source": {"conn.loc": "loc", "conn.tiles": "tiles", "conn.relay": "data"},
   "trouble_source": {"log": "logdir", "store": "datadir"},
   "features": {
-    "loc": {"configs": ["config_loc_watch"], "sources": ["loc"]},
+    "loc": {"configs": ["config_loc_watch", "config_fixcheck", "config_geo"], "sources": ["loc"]},
     "map": {"configs": ["config_ui_map"], "sources": ["tiles"]},
     "log": {"configs": ["config_ui_log"], "sources": ["logdir"]},
-    "calc": {"configs": ["config_statecalc", "config_calcrunner"], "sources": []}
+    "calc": {"configs": ["config_statecalc", "config_calcrunner", "config_locate"], "sources": []},
+    "speed": {"configs": ["config_speed", "config_ui_speed", "config_geo", "config_statecalc", "config_calcrunner"], "sources": ["loc"]},
+    "boards": {"configs": ["config_ui_boards"], "sources": []}
   }
 }

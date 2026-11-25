@@ -27,5 +27,7 @@
   "where": {"t": "str", "min": 1, "max": 40},
   "word_open": {"t": "str", "min": 1, "max": 40},
   "word_parse": {"t": "str", "min": 1, "max": 40},
-  "word_geo_fail": {"t": "str", "min": 1, "max": 40}
+  "word_geo_fail": {"t": "str", "min": 1, "max": 40},
+  "word_fix_bad": {"t": "str", "min": 1, "max": 40},
+  "word_fix_reset": {"t": "str", "min": 1, "max": 40}
 }}

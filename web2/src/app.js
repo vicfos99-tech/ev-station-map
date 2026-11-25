@@ -11,20 +11,30 @@ import { createStore } from './store.js';
 import { createState } from './state.js';
 import { createNetCore } from './netcore.js';
 import { createStartProbe } from './startprobe.js';
+import { createRelayBase } from './relay_base.js';
+import * as relayParse from './relay_parse.js';
+import { createRelayStations } from './relay_stations.js';
+import * as geo from './geo.js';
+import * as fixcheck from './fixcheck.js';
 import { createLocWatch } from './loc_watch.js';
 import * as health from './health.js';
 import { createHealthRunner } from './healthrunner.js';
 import * as statecalc from './statecalc.js';
+import * as locate from './locate.js';
+import * as speed from './speed.js';
 import { createCalcRunner } from './calcrunner.js';
+import * as board from './board.js';
 import { createStatusBar } from './ui_status.js';
 import { createDriveScreen } from './ui_drive.js';
 import { createMapScreen } from './ui_map.js';
+import { createBoardHost } from './ui_boards.js';
 import { createLogScreen } from './ui_log.js';
 
 export const NEEDS = ['platform'];
 
-// platform = { config, doc, win, fetch, storage, geo, maplibre, console, clock, disk? }
-// (시험 때는 disk·fetch·doc·clock 을 가짜로 바꿔 끼운다)
+// platform = { config, doc, win, fetch, storage, geo, maplibre, console, clock, boards, disk? }
+// boards = 빌드가 파일 머리의 선언(KIND 'board')으로 주운 판 목록 — 조립은 그대로 판 틀에 넘길 뿐 판 이름을 모른다(설계 5-1-다).
+// (시험 때는 disk·fetch·doc·clock·boards 를 가짜로 바꿔 끼운다)
 export function main(platform) {
   const p = platform;
   const made = { cfg: createConfig(p.config) };
@@ -72,14 +82,17 @@ export function main(platform) {
   make('netcore', () => createNetCore({ ...base, fetch: p.fetch, clock: p.clock }));
   if (made.netcore) {
     make('startprobe', () => createStartProbe({ ...s, netcore: made.netcore }));
-    make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo }));
+    make('relay_base', () => createRelayBase({ ...base, netcore: made.netcore }));
+    if (made.relay_base) make('relay_stations', () => createRelayStations({ ...s, relay_base: made.relay_base, relay_parse: relayParse }));
+    make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo, fixcheck, geomath: geo }));
   }
-  make('calcrunner', () => createCalcRunner({ ...s, statecalc }));
+  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, speed } }));
   make('healthrunner', () => createHealthRunner({ ...s, health }));
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));
   make('ui_drive', () => createDriveScreen(screen));
   make('ui_map', () => createMapScreen({ ...screen, maplibre: p.maplibre }));
+  make('ui_boards', () => createBoardHost({ ...screen, board, boards: p.boards || [] }));
   make('ui_log', () => createLogScreen(screen));
 
   try {

@@ -31,12 +31,13 @@
     "style_prefix": "style_",
     "style_ext": ".css",
     "views_order": ["ui_status", "ui_drive", "ui_log"],
-    "views_optional": ["ui_map"],
+    "views_optional": ["ui_map", "ui_boards"],
+    "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
     "vendor_css": ["vendor/maplibre-gl.css"],
     "marks": {
       "title": "@@TITLE@@", "vendor_css": "@@VENDOR_CSS@@", "styles": "@@STYLES@@", "views": "@@VIEWS@@",
-      "config": "@@CONFIG@@", "vendor_js": "@@VENDOR_JS@@", "modules": "@@MODULES@@", "entry": "@@ENTRY@@"
+      "config": "@@CONFIG@@", "vendor_js": "@@VENDOR_JS@@", "modules": "@@MODULES@@", "entry": "@@ENTRY@@", "boards": "@@BOARDS@@"
     },
     "title": "충전 길잡이 (새 앱)",
     "secret_name": "config_app_secret",
@@ -96,7 +97,9 @@
     "import_named": "^\\s*import\\s*\\{([^}]*)\\}\\s*from\\s*['\"]\\./([A-Za-z0-9_]+)\\.js['\"]\\s*;?\\s*$",
     "import_star": "^\\s*import\\s*\\*\\s*as\\s+([A-Za-z_$][\\w$]*)\\s+from\\s*['\"]\\./([A-Za-z0-9_]+)\\.js['\"]\\s*;?\\s*$",
     "needs_decl": "export\\s+const\\s+NEEDS\\s*=\\s*\\[([^\\]]*)\\]",
-    "deps_use": "\\bdeps\\s*\\.\\s*([A-Za-z_$][\\w$]*)",
+    "kind_decl": "export\\s+const\\s+KIND\\s*=\\s*['\"]([a-z_]+)['\"]",
+    "kind_layer": {"board": "screen"},
+    "deps_use":"\\bdeps\\s*\\.\\s*([A-Za-z_$][\\w$]*)",
     "imports_allowed": {
       "app": "*",
       "ui_map": ["mapview"]
@@ -106,6 +109,12 @@
       "timefmt": "pure",
       "health": "pure",
       "statecalc": "pure",
+      "geo": "pure",
+      "fixcheck": "pure",
+      "locate": "pure",
+      "speed": "pure",
+      "relay_parse": "pure",
+      "board": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -113,6 +122,8 @@
       "netcore": "netcore",
       "startprobe": "client",
       "loc_watch": "client",
+      "relay_base": "client",
+      "relay_stations": "client",
       "healthrunner": "runner",
       "calcrunner": "runner",
       "mapview": "screen_part",
@@ -120,6 +131,7 @@
       "ui_drive": "screen",
       "ui_map": "screen",
       "ui_log": "screen",
+      "ui_boards": "screen",
       "app": "app"
     },
     "layer_may_need": {
@@ -139,6 +151,8 @@
     "extra_needs": {
       "startprobe": ["netcore"],
       "loc_watch": ["netcore"],
+      "relay_base": ["netcore"],
+      "relay_stations": ["relay_base"],
       "ui_map": ["mapview"]
     },
     "dep_module": {
@@ -151,9 +165,14 @@
       "health": "health",
       "statecalc": "statecalc",
       "disk": "disk_web",
-      "mapview": "mapview"
+      "mapview": "mapview",
+      "geomath": "geo",
+      "fixcheck": "fixcheck",
+      "relay_base": "relay_base",
+      "relay_parse": "relay_parse",
+      "board": "board"
     },
-    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage"],
+    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts"],
     "banned_everywhere": [
       "\\bnew\\s+(Logger|Store|Config|State)\\b",
       "\\bgetInstance\\b",
@@ -169,7 +188,7 @@
       "statecalc": ["health", "conn\\."]
     },
     "banned_in_layer": {
-      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
+      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
       "pure": ["\\bdeps\\b", "\\blog\\s*\\.", "\\bLogger\\b"]
     }
   },
@@ -202,7 +221,12 @@
     "secret_bytes": 24,
     "secret_file_name": "config_app_secret.json",
     "health_wait_ms": 20000,
-    "poll_ms": 200
+    "poll_ms": 200,
+    "lines_note": "R0(중계가 만드는 고속도로 선 파일) 전이라 시험 다리가 선을 내주지 않는다. 시험·보기 도구만 다리 자료 길의 이 선 파일 이름을 테스트 베드 선 파일로 대신 답한다(앱 코드는 그대로 다리 자료 길에 묻는다). 비밀 값 머리가 틀리면 다리처럼 lock",
+    "lines_shim": {"lines/gyeongbu_down.json": "gyeongbu_down"},
+    "json_type": "application/json; charset=utf-8",
+    "lock_status": 401,
+    "lock_body": {"v": 1, "ok": false, "code": "lock", "src": "gate"}
   },
   "try_a1": {
     "run_seconds": 140,
@@ -219,7 +243,7 @@
     "deg_to_rad": 0.017453292519943295,
     "start_wait_ms": 20000,
     "startup_cases": [
-      {"scene": "S8_켤때실패_목록", "title": "켤 때 실패 — 충전소 목록 못 줌", "expect": {"stage": "broken", "code": "need", "need": "meta", "text": ["texts.broken", "texts.need_names.meta"]}},
+      {"scene": "S8_켤때실패_목록", "title": "켤 때 실패 — 충전소 목록 못 줌", "expect": {"stage": "broken", "code": "need", "need": "stations", "text": ["texts.broken", "texts.need_names.stations"]}},
       {"scene": "S8_켤때실패_비밀값", "title": "켤 때 실패 — 비밀 값 틀림(다리 401)", "expect": {"stage": "broken", "code": "need", "fail": "lock", "text": ["texts.broken", "texts.need_fail.lock"]}},
       {"scene": "S8_켤때실패_다리주소", "title": "켤 때 실패 — 다리 주소 틀림(답 없이 닫힘)", "expect": {"stage": "broken", "code": "need", "fail": "offline", "text": ["texts.broken"]}}
     ],
@@ -232,6 +256,49 @@
     "mask_probe_what": "mask_probe",
     "report_file": "try_a1_last.md"
   },
+  "try_a2ga": {
+    "note": "A2-가 스스로 시험(try_a2ga.mjs). 장면은 seek 로 그 사건 앞 틱부터 — 앱은 경우마다 새로 띄운다(옮긴 자리를 튐으로 보지 않게). refresh_override_ms 는 끊김·나쁜 자료 시험에서만 앱의 다시 받기 간격을 줄이는 값(앱 설정 파일은 그대로)",
+    "run_seconds": 360,
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "refresh_override_ms": 3000,
+    "line_tolerance_m": 40,
+    "tick_ms": 1000,
+    "s1": {"scene": "S1_고속도로", "listen_ms": 10000, "min_fixes": 6, "km_start": 28.0, "kmh": 95, "km_tolerance": 0.3},
+    "s2": {"scene": "S2_제한속도", "seek": 470, "listen_ms": 6000, "kmh": 115},
+    "s6": {"scene": "S6_정차출발튐", "lead_ticks": 6, "after_ticks": 4, "cases": [
+      {"t_s": 100, "ticks": 2, "title": "달리는 중 400 m 튐", "stopped": false},
+      {"t_s": 250, "ticks": 5, "title": "멈춘 중 60 m 흔들림", "stopped": true},
+      {"t_s": 470, "ticks": 1, "title": "다시 달릴 때 1.5 km 튐", "stopped": false}
+    ], "jump_code": "jump"},
+    "s7": {"scene": "S7_출처끊김", "seek": 172, "down_t_s": 180, "up_t_s": 240, "down_wait_ms": 40000, "up_wait_ms": 90000},
+    "s11": {"scene": "S11_나쁜자료", "lead_ticks": 4, "after_ticks": 4,
+      "stream_cases": [
+        {"t_s": 30, "ticks": 3, "title": "흐름 — 범위 밖 좌표", "word": "fix_bad", "why": "range", "min": 3},
+        {"t_s": 60, "ticks": 3, "title": "흐름 — 음수 속도", "word": "fix_bad", "why": "speed_neg", "min": 3},
+        {"t_s": 90, "ticks": 2, "title": "흐름 — 깨진 JSON", "word": "parse", "why": null, "min": 1},
+        {"t_s": 120, "ticks": 1, "title": "흐름 — 너무 큰 답", "word": "stream_down", "why": "too_big", "min": 1}
+      ],
+      "data_cases": [
+        {"t_s": 150, "title": "자료 길 — 깨진 JSON", "code": "parse", "word": "stations_refresh_fail"},
+        {"t_s": 240, "title": "자료 길 — 범위 밖 좌표", "code": "bad", "word": "bad_items"},
+        {"t_s": 330, "title": "자료 길 — 너무 큰 답", "code": "too_big", "word": "stations_refresh_fail"}
+      ],
+      "data_listen_ms": 12000},
+    "e4": {
+      "copy": ["src", "config", "vendor", "shell.html"],
+      "remove_board": "ui_speed",
+      "trial_board": "ui_trial",
+      "renames": {"config_ui_speed": "config_ui_trial", "ev-speed": "ev-trial"},
+      "trial_slot_from": "\"slot\": \"left\"",
+      "trial_slot_to": "\"slot\": \"right\"",
+      "untouched": ["src/app.js", "src/ui_drive.js", "src/ui_boards.js", "src/view_ui_drive.html"],
+      "listen_ms": 5000
+    },
+    "view": {"seconds": 25, "scene": "S2_제한속도", "tick": 470, "kmh": 115, "listen_ms": 5000, "ready_word": "크롬에서 여세요"},
+    "vendor_head_chars": 200,
+    "report_file": "try_a2ga_last.md"
+  },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",
     "host": "127.0.0.1",
@@ -239,7 +306,12 @@
     "default_seconds": 600,
     "max_seconds": 3600,
     "content_type": "text/html; charset=utf-8",
-    "ms_per_s": 1000
+    "ms_per_s": 1000,
+    "scheme": "http://",
+    "gateway_config": "config_gateway",
+    "override_file": "view_override.json",
+    "gateway_prefix": "/v1/",
+    "proxy_fail_status": 502
   },
   "hook": {
     "script": "tools/hooks/pre-commit-web2.sh",

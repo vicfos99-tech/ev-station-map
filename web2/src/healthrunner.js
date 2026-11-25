@@ -64,7 +64,7 @@ export function createHealthRunner(deps) {
   });
 
   state.subscribe(c.conn_prefix + c.wildcard, (v, name) => {
-    if (name === c.start_conn) {
+    if (c.start_conns.includes(name)) {
       if (v && v.need) start[v.need] = { ok: !!v.ok, code: v.code, src: v.src };
     } else {
       const src = r.conn_source[name];

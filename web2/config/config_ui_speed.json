@@ -1,0 +1,11 @@
+{
+  "note": "속도판(ui_speed — 알림판). 제한 속도 칸은 A5 에서 값이 들어올 때까지 빈다. judge_attr 값 = speed 조각의 judge(ok·over·none), 값이 없으면 judge_empty",
+  "speed_piece": "speed",
+  "health_piece": "health.speed",
+  "interval_ms": 500,
+  "slot": "left",
+  "ids": {"root": "ev-speed", "value": "ev-speed-value", "unit": "ev-speed-unit", "limit": "ev-speed-limit", "limit_label": "ev-speed-limit-label"},
+  "texts": {"unit": "km/h", "limit_label": "제한"},
+  "judge_attr": "data-judge",
+  "judge_empty": "empty"
+}

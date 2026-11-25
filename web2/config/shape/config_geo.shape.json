@@ -1,0 +1,9 @@
+{"keys": {
+  "earth_radius_m": {"t": "num", "min": 6300000, "max": 6400000},
+  "deg_to_rad": {"t": "num", "min": 0.0174, "max": 0.0175},
+  "rad_to_deg": {"t": "num", "min": 57.29, "max": 57.3},
+  "full_turn_deg": {"t": "num", "min": 360, "max": 360},
+  "half_turn_deg": {"t": "num", "min": 180, "max": 180},
+  "m_per_km": {"t": "num", "min": 1000, "max": 1000},
+  "min_line_points": {"t": "num", "int": true, "min": 2, "max": 2}
+}}

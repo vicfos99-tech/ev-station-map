@@ -1,0 +1,23 @@
+{
+  "note": "중계 파일 검사(relay_parse) 값 — 꼴은 ref/relay_format.md. 좌표 범위는 한국 둘레. why 는 거른 까닭 코드(기록장에 남음)",
+  "v_key": "v",
+  "v": 1,
+  "meta_at_key": "at",
+  "stations_key": "stations",
+  "zscode_key": "zscode",
+  "latlng_len": 2,
+  "lat_min": 33.0,
+  "lat_max": 38.7,
+  "lng_min": 124.5,
+  "lng_max": 132.0,
+  "id_max": 40,
+  "name_max": 80,
+  "max_stations": 5000,
+  "max_chargers": 200,
+  "min_line_points": 2,
+  "max_line_points": 20000,
+  "why": {
+    "meta": "meta_shape", "file": "file_shape", "too_many": "too_many", "item": "item_shape", "id": "id", "name": "name",
+    "loc": "loc_range", "chargers": "chargers", "line": "line_shape", "line_points": "line_points", "line_point": "line_point_range"
+  }
+}

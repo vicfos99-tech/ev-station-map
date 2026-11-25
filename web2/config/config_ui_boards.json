@@ -1,0 +1,15 @@
+{
+  "note": "알림판 틀(ui_boards). 판 이름은 여기에도 없다 — 빌드가 주운 목록을 받는다. slots = 판이 밝힌 자리 이름 → 운전 화면의 칸. 같은 자리에 판이 여럿이면 위에서부터 쌓는다(넘기기는 판이 늘면)",
+  "owner": "ui_boards",
+  "needs_piece": "board.needs",
+  "factory": "create",
+  "slots": {"left": "ev-slot-left", "right": "ev-slot-right"},
+  "rule": {"min_interval_ms": 200, "max_topics": 10, "slot_names": ["left", "right"]},
+  "box_tag": "div",
+  "box_class": "ev-board-box",
+  "name_attr": "data-board",
+  "where": "ui_boards",
+  "word_mounted": "board_mounted",
+  "word_mount_failed": "board_mount_failed",
+  "word_show_failed": "board_show_failed"
+}

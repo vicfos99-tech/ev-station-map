@@ -45,6 +45,17 @@
     "drive_shown": "운전 화면 띄움",
     "tiles_bad": "지도 그림 못 받음",
     "queue_full": "알림 줄 넘침",
-    "bad_version": "저장 판이 다름"
+    "bad_version": "저장 판이 다름",
+    "fix_bad": "위치 거름",
+    "fix_reset": "위치 새 기준",
+    "stations_loaded": "충전소 자료 받음",
+    "stations_start_fail": "켤 때 충전소 자료 못 받음",
+    "stations_refresh_fail": "충전소 자료 다시 받기 실패",
+    "bad_file": "나쁜 자료 파일",
+    "bad_items": "나쁜 줄 거름",
+    "bad_name": "허용 밖 파일 이름",
+    "board_mounted": "알림판 꽂음",
+    "board_mount_failed": "알림판 꽂기 실패",
+    "board_show_failed": "알림판 보이기 실패"
   }
 }

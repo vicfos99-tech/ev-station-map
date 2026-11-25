@@ -1,0 +1,12 @@
+{
+  "note": "Locate(위치 → 고속도로 선·km) 값. 선에서 on_line_m 안이면 선 위. 진행 방향이 선 방향과 dir_max_deg 안이면 forward, 반대쪽이면 backward",
+  "fix_input": "fix",
+  "stations_input": "stations",
+  "lines_key": "lines",
+  "geo_part": "geo",
+  "geo_rule": "config_geo",
+  "on_line_m": 150,
+  "dir_max_deg": 60,
+  "dir_words": {"forward": "forward", "backward": "backward"},
+  "km_round": 1000
+}

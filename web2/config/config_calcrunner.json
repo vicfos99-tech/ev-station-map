@@ -1,8 +1,8 @@
 {
-  "note": "A1 뼈대: 구독할 입력·발행할 조각이 아직 없다",
+  "note": "구독할 입력과 발행할 조각(설계 5-1-나 알림 표). 셈하는 법은 config_statecalc 의 표",
   "owner": "calcrunner",
-  "inputs": [],
-  "outputs": [],
+  "inputs": ["fix", "stations"],
+  "outputs": ["pos", "speed"],
   "batch_ms": 100,
   "where": "calcrunner"
 }

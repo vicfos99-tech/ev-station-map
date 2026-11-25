@@ -72,6 +72,46 @@ export async function selectScene(info, name, paused) {
   return r.json.status;
 }
 
+// 장면을 틱으로 옮긴다(장면 시간표의 사건은 틱으로 셈하므로 옮긴 틱부터 그대로 일어난다)
+export async function seekScene(info, tick) {
+  const r = await call(info, 'POST', 'scene', { body: { action: 'seek', tick } });
+  if (r.status !== 200 || !r.json || !r.json.ok) throw new Error('장면 옮기기 실패: ' + tick + ' ' + r.status + ' ' + JSON.stringify(r.json));
+  return r.json.status;
+}
+
+// R0 전 — 시험 다리가 고속도로 선 파일을 내주지 않는다. 다리 자료 길의 선 파일 이름(testbed.lines_shim)만 테스트 베드 선 파일로 대신 답한다.
+// 돌려주는 것: {files: {파일 이름: 글}, answer(sub, headers) → {status, body} | null(대신 답하지 않음)}
+export function linesShim(tc, info, secret) {
+  const dir = path.resolve(path.dirname(info.cfgPath), info.tb.scenes.lines_dir);
+  const files = {};
+  for (const [name, line] of Object.entries(tc.testbed.lines_shim)) {
+    files[name] = fs.readFileSync(path.join(dir, line + info.tb.scenes.line_suffix), 'utf8');
+  }
+  return {
+    files,
+    answer(sub, headers) {
+      if (!(sub in files)) return null;
+      const got = headers ? headers[info.b.secret_header] || headers[info.b.secret_header.toLowerCase()] : undefined;
+      if (got !== secret) return { status: tc.testbed.lock_status, body: JSON.stringify(tc.testbed.lock_body) };
+      return { status: 200, body: files[sub] };
+    },
+  };
+}
+
+// 앱에 넘길 fetch: 다리 자료 길의 선 파일만 linesShim 이 답하고 나머지는 그대로 다리로
+export function fetchWithLines(tc, info, secret, baseFetch) {
+  const shim = linesShim(tc, info, secret);
+  const prefix = info.base + info.b.paths.data;
+  return (url, init) => {
+    const u = String(url);
+    if (u.startsWith(prefix)) {
+      const a = shim.answer(u.slice(prefix.length), init && init.headers);
+      if (a) return Promise.resolve(new Response(a.body, { status: a.status, headers: { 'Content-Type': tc.testbed.json_type } }));
+    }
+    return (baseFetch || fetch)(url, init);
+  };
+}
+
 // 시험 흐름을 따로 열어 (틱 → 자리)를 모은다 — 앱과 견줄 참값
 export function referenceStream(info) {
   const ctrl = new AbortController();

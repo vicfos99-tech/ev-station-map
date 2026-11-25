@@ -20,5 +20,7 @@
   "where": "loc_watch",
   "word_open": "stream_open",
   "word_parse": "parse",
-  "word_geo_fail": "geo_fail"
+  "word_geo_fail": "geo_fail",
+  "word_fix_bad": "fix_bad",
+  "word_fix_reset": "fix_reset"
 }

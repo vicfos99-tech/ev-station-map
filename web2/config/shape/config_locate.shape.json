@@ -1,0 +1,12 @@
+{"keys": {
+  "fix_input": {"t": "str", "min": 1, "max": 40},
+  "stations_input": {"t": "str", "min": 1, "max": 40},
+  "lines_key": {"t": "str", "min": 1, "max": 40},
+  "geo_part": {"t": "str", "min": 1, "max": 40},
+  "geo_rule": {"t": "str", "min": 1, "max": 60},
+  "on_line_m": {"t": "num", "min": 1, "max": 5000},
+  "dir_max_deg": {"t": "num", "min": 1, "max": 89},
+  "dir_words.forward": {"t": "str", "min": 1, "max": 20},
+  "dir_words.backward": {"t": "str", "min": 1, "max": 20},
+  "km_round": {"t": "num", "int": true, "min": 1, "max": 1000000}
+}}
