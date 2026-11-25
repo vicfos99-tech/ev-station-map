@@ -1,0 +1,9 @@
+{"keys": {
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "client": {"t": "str", "min": 1, "max": 40},
+  "piece": {"t": "str", "min": 1, "max": 40},
+  "app_piece": {"t": "str", "min": 1, "max": 40},
+  "needs": {"t": "map", "of": {"t": "obj"}},
+  "code_internal": {"t": "str", "min": 1, "max": 40},
+  "where": {"t": "str", "min": 1, "max": 40}
+}}

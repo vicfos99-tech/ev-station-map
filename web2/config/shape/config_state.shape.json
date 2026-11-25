@@ -1,0 +1,6 @@
+{"keys": {
+  "max_queue": {"t": "num", "int": true, "min": 10, "max": 100000},
+  "wildcard": {"t": "str", "min": 1, "max": 2},
+  "where_deliver": {"t": "str", "min": 1, "max": 40},
+  "word_queue_full": {"t": "str", "min": 1, "max": 40}
+}}

@@ -1,0 +1,16 @@
+{"keys": {
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "app_piece": {"t": "str", "min": 1, "max": 40},
+  "src_piece": {"t": "str", "min": 1, "max": 40},
+  "feature_prefix": {"t": "str", "min": 1, "max": 40},
+  "start_event": {"t": "str", "min": 1, "max": 40},
+  "conn_prefix": {"t": "str", "min": 1, "max": 40},
+  "wildcard": {"t": "str", "min": 1, "max": 2},
+  "start_conn": {"t": "str", "min": 1, "max": 40},
+  "recheck_ms": {"t": "num", "int": true, "min": 100, "max": 60000},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "word_app": {"t": "str", "min": 1, "max": 40},
+  "word_src_down": {"t": "str", "min": 1, "max": 40},
+  "word_src_back": {"t": "str", "min": 1, "max": 40},
+  "word_feature": {"t": "str", "min": 1, "max": 40}
+}}

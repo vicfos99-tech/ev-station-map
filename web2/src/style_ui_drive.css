@@ -1,0 +1,11 @@
+/* 운전 화면 세 칸: 왼편 속도 · 가운데 지도 · 오른편 앞의 충전소 */
+html, body { margin: 0; height: 100%; }
+body { display: flex; flex-direction: column; background: #111827; }
+.ev-drive { flex: 1; display: flex; min-height: 0; }
+.ev-drive[hidden] { display: none; }
+.ev-slot-side { flex: 1; background: #1f2937; }
+.ev-slot-center { flex: 3; position: relative; }
+@media (orientation: portrait) {
+  .ev-drive { flex-direction: column; }
+  .ev-slot-side { flex: 0 0 64px; }
+}

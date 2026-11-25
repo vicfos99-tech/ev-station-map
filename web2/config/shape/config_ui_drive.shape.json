@@ -1,0 +1,12 @@
+{"keys": {
+  "root_id": {"t": "str", "min": 1, "max": 40},
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "visible_piece": {"t": "str", "min": 1, "max": 40},
+  "size_piece": {"t": "str", "min": 1, "max": 40},
+  "app_piece": {"t": "str", "min": 1, "max": 40},
+  "visibility_event": {"t": "str", "min": 1, "max": 40},
+  "visible_state": {"t": "str", "min": 1, "max": 20},
+  "resize_event": {"t": "str", "min": 1, "max": 20},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "word_shown": {"t": "str", "min": 1, "max": 40}
+}}

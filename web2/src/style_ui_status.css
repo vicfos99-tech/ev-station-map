@@ -1,0 +1,19 @@
+/* 상태 자리 — 운전 화면 맨 위 띠 한 줄 */
+.ev-status {
+  white-space: pre-line;
+  padding: 8px 12px;
+  font: 600 15px/1.4 system-ui, sans-serif;
+  background: #1f2a37;
+  color: #f3f4f6;
+}
+.ev-status[data-stage="broken"] {
+  background: #7f1d1d;
+  color: #fff;
+  font-size: 18px;
+  padding: 24px 16px;
+}
+.ev-status[data-stage="good"][data-empty="yes"] {
+  padding: 0;
+  height: 4px;
+  background: #065f46;
+}

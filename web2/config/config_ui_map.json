@@ -1,0 +1,42 @@
+{
+  "note": "지도 바탕 그림(타일) 주소는 이 파일에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). A1 최소: 내 위치 점 하나",
+  "owner": "ui_map",
+  "tiles_piece": "conn.tiles",
+  "fix_piece": "fix",
+  "app_piece": "health.app",
+  "slot_id": "ev-slot-center",
+  "style": {
+    "version": 8,
+    "sources": {
+      "osm": {
+        "type": "raster",
+        "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        "tileSize": 256,
+        "maxzoom": 19,
+        "attribution": "© OpenStreetMap contributors"
+      }
+    },
+    "layers": [{"id": "osm", "type": "raster", "source": "osm"}]
+  },
+  "tile_source_id": "osm",
+  "start_center": [127.1, 37.27],
+  "start_zoom": 12,
+  "follow_min_zoom": 14,
+  "ease_ms": 800,
+  "attribution": true,
+  "geo": {"feature": "Feature", "point": "Point"},
+  "dot": {
+    "source_id": "me",
+    "source_type": "geojson",
+    "layer_id": "me-dot",
+    "layer_type": "circle",
+    "paint": {"circle-radius": 9, "circle-color": "#2563eb", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3}
+  },
+  "events": {"load": "load", "data": "data", "error": "error"},
+  "tiles_wait_ms": 15000,
+  "tiles_code": "tiles",
+  "tiles_wait_code": "tiles_wait",
+  "no_lib_code": "no_maplibre",
+  "where": "ui_map",
+  "word_tiles_bad": "tiles_bad"
+}

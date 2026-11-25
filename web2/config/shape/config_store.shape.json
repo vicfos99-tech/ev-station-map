@@ -1,0 +1,13 @@
+{"keys": {
+  "dir": {"t": "str", "min": 1, "max": 40, "re": "^[A-Za-z0-9_-]+$"},
+  "keys": {"t": "map", "of": {"t": "obj"}},
+  "version_key": {"t": "str", "min": 1, "max": 20},
+  "value_key": {"t": "str", "min": 1, "max": 20},
+  "where_read": {"t": "str", "min": 1, "max": 40},
+  "where_write": {"t": "str", "min": 1, "max": 40},
+  "where_watch": {"t": "str", "min": 1, "max": 40},
+  "word_bad_version": {"t": "str", "min": 1, "max": 40},
+  "code_bad_version": {"t": "str", "min": 1, "max": 40},
+  "code_read": {"t": "str", "min": 1, "max": 40},
+  "code_write": {"t": "str", "min": 1, "max": 40}
+}}

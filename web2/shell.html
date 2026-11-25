@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@@TITLE@@</title>
+<style>@@VENDOR_CSS@@</style>
+<style>@@STYLES@@</style>
+</head>
+<body>
+@@VIEWS@@
+<script>window.EV_CONFIG = @@CONFIG@@;</script>
+<script>
+// 뼈대의 상태 자리 글(설계 F6·F7): 설정·조립과 따로 돈다. health.app 이 시간 한도 안에 안 오면 '시작하지 못함'.
+(function () {
+  var b = window.EV_CONFIG && window.EV_CONFIG.status_boot;
+  if (!b) return;
+  var el = document.getElementById(b.element_id);
+  if (el) el.textContent = b.starting;
+  setTimeout(function () {
+    if (document.body.hasAttribute(b.seen_attr)) return;
+    if (el) { el.textContent = b.dead; el.setAttribute(b.stage_attr, b.broken_stage); }
+    if (window.console) window.console.error(b.dead);
+  }, b.timeout_ms);
+})();
+</script>
+<script>@@VENDOR_JS@@</script>
+<script>
+@@MODULES@@
+@@ENTRY@@({
+  config: window.EV_CONFIG,
+  win: window,
+  doc: document,
+  fetch: window.fetch.bind(window),
+  storage: navigator.storage,
+  geo: navigator.geolocation,
+  maplibre: window.maplibregl,
+  console: window.console,
+  clock: {
+    now: function () { return Date.now(); },
+    setTimeout: window.setTimeout.bind(window),
+    clearTimeout: window.clearTimeout.bind(window),
+    setInterval: window.setInterval.bind(window),
+    clearInterval: window.clearInterval.bind(window)
+  }
+});
+</script>
+</body>
+</html>

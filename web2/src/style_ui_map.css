@@ -1,0 +1,4 @@
+/* 지도는 운전 화면 가운데 칸을 꽉 채운다(조각 html 없음 — 칸은 view_ui_drive 의 ev-slot-center) */
+.ev-slot-center .maplibregl-canvas-container,
+.ev-slot-center canvas { outline: none; }
+.ev-slot-center { min-height: 240px; }

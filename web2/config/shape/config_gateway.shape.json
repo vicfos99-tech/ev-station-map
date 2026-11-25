@@ -1,0 +1,10 @@
+{"keys": {
+  "allowed_hosts": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 3, "max": 120, "re": "^[A-Za-z0-9.-]+(:[0-9]{1,5})?$"}},
+  "http_ok_hosts": {"t": "arr", "max": 4, "of": {"t": "str", "one_of": ["127.0.0.1", "localhost"]}},
+  "gateway_url": {"t": "url", "max": 200, "schemes": ["https:"], "hosts_key": "allowed_hosts", "loose_schemes": ["http:"], "loose_hosts_key": "http_ok_hosts"},
+  "secret_header": {"t": "str", "min": 3, "max": 60, "re": "^[A-Za-z0-9-]+$"},
+  "paths": {"t": "map", "of": {"t": "str", "min": 1, "max": 60, "re": "^/[A-Za-z0-9/_.-]*$"}},
+  "paths.health": {"t": "str", "min": 1, "max": 60},
+  "paths.data": {"t": "str", "min": 1, "max": 60},
+  "paths.stream": {"t": "str", "min": 1, "max": 60}
+}}

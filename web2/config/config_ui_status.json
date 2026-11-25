@@ -1,0 +1,41 @@
+{
+  "note": "상태 자리의 글·자리. 빌드가 starting·dead·start_timeout_ms 를 뼈대에도 넣는다(설정을 못 읽거나 조립이 죽어도 보이게). start_timeout_ms 는 config_health.start_timeout_ms 보다 길게",
+  "element_id": "ev-status",
+  "seen_attr": "data-health-seen",
+  "stage_attr": "data-stage",
+  "empty_attr": "data-empty",
+  "yes_word": "yes",
+  "no_word": "no",
+  "start_timeout_ms": 25000,
+  "slot_re": "\\{(\\w+)\\}",
+  "app_piece": "health.app",
+  "src_piece": "health.src",
+  "where": "ui_status",
+  "texts": {
+    "starting": "여는 중…",
+    "broken": "앱 점검 중",
+    "dead": "앱 점검 중 — 시작하지 못함",
+    "reasons": {
+      "config": "설정 {file} 이(가) 틀렸어요 ({key})",
+      "gateway": "중계 주소 설정이 틀렸어요",
+      "secret": "앱 비밀 값 설정이 없거나 틀렸어요",
+      "need": "{need}을(를) 받지 못했어요",
+      "start_timeout": "{need}을(를) 제때 받지 못했어요"
+    },
+    "need_fail": {
+      "lock": "다리가 앱을 받아 주지 않아요(앱 비밀 값)",
+      "busy": "다리가 잠시 막았어요(횟수 한도)",
+      "offline": "다리에 닿지 못했어요 — {need}",
+      "timeout": "다리가 답하지 않아요 — {need}"
+    },
+    "need_names": {"health": "다리 상태", "meta": "충전소 자료"},
+    "src_names": {"loc": "위치", "tiles": "지도 그림", "gate": "다리", "logdir": "기록장", "datadir": "저장"},
+    "src_line": "{src} — {time}부터 끊김({why})",
+    "why_words": {
+      "none": "위치가 안 옴", "offline": "연결 끊김", "timeout": "답 없음", "closed": "흐름 닫힘", "parse": "받은 것이 이상함",
+      "bad_fix": "위치 값이 이상함", "denied": "권한 꺼짐", "log_write": "쓰지 못함", "store_write": "쓰지 못함",
+      "tiles": "그림 못 받음", "tiles_wait": "그림이 안 옴"
+    },
+    "time_pattern": "hh:mm"
+  }
+}

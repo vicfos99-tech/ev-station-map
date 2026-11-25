@@ -1,0 +1,5 @@
+{"keys": {
+  "stamp": {"t": "str", "min": 4, "max": 80},
+  "at": {"t": "str", "min": 4, "max": 40},
+  "commit": {"t": "str", "min": 1, "max": 40}
+}}

@@ -1,0 +1,6 @@
+{
+  "max_queue": 1000,
+  "wildcard": "*",
+  "where_deliver": "state.deliver",
+  "word_queue_full": "queue_full"
+}

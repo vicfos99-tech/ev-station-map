@@ -1,0 +1,41 @@
+{
+  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A1: 다리 상태 + 중계 자료 머리 — A2 에서 충전소 목록·선으로)",
+  "stages": {"starting": "starting", "good": "good", "broken": "broken"},
+  "app_grade": "app",
+  "unknown_grade": "app",
+  "grades": {
+    "config_app": "app",
+    "config_time": "app",
+    "config_log": "app",
+    "config_store": "app",
+    "config_state": "app",
+    "config_netcore": "app",
+    "config_gateway": "app",
+    "config_app_secret": "app",
+    "config_health": "app",
+    "config_healthrunner": "app",
+    "config_startprobe": "app",
+    "config_ui_status": "app",
+    "config_ui_drive": "app",
+    "config_build": "app",
+    "config_statecalc": "calc",
+    "config_calcrunner": "calc",
+    "config_loc_watch": "loc",
+    "config_ui_map": "map",
+    "config_ui_log": "log"
+  },
+  "reason_of_file": {"config_gateway": "gateway", "config_app_secret": "secret"},
+  "reason_default": "config",
+  "reason_need": "need",
+  "reason_timeout": "start_timeout",
+  "start_needs": ["health", "meta"],
+  "start_timeout_ms": 15000,
+  "conn_source": {"conn.loc": "loc", "conn.tiles": "tiles"},
+  "trouble_source": {"log": "logdir", "store": "datadir"},
+  "features": {
+    "loc": {"configs": ["config_loc_watch"], "sources": ["loc"]},
+    "map": {"configs": ["config_ui_map"], "sources": ["tiles"]},
+    "log": {"configs": ["config_ui_log"], "sources": ["logdir"]},
+    "calc": {"configs": ["config_statecalc", "config_calcrunner"], "sources": []}
+  }
+}

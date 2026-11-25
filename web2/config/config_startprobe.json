@@ -1,0 +1,13 @@
+{
+  "note": "시작 필요 데이터(config_health.start_needs)마다 다리의 어느 길에 묻나. 길 이름만 — 주소는 config_gateway",
+  "owner": "startprobe",
+  "client": "start",
+  "piece": "conn.start",
+  "app_piece": "health.app",
+  "needs": {
+    "health": {"route": "health", "sub": ""},
+    "meta": {"route": "data", "sub": "meta.json"}
+  },
+  "code_internal": "internal",
+  "where": "startprobe"
+}

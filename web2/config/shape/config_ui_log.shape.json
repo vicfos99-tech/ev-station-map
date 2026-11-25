@@ -1,0 +1,23 @@
+{"keys": {
+  "open_id": {"t": "str", "min": 1, "max": 40},
+  "panel_id": {"t": "str", "min": 1, "max": 40},
+  "list_id": {"t": "str", "min": 1, "max": 40},
+  "copy_id": {"t": "str", "min": 1, "max": 40},
+  "save_id": {"t": "str", "min": 1, "max": 40},
+  "close_id": {"t": "str", "min": 1, "max": 40},
+  "version_id": {"t": "str", "min": 1, "max": 40},
+  "note_id": {"t": "str", "min": 1, "max": 40},
+  "show_lines": {"t": "num", "int": true, "min": 10, "max": 20000},
+  "mime": {"t": "str", "min": 1, "max": 60},
+  "link_tag": {"t": "str", "min": 1, "max": 10},
+  "click_event": {"t": "str", "min": 1, "max": 20},
+  "stamp_mark": {"t": "str", "min": 1, "max": 20},
+  "app_piece": {"t": "str", "min": 1, "max": 40},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "act_copy": {"t": "str", "min": 1, "max": 20},
+  "act_save": {"t": "str", "min": 1, "max": 20},
+  "act_init": {"t": "str", "min": 1, "max": 20},
+  "texts": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
+  "texts.open": {"t": "str", "min": 1, "max": 40},
+  "texts.version": {"t": "str", "min": 1, "max": 40}
+}}

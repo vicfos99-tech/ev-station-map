@@ -1,0 +1,24 @@
+{
+  "note": "받기 한 벌의 값 — 클라이언트별 시간 한도·다시 받기 횟수·간격·크기 한도는 여기 한 곳(설계 확인 #14). 다리 주소는 config_gateway 에만",
+  "gateway_file": "config_gateway",
+  "secret_file": "config_app_secret",
+  "secret_key": "app_secret",
+  "clients": {
+    "start": {"timeout_ms": 5000, "retries": 2, "backoff_ms": 500, "backoff_factor": 2, "max_chars": 2000000},
+    "loc": {"timeout_ms": 5000, "retries": 0, "backoff_ms": 0, "backoff_factor": 1, "max_chars": 4000000}
+  },
+  "codes": {"timeout": "timeout", "offline": "offline", "parse": "parse", "too_big": "too_big", "status": "status_fail", "not_ready": "not_ready", "closed": "closed"},
+  "no_retry_codes": ["lock", "bad", "none", "busy", "too_big"],
+  "code_field": "code",
+  "src_field": "src",
+  "default_method": "GET",
+  "cache_mode": "no-store",
+  "content_type_header": "Content-Type",
+  "json_type": "application/json",
+  "sse": {"default_event": "message", "event_field": "event", "data_field": "data"},
+  "abort_error_name": "AbortError",
+  "where_ask": "netcore.ask",
+  "where_stream": "netcore.stream",
+  "word_fail": "ask_fail",
+  "word_down": "stream_down"
+}

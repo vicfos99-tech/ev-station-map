@@ -1,0 +1,12 @@
+{
+  "note": "앱이 아는 바깥 주소는 다리 하나 — 여기 한 곳(설계 5-2). 지금은 테스트 베드 시험 다리(집 PC 127.0.0.1:8787). 실제 Workers 다리가 생기면 gateway_url·allowed_hosts 만 바꾼다. http 는 http_ok_hosts(집 PC 자기 자신)일 때만 받는다 — 그 밖은 https 만",
+  "gateway_url": "http://127.0.0.1:8787",
+  "allowed_hosts": ["127.0.0.1:8787"],
+  "http_ok_hosts": ["127.0.0.1", "localhost"],
+  "secret_header": "X-EV-App-Secret",
+  "paths": {
+    "health": "/v1/health",
+    "data": "/v1/data/",
+    "stream": "/v1/test/stream"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "root_id": "ev-drive",
+  "owner": "ui_drive",
+  "visible_piece": "view.visible",
+  "size_piece": "view.size",
+  "app_piece": "health.app",
+  "visibility_event": "visibilitychange",
+  "visible_state": "visible",
+  "resize_event": "resize",
+  "where": "ui_drive",
+  "word_shown": "drive_shown"
+}

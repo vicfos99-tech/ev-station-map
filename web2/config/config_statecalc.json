@@ -1,0 +1,4 @@
+{
+  "note": "입력 ↔ 조각 표. 줄 꼴 {inputs:[알림], part:셈 모듈 이름, piece:결과 조각}. A1 은 비어 있다(A2 에서 pos·ahead·speed)",
+  "table": []
+}

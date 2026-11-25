@@ -1,0 +1,3 @@
+{"keys": {
+  "table": {"t": "arr", "max": 50, "of": {"t": "obj"}}
+}}

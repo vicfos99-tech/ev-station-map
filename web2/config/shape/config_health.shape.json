@@ -1,0 +1,18 @@
+{"keys": {
+  "stages.starting": {"t": "str", "min": 1, "max": 20},
+  "stages.good": {"t": "str", "min": 1, "max": 20},
+  "stages.broken": {"t": "str", "min": 1, "max": 20},
+  "app_grade": {"t": "str", "min": 1, "max": 20},
+  "unknown_grade": {"t": "str", "min": 1, "max": 20},
+  "grades": {"t": "map", "of": {"t": "str", "min": 1, "max": 20}},
+  "reason_of_file": {"t": "map", "of": {"t": "str", "min": 1, "max": 30}},
+  "reason_default": {"t": "str", "min": 1, "max": 30},
+  "reason_need": {"t": "str", "min": 1, "max": 30},
+  "reason_timeout": {"t": "str", "min": 1, "max": 30},
+  "start_needs": {"t": "arr", "max": 10, "of": {"t": "str", "min": 1, "max": 30}},
+  "start_timeout_ms": {"t": "num", "int": true, "min": 1000, "max": 120000},
+  "conn_source": {"t": "map", "of": {"t": "str", "min": 1, "max": 20}},
+  "trouble_source.log": {"t": "str", "min": 1, "max": 20},
+  "trouble_source.store": {"t": "str", "min": 1, "max": 20},
+  "features": {"t": "map", "of": {"t": "obj"}}
+}}

@@ -1,0 +1,14 @@
+{
+  "note": "데이터 폴더(브라우저 개인 파일 저장소 안)와 저장 키. A1 은 자리만 — 쓰는 값은 A2 부터",
+  "dir": "data",
+  "keys": {"my": {"file": "my.json", "v": 1}},
+  "version_key": "v",
+  "value_key": "value",
+  "where_read": "store.read",
+  "where_write": "store.write",
+  "where_watch": "store.watch",
+  "word_bad_version": "bad_version",
+  "code_bad_version": "bad_version",
+  "code_read": "store_read",
+  "code_write": "store_write"
+}

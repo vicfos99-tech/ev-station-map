@@ -14,6 +14,7 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { loadToolsConfig, appDir, toolLog, listFiles } from './lib_tools.mjs';
 import { lex, numberValue, readImports, withoutImports } from './lib_js.mjs';
+import { loadAppConfig } from './lib_appfiles.mjs';
 
 const tc = loadToolsConfig();
 const c4 = tc.check4;
@@ -42,24 +43,14 @@ async function checkBuild(mods) {
     return { bad, seen: '앱 아직 없음(모듈 0 · 빌드 도구 없음) — 볼 것 없음' };
   }
   if (!fs.existsSync(buildTool)) bad.push(c4.build_tool + ': 빌드 도구가 없음');
-  const files = {};
-  const shapeObjs = {};
-  for (const p of cfgs) {
-    try { files[path.basename(p, c4.config_ext)] = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { bad.push(rel(p) + ': JSON 이 안 읽힘 — ' + e.message); }
-  }
-  for (const p of shapes) {
-    try { shapeObjs[path.basename(p, c4.config_ext).replace(/\.shape$/, '')] = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { bad.push(rel(p) + ': 꼴 표 JSON 이 안 읽힘 — ' + e.message); }
-  }
+  // 설정 JSON(같은 키 두 번 포함)·꼴 표 읽기 + 꼴 검사(빌드가 넣는 비밀 값·빌드 기록은 시험 값으로)
+  const { raw, errors } = loadAppConfig(APP, tc.build, { overrides: c4.build_supplied });
+  for (const e of errors) bad.push(rel(e.file) + ': 안 읽힘 — ' + e.why);
   const cfgMod = path.join(APP, c4.src_dir, 'cfg' + c4.module_ext);
   if (fs.existsSync(cfgMod)) {
     try {
       const { createConfig } = await import(pathToFileURL(cfgMod).href);
-      const secretName = path.basename(c4.hardcode.secret_file, c4.config_ext);
-      const withSecret = { ...files };
-      if (shapeObjs[secretName]) {
-        withSecret[secretName] = { app_secret: c4.build_secret_test_value };
-      }
-      const cfg = createConfig({ files: withSecret, shapes: shapeObjs, broken: {} });
+      const cfg = createConfig(raw);
       for (const p of cfg.problems()) bad.push('설정 꼴: ' + p.file + (p.key ? '.' + p.key : '') + ' — ' + p.why + (p.detail ? ' (' + p.detail + ')' : ''));
     } catch (e) {
       bad.push('설정 꼴 검사를 못 함 — ' + e.message);

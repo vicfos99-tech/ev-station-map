@@ -1,0 +1,16 @@
+{
+  "owner": "healthrunner",
+  "app_piece": "health.app",
+  "src_piece": "health.src",
+  "feature_prefix": "health.",
+  "start_event": "app.start",
+  "conn_prefix": "conn.",
+  "wildcard": "*",
+  "start_conn": "conn.start",
+  "recheck_ms": 1000,
+  "where": "healthrunner",
+  "word_app": "health_app",
+  "word_src_down": "src_down",
+  "word_src_back": "src_back",
+  "word_feature": "feature"
+}

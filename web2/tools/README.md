@@ -25,6 +25,25 @@ node web2/tools/install_hook.mjs
 - 걸쇠는 이번 커밋에 `web2/` 아래 파일이 있을 때만 `check4.mjs` 를 돌리고, 실패면 커밋을 막는다(다른 폴더 커밋에는 끼지 않는다).
 - 확인: `git -C <저장소> commit` 때 `[web2 걸쇠] 기계 검사 네 가지를 돌립니다` 가 찍힌다.
 
+## 빌드 — `build.mjs`
+```
+node web2/tools/build.mjs --out <출력 폴더> [--secret <저장소 밖 config_app_secret.json>]
+```
+- 뼈대 + 화면 조각 + 모듈(함수로 감싸 한 줄기로) + 설정·꼴 표(`window.EV_CONFIG`) + 지도 라이브러리를 `index.html` 하나로, 판 기록 `build.json`(stamp·at·commit). 출력 자리는 인자 — 프로젝트 안에 만들지 않는다.
+- 막는 것: JSON 꼴·같은 키 두 번, 빠진 조각(`ui_X` 의 style·view), 허용하지 않는 import/export 꼴, 모듈 고리.
+
+## 스스로 시험 — `try_a1.mjs`
+```
+node web2/tools/try_a1.mjs
+```
+- 다리를 시험 모드(`try_a1.run_seconds`)로 띄워 S1·S8 세 갈래·설정 깨기·비밀 값 가림·빌드한 한 파일을 시험하고 표를 찍는다(약 2분 30초 — 다리가 스스로 끝날 때까지 기다림). 표 사본 `tools/logs/try_a1_last.md`.
+
+## 크롬으로 보기 — `view_s1.mjs`
+```
+node web2/tools/view_s1.mjs [초]
+```
+- 빌드(임시 폴더) + 다리(시험 모드, S1) + `http://127.0.0.1:5173/` 작은 웹 서버를 같은 초만 띄운다. 자세히 `web2/README.md`.
+
 ## 지도 라이브러리 받기 — `vendor_get.mjs`
 ```
 node web2/tools/vendor_get.mjs

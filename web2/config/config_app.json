@@ -1,0 +1,6 @@
+{
+  "where": "app",
+  "owner": "app",
+  "events": {"start": "app.start", "error": "error", "rejection": "unhandledrejection"},
+  "words": {"start": "start", "uncaught": "uncaught", "unhandled": "unhandled", "make_failed": "make_failed"}
+}

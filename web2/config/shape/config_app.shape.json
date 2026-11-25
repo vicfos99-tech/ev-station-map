@@ -1,0 +1,11 @@
+{"keys": {
+  "where": {"t": "str", "min": 1, "max": 40},
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "events.start": {"t": "str", "min": 1, "max": 40},
+  "events.error": {"t": "str", "min": 1, "max": 40},
+  "events.rejection": {"t": "str", "min": 1, "max": 40},
+  "words.start": {"t": "str", "min": 1, "max": 40},
+  "words.uncaught": {"t": "str", "min": 1, "max": 40},
+  "words.unhandled": {"t": "str", "min": 1, "max": 40},
+  "words.make_failed": {"t": "str", "min": 1, "max": 40}
+}}

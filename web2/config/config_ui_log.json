@@ -1,0 +1,21 @@
+{
+  "open_id": "ev-log-open",
+  "panel_id": "ev-log",
+  "list_id": "ev-log-lines",
+  "copy_id": "ev-log-copy",
+  "save_id": "ev-log-save",
+  "close_id": "ev-log-close",
+  "version_id": "ev-log-version",
+  "note_id": "ev-log-note",
+  "show_lines": 300,
+  "mime": "text/plain;charset=utf-8",
+  "link_tag": "a",
+  "click_event": "click",
+  "stamp_mark": "{stamp}",
+  "app_piece": "health.app",
+  "where": "ui_log",
+  "act_copy": "copy",
+  "act_save": "save",
+  "act_init": "init",
+  "texts": {"open": "기록", "copy": "복사", "save": "내려받기", "close": "닫기", "version": "판 {stamp}", "copied": "복사함", "copy_fail": "복사 못 함"}
+}

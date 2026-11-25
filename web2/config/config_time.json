@@ -1,0 +1,7 @@
+{
+  "note": "한국 시각 = UTC + kst_offset_hours. 폰·PC 지역 시각을 쓰지 않는다(설계 5-6). PC 의 work.env KST_OFFSET_HOURS 와 같은 값",
+  "kst_offset_hours": 9,
+  "ms_per_hour": 3600000,
+  "tokens_re": "YYYY|MM|DD|hh|mm|ss",
+  "pad_char": "0"
+}
