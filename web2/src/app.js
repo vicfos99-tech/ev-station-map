@@ -33,6 +33,9 @@ import * as locate from './locate.js';
 import * as speed from './speed.js';
 import * as ahead from './ahead.js';
 import * as formcheck from './formcheck.js';
+import * as engine from './engine.js';
+import * as planinput from './planinput.js';
+import * as mine from './mine.js';
 import * as mapcam from './mapcam.js';
 import { createCalcRunner } from './calcrunner.js';
 import * as board from './board.js';
@@ -45,6 +48,8 @@ import { createLocateGuide } from './ui_locate.js';
 import { createOddButton } from './ui_odd.js';
 import { createStationCard } from './ui_station.js';
 import { createSearchScreen } from './ui_navi.js';
+import { createRouteScreen } from './ui_route.js';
+import { createMyScreen } from './ui_my.js';
 
 export const NEEDS = ['platform'];
 
@@ -105,7 +110,7 @@ export function main(platform) {
     make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo, fixcheck, geomath: geo }));
     make('net_route', () => createRouteClient({ ...s, netcore: made.netcore, naviroute }));
   }
-  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, limitmatch, speed, ahead, naviroute, navi } }));
+  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, limitmatch, speed, ahead, naviroute, navi, engine, planinput, mine, relay_read: relayRead, relay_fresh: relayFresh, timefmt } }));
   make('healthrunner', () => createHealthRunner({ ...s, health }));
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));
@@ -117,6 +122,8 @@ export function main(platform) {
   make('ui_odd', () => createOddButton({ ...screen, formcheck }));
   make('ui_station', () => createStationCard({ ...screen, relay_read: relayRead, relay_fresh: relayFresh, navlink }));
   make('ui_navi', () => createSearchScreen({ ...screen, formcheck }));
+  make('ui_route', () => createRouteScreen({ ...screen, formcheck, relay_fresh: relayFresh }));
+  make('ui_my', () => createMyScreen({ ...screen, formcheck }));
 
   try {
     made.state.claim(c.owner, [c.events.start])(c.events.start, { at: p.clock.now() });

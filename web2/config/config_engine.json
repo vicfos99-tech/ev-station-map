@@ -1,0 +1,36 @@
+{
+  "note": "충전소 고르기 엔진(engine — 옛 앱 web/engine.js · 파이썬 src/ev_charge_planner 와 같은 셈). 값은 옛 엔진에 박혀 있던 그대로: 안전 여유 기본 0.10 · 도착 최소 기본 15% · 허용 오차 1e-9 · 점수(빈 급속 1대 이하 0점 · 2대 1점 · 3대 이상 2점, 도착 여유 10% 미만 0점 · 20% 미만 1점 · 그 이상 2점, 신선하면 1점). 알림 글은 파이썬과 같은 글({n} 자리에 수). g_digits = 파이썬 {x:g} 와 같은 유효 자리",
+  "pct": 100,
+  "ms_per_minute": 60000,
+  "tolerance": 1e-9,
+  "g_digits": 6,
+  "default_margin_ratio": 0.1,
+  "default_min_arrival_pct": 15,
+  "n_mark": "{n}",
+  "subscription_word": "subscription",
+  "charger_type": {"fast": "fast", "slow": "slow"},
+  "status": {"available": "available", "charging": "charging"},
+  "status_order": ["available", "charging", "out_of_service", "maintenance", "comm_error"],
+  "unusable_statuses": ["out_of_service", "maintenance", "comm_error"],
+  "alert": {"unreachable": "unreachable", "all_unavailable": "all_unavailable", "no_usable_fast": "no_usable_fast", "unusable_chargers": "unusable_chargers", "stale_info": "stale_info", "no_backup": "no_backup", "no_safe_station": "no_safe_station"},
+  "texts": {
+    "stale_info": "충전 상태 갱신이 {n}분을 넘어 오래되었다",
+    "unusable_chargers": "사용할 수 없는 충전기가 {n}대 있다",
+    "all_unavailable": "사용 가능한 충전기가 하나도 없다",
+    "no_usable_fast": "사용 가능한 급속 충전기가 없다",
+    "unreachable": "남은 잔량으로 갈 수 없다",
+    "no_backup": "예비 충전소가 없다",
+    "no_safe_station": "안전하게 갈 수 있는 충전소가 없다"
+  },
+  "score": {"usable_low": 1, "usable_mid": 2, "usable_top_points": 2, "margin_low": 10, "margin_mid": 20, "margin_top_points": 2},
+  "reco": {"ok": "ok", "none": "no_safe_station"},
+  "roles": {"primary": "primary", "backup": "backup"},
+  "why": {
+    "text": " — 비어 있지 않은 글이어야 함", "charger_type": "충전기 종류를 모름: ", "charger_status": "충전기 상태를 모름: ", "power": "출력은 0 보다 커야 함: ",
+    "station_id": "충전소 id", "operator": "충전소 업체", "price": "요금은 0 이상: ", "updated": "상태 시각은 밀리초: ", "detour": "왕복 거리는 0 이상: ",
+    "rest_id": "휴게소 id", "rest_name": "휴게소 이름", "distance": "거리는 0 이상: ", "highway": "고속도로 이름", "direction": "방향",
+    "order": "휴게소 거리가 줄어듦: ", "dup_rest": "휴게소 id 겹침: ", "dup_station": "충전소 id 겹침: ",
+    "soc": "배터리는 0~100: ", "battery": "배터리 용량은 0 보다 커야 함: ", "eff": "전비는 0 보다 커야 함: ", "margin": "안전 여유는 0 이상 1 미만: ", "min_arrival": "도착 최소는 0~100: ",
+    "card_name": "카드 이름", "rate": "할인율은 0 초과 1 미만: ", "sub_operator": "구독 업체", "stale": "오래됨 기준은 0 이상: ", "position": "지금 자리는 0 이상: "
+  }
+}

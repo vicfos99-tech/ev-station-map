@@ -4,9 +4,9 @@
 html, body { margin: 0; height: 100%; }
 body {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
-  grid-template-areas: "status status status" "notice notice notice" "drive drive drive" "tools odd log";
+  grid-template-areas: "status status status status" "notice notice notice notice" "drive drive drive drive" "tools odd more log";
   background: #111827;
 }
 .ev-drive { grid-area: drive; display: flex; min-height: 0; min-width: 0; }
@@ -17,11 +17,15 @@ body {
 .ev-center { flex: 3; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .ev-mapwrap { flex: 1 1 auto; display: flex; flex-direction: column; position: relative; min-width: 0; }
 .ev-slot-center { flex: 1 1 auto; position: relative; min-width: 0; }
-/* 좁은 창: 아래 띠를 두 줄로(지도 단추·기록 / 이상해) — 여전히 흐름이라 겹치지 않는다 */
+/* (A7) 아래 띠 more = 목록·내 차 여는 단추(ui_route·ui_my 가 꽂음) — 흐름. 열린 칸은 가운데 칸 안(지도 아래)에 들어가 지도만 줄인다 */
+.ev-more { grid-area: more; display: flex; gap: 8px; align-items: center; padding: 8px 0; }
+.ev-more:empty { display: none; }
+/* 좁은 창: 아래 띠를 두 줄로(지도 단추·목록·내 차·기록 / 이상해) — 여전히 흐름이라 겹치지 않는다. 좁으면 단추 폭을 48 로 */
 @media (max-width: 560px) {
   body {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-    grid-template-areas: "status status status" "notice notice notice" "drive drive drive" "tools . log" "odd odd odd";
+    grid-template-areas: "status status status status" "notice notice notice notice" "drive drive drive drive" "tools more . log" "odd odd odd odd";
   }
 }
+@media (max-width: 560px) { .ev-more .ev-more-btn { min-width: 48px; padding: 0 8px; } }

@@ -1,0 +1,50 @@
+/* 목록·추천 칸: 운전 화면 가운데 칸(.ev-center — 지도 아래)에 흐름으로 들어가 지도 칸을 줄인다(떠 있는 겹이 아님 — 지도를 다 가리지 않고(높이 한도),
+   양옆 판·지도 저작권 표시(지도 칸 안 — 지도와 함께 올라감)·아래 띠와 같은 자리를 쓰지 않는다). 카드 없이 구분선 목록, 간격 8 단위, 누르는 곳 48px 이상,
+   중요한 숫자(남은 거리·도착 %) 크게. 초록·주황·빨강은 상태에만. 칸 틀(.ev-panel*)은 내 차 칸과 함께 쓴다 */
+.ev-panel { flex: 0 1 auto; max-height: 60%; min-height: 0; overflow-y: auto; box-sizing: border-box; padding: 8px; background: #111827; border-top: 2px solid #4b5563; color: #f9fafb; font-family: system-ui, sans-serif; }
+.ev-panel[hidden] { display: none; }
+.ev-panel-head { display: flex; align-items: center; gap: 8px; }
+.ev-panel-title { flex: 1 1 auto; min-width: 0; font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
+.ev-panel-btn { flex: 0 0 auto; min-height: 48px; min-width: 48px; padding: 0 12px; font-size: 15px; font-weight: 700; border: 1px solid #4b5563; border-radius: 8px; background: #1f2937; color: #f9fafb; }
+.ev-panel-main { background: #2563eb; border-color: #2563eb; }
+.ev-panel-note { font-size: 13px; color: #fde68a; padding: 8px 0 0; }
+.ev-panel-note:empty { display: none; }
+.ev-panel-sub { font-size: 14px; font-weight: 700; color: #9ca3af; padding: 16px 0 0; }
+/* 배터리 줄: 좁은 칸(폰 세로 — 가운데 칸 약 180px)에서는 이름이 한 줄을 다 쓰고 아래에 −·값·+ (가로로 넘치지 않게) */
+.ev-route-soc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 4px; padding: 8px 0 0; }
+.ev-route-soc-label { flex: 1 1 100%; min-width: 0; font-size: 15px; }
+.ev-route-soc .ev-panel-btn { min-width: 48px; padding: 0 8px; }
+.ev-route-soc-in { box-sizing: border-box; width: 56px; min-width: 0; min-height: 48px; padding: 0 8px; font-size: 22px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; border: 1px solid #6b7280; border-radius: 8px; background: #1f2937; color: #f9fafb; }
+.ev-route-range { font-size: 13px; color: #d1d5db; padding: 8px 0; }
+.ev-route-reco { display: flex; flex-direction: column; border-top: 1px solid #4b5563; }
+.ev-route-pick { padding: 8px 0; border-left: 4px solid #22c55e; padding-left: 8px; }
+.ev-route-pick + .ev-route-pick, .ev-route-pick + .ev-route-none { border-top: 1px solid #4b5563; }
+.ev-route-pick[data-role="backup"] { border-left-color: #60a5fa; }
+.ev-route-pick-role { font-size: 13px; color: #9ca3af; }
+.ev-route-pick-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 8px; }
+.ev-route-pick-name { font-size: 18px; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; min-width: 0; }
+.ev-route-pick-dist { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-route-pick-sub { display: block; font-size: 14px; color: #d1d5db; overflow-wrap: anywhere; }
+.ev-route-chips { display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 4px 0 0; }
+.ev-route-chip { font-size: 13px; color: #d1d5db; }
+.ev-route-chip[data-tone="good"] { color: #22c55e; }
+.ev-route-chip[data-tone="warn"] { color: #f59e0b; }
+.ev-route-chip[data-tone="bad"] { color: #ef4444; }
+.ev-route-none { padding: 8px 0; }
+.ev-route-none-head { display: block; font-size: 16px; font-weight: 700; }
+.ev-route-none[data-tone="bad"] .ev-route-none-head { color: #ef4444; }
+.ev-route-none[data-tone="warn"] .ev-route-none-head { color: #f59e0b; }
+.ev-route-none-body { display: block; font-size: 13px; color: #d1d5db; overflow-wrap: anywhere; }
+.ev-route-list { display: flex; flex-direction: column; border-top: 2px solid #4b5563; margin-top: 8px; }
+.ev-route-stop { min-height: 48px; padding: 8px 0; cursor: pointer; }
+.ev-route-stop + .ev-route-stop { border-top: 1px solid #4b5563; }
+.ev-route-stop[data-reach="false"] { opacity: .6; }
+.ev-route-stop[data-role="primary"] { border-left: 4px solid #22c55e; padding-left: 8px; }
+.ev-route-stop[data-role="backup"] { border-left: 4px solid #60a5fa; padding-left: 8px; }
+.ev-route-stop-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.ev-route-stop-km { flex: 0 0 auto; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-route-stop-name { flex: 1 1 auto; min-width: 0; font-size: 16px; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.ev-route-stop-soc { flex: 0 0 auto; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-route-stop-soc[data-low="true"] { color: #ef4444; }
+.ev-route-stop-ops { font-size: 13px; color: #9ca3af; overflow-wrap: anywhere; }
+.ev-route-empty { font-size: 14px; color: #9ca3af; padding: 8px 0; }

@@ -1,0 +1,16 @@
+<!-- 내 차·할인 칸(ui_my): 여는 단추는 아래 띠(격자 자리 more — 흐름이라 판·지도를 덮지 않음). 칸은 처음엔 숨김 — ui_my.js 가 운전 화면 가운데 칸(ev-center — 지도 아래)으로 옮겨 꽂는다. 칸·글은 설정(config_ui_my)에서 -->
+<button id="ev-my-open" class="ev-more-btn ev-my-open" type="button" aria-pressed="false" hidden></button>
+<section id="ev-my" class="ev-panel ev-my" hidden>
+  <div class="ev-panel-head">
+    <div id="ev-my-title" class="ev-panel-title"></div>
+    <button id="ev-my-save" class="ev-panel-btn ev-panel-main" type="button"></button>
+    <button id="ev-my-close" class="ev-panel-btn" type="button"></button>
+  </div>
+  <div id="ev-my-note" class="ev-panel-note" aria-live="polite"></div>
+  <div id="ev-my-car-head" class="ev-panel-sub"></div>
+  <div id="ev-my-car" class="ev-my-list"></div>
+  <div id="ev-my-discount-head" class="ev-panel-sub"></div>
+  <div id="ev-my-discount" class="ev-my-list"></div>
+  <div id="ev-my-ops-head" class="ev-panel-sub"></div>
+  <div id="ev-my-ops" class="ev-my-list"></div>
+</section>

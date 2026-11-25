@@ -1,0 +1,18 @@
+<!-- 목록·추천 칸(ui_route): 여는 단추는 아래 띠(격자 자리 more — 흐름). 칸은 처음엔 숨김 — ui_route.js 가 운전 화면 가운데 칸(ev-center — 지도 아래)으로 옮겨 꽂는다. 글은 설정(config_ui_route)에서 -->
+<button id="ev-route-open" class="ev-more-btn ev-route-open" type="button" aria-pressed="false" hidden></button>
+<section id="ev-route" class="ev-panel ev-route" hidden>
+  <div class="ev-panel-head">
+    <div id="ev-route-head" class="ev-panel-title"></div>
+    <button id="ev-route-close" class="ev-panel-btn" type="button"></button>
+  </div>
+  <div class="ev-route-soc">
+    <label id="ev-route-soc-label" class="ev-route-soc-label" for="ev-route-soc"></label>
+    <button id="ev-route-minus" class="ev-panel-btn" type="button"></button>
+    <input id="ev-route-soc" class="ev-route-soc-in" type="text" inputmode="numeric">
+    <button id="ev-route-plus" class="ev-panel-btn" type="button"></button>
+  </div>
+  <div id="ev-route-soc-err" class="ev-panel-note"></div>
+  <div id="ev-route-range" class="ev-route-range"></div>
+  <div id="ev-route-reco" class="ev-route-reco"></div>
+  <div id="ev-route-list" class="ev-route-list"></div>
+</section>

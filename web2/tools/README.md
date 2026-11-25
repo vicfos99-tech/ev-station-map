@@ -101,6 +101,29 @@ node web2/tools/try_a5.mjs chrome ok|over|none   # 진짜 크롬 한 모습씩(�
 - ⑤ 진짜 크롬 세 모습(정상 S1 · 넘음 S2 · 빈 칸 S4) × 네 창: 판단·제한 글 · 가림 0 · 잘림(판 밖·왼편 자리 밖) 0 · 단추와 겹침 0 · 단추 48px. 표 사본 `tools/logs/try_a5_last[_부분].md`, 잰 값 `try_a5_chrome_<판단>.json`.
 - **제한 속도 파일은 중계 R5 전이라 시험 다리가 내주지 않는다** — `lib_testbed.limitFiles` 가 지금 장면(`selectScene` 이 적음)의 `limits`(시험용 값)로 중계 꼴 파일을 만들어 선 파일과 같은 자리(`linesShim.answer`)에서 대신 답한다. 그래서 모든 시험·보기·크롬 재기에 같은 대신 답이 들어간다(값은 `testbed.limit_shim`).
 
+## 스스로 시험 — `try_a6.mjs` (A6 주소 검색·경로·기록 올리기)
+```
+node web2/tools/try_a6.mjs              # 전부(약 12분)
+node web2/tools/try_a6.mjs pure|app|chrome
+```
+- ① 순수: 장소·길 답 검사(모르는 칸·범위 밖·판 번호·개수·제어 문자) · 노선 꼴(조각 이음·누적 km·지우기) · 경로 기준 앞의 충전소(시험 선 둘 — 갈아타는 곳 너머 · 끝 뒤 채움 · 벗어나면 선 기준) · 검색 글 검사.
+- ② S9 정상·느림·실패·돌아옴(검색 중에도 속도판·충전소판·지도 카메라 그대로, 답마다 다른 글 — 오늘 한도·끊김·이상한 답은 시험이 다리 앞에서 대신 답함) ③ S10 '기록 올리기'(누르기 전 0건 · 받음 · 거절 · 다시 누름 · 꽉 참이면 앞에서 멈춤) ④ S7 집 PC 끊김(길찾기·올리기만 사용 불가).
+- ⑤ 진짜 크롬 네 창: 검색 목록 → 경로 → 경로 + 정보 칸 세 걸음의 가림·겹침·잘림·누르는 높이. 표 사본 `tools/logs/try_a6_last_<부분>.md`, 잰 값 `try_a6_chrome.json`.
+
+## 스스로 시험 — `try_a7.mjs` (A7 목록·추천, 내 차·할인)
+```
+node web2/tools/try_a7.mjs pure      # 옛·새·파이썬 계산 대조 + 순수(다리 없음, 몇 초)
+node web2/tools/try_a7.mjs app       # S1 가상 창(다리 200초)
+node web2/tools/try_a7.mjs s12       # S12 1시간을 12배속으로(약 6분)
+node web2/tools/try_a7.mjs chrome    # 진짜 크롬 네 창(약 2분)
+node web2/tools/try_a7.mjs shots     # 옛·새 화면 나란히 그림(약 2분)
+```
+- ① 순수: 옛 `web/engine.js` ↔ 새 `engine.js`(옛 실제 자료 `web/live.js` 32개 노선 × 4경우, JSON 통째로) · 파이썬 엔진(`src/ev_charge_planner` — `a7_py_plan.py` 가 같은 입력을 셈) · 옛 `app.js` 의 `inputs()`·`applyMine` 을 **글 그대로 떼어 돌린 것**(줄 범위 `try_a7.old_inputs`, 옛 파일은 고치지 않음) ↔ 새 `planinput.inputs` · S1/S3 장면을 중계 꼴로 바꿔 휴게소 차례·km·빈 급속 · 상태 모름 · `planOf` 상태들 · 내 차 칸 검사 · 업체 별명.
+- ② S1: '목록' 누르기 전 셈 없음 → 열면 상태 받기·목록·추천 · 앱 결과 = 같은 입력의 순수 셈 · 운전 화면 그대로 · 배터리 % 바꾸기·이상한 값 · 줄 누름 → 정보 칸 · '내 차' 저장(칸 하나만 열림) · 목록 셈에 바로 쓰임 · 이상한 값 저장 안 함 · 다시 열어도 같음 · 로그.
+- ③ S12: 다리 배속(`try_a7.s12.scale`)으로 장면 1시간을 돌리며 목록 칸을 연 채로 처음·중간·끝에 gc 뒤 힙, 그때 입력으로 표 전체를 셈한 한 틱 시간, 이벤트 늦음, 기록장 크기.
+- ④ 진짜 크롬 네 창: 목록 칸·내 차 칸을 열어 가운데 칸 안 · 양옆 판·아래 띠·지도 단추·저작권과 겹침 0 · 가림 0 · 잘림 0 · 48px. ⑤ 크롬 원격 길(DevTools)로 옛 앱(`web/index.html` 파일 그대로, 폰 저장에 노선·자리·배터리)과 새 앱(S1 목록 칸)을 그림으로 받아 나란히 한 장(`try_a7.shots.out_dir`).
+- 표 사본 `tools/logs/try_a7_last_<부분>.md`, 잰 값 `try_a7_chrome.json`.
+
 ## 크롬으로 보기 — `view_s1.mjs`
 ```
 node web2/tools/view_s1.mjs [초] [장면] [틱]

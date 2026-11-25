@@ -117,21 +117,40 @@ export function createRelayStatus(deps) {
     list = st && Array.isArray(st[c.list_key]) ? st[c.list_key] : [];
   });
 
+  // 보는 충전소 = 정보 칸(open_piece)의 것 + (A7) 목록 칸이 열린 동안 그 노선의 것(list_piece — RouteScreen). 둘 다 닫히면 멈춘다.
+  // 정보 칸이 열리면 늘 곧바로 받고, 목록 칸은 보는 시군구가 바뀔 때만 곧바로 받는다(목록이 다시 그려질 때마다 두드리지 않게)
+  let cardIds = [];
+  let listIds = [];
+  function rewatch(ask) {
+    const ids = [...new Set([...cardIds, ...listIds])];
+    if (!ids.length) {
+      watching = null;
+      stopTimer();
+      return;
+    }
+    const zones = deps.relay_read.zonesOf(ids, list);
+    const moved = !watching || watching.zones.join() !== zones.join();
+    watching = { ids, zones };
+    if (ask === c.ask.open || moved) log.info(c.where, c.word_watch, { ask, ids: ids.length, zones });
+    if (!zones.length) return;
+    if (ask === c.ask.open || moved) fetchNow(ask);
+  }
+
   // 정보 칸이 열림(고른 충전소 id 들) / 닫힘(null)
   deps.state.subscribe(c.open_piece, (v) => {
     try {
-      if (!v || !Array.isArray(v.ids) || !v.ids.length) {
-        watching = null;
-        stopTimer();
-        return;
-      }
-      const zones = deps.relay_read.zonesOf(v.ids, list);
-      watching = { ids: v.ids.slice(), zones };
-      log.info(c.where, c.word_watch, { ids: v.ids.length, zones });
-      if (!zones.length) return;
-      fetchNow(c.ask.open);
+      cardIds = v && Array.isArray(v.ids) ? v.ids.slice() : [];
+      rewatch(cardIds.length ? c.ask.open : c.ask.list);
     } catch (e) {
       log.error(e, { where: c.where, params: { act: c.ask.open } });
+    }
+  });
+  deps.state.subscribe(c.list_piece, (v) => {
+    try {
+      listIds = v && Array.isArray(v.ids) ? v.ids.slice() : [];
+      rewatch(c.ask.list);
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: c.ask.list } });
     }
   });
 

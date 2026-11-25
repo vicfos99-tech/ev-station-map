@@ -1,5 +1,5 @@
 {
-  "note": "충전기 상태 받기(relay_status — RelayClient 의 조각). 정보 칸이 열려 있는 동안(open_piece)만 그 충전소들이 든 시군구의 상태 파일(status_file 의 {zone})과 meta 를 받는다: 열 때 · refresh_ms 마다 · '다시 받기'(refresh_piece). 시군구 상태 파일이 없으면(skip_codes) 그 곳 충전기는 모두 '모름'. 실패하면 들고 있는 것을 그대로 두고 conn_piece 로 끊김만(상태 자리 — config_health.conn_source 가 '충전소 자료'로 셈)",
+  "note": "충전기 상태 받기(relay_status — RelayClient 의 조각). 정보 칸이 열려 있는 동안(open_piece)만 그 충전소들이 든 시군구의 상태 파일(status_file 의 {zone})과 meta 를 받는다: 열 때 · refresh_ms 마다 · '다시 받기'(refresh_piece). 시군구 상태 파일이 없으면(skip_codes) 그 곳 충전기는 모두 '모름'. 실패하면 들고 있는 것을 그대로 두고 conn_piece 로 끊김만(상태 자리 — config_health.conn_source 가 '충전소 자료'로 셈) (A7) list_piece = 목록 칸(RouteScreen)이 열린 동안 그 노선의 충전소 id 들 — 정보 칸의 것과 합쳐 받는다(보는 시군구가 바뀔 때만 곧바로, 그 뒤는 refresh_ms 마다)",
   "owner": "relay_status",
   "piece": "relay",
   "conn_piece": "conn.relay.status",
@@ -11,12 +11,23 @@
   "meta_file": "meta.json",
   "status_file": "status/{zone}.json",
   "zone_mark": "{zone}",
-  "skip_codes": ["none"],
+  "skip_codes": [
+    "none"
+  ],
   "refresh_ms": 30000,
-  "codes": {"bad": "bad", "internal": "internal"},
-  "ask": {"open": "open", "timer": "timer", "button": "button"},
+  "codes": {
+    "bad": "bad",
+    "internal": "internal"
+  },
+  "ask": {
+    "open": "open",
+    "timer": "timer",
+    "button": "button",
+    "list": "list"
+  },
   "where": "relay_status",
   "word_watch": "status_watch",
   "word_got": "status_got",
-  "word_fail": "status_fail"
+  "word_fail": "status_fail",
+  "list_piece": "route.watch"
 }

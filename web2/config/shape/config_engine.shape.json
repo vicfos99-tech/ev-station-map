@@ -1,0 +1,161 @@
+{
+ "keys": {
+  "pct": {
+   "t": "num",
+   "min": 1,
+   "max": 1000
+  },
+  "ms_per_minute": {
+   "t": "num",
+   "min": 1
+  },
+  "tolerance": {
+   "t": "num",
+   "min": 0,
+   "max": 0.001
+  },
+  "g_digits": {
+   "t": "num",
+   "int": true,
+   "min": 1,
+   "max": 17
+  },
+  "default_margin_ratio": {
+   "t": "num",
+   "min": 0,
+   "max": 0.99
+  },
+  "default_min_arrival_pct": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  },
+  "n_mark": {
+   "t": "str",
+   "min": 1,
+   "max": 10
+  },
+  "subscription_word": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "charger_type.fast": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "charger_type.slow": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "status.available": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "status.charging": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "status_order": {
+   "t": "arr",
+   "min": 1,
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "unusable_statuses": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "alert": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 40
+   }
+  },
+  "texts": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 200
+   }
+  },
+  "score.usable_low": {
+   "t": "num",
+   "int": true,
+   "min": 0,
+   "max": 100
+  },
+  "score.usable_mid": {
+   "t": "num",
+   "int": true,
+   "min": 0,
+   "max": 100
+  },
+  "score.usable_top_points": {
+   "t": "num",
+   "int": true,
+   "min": 0,
+   "max": 10
+  },
+  "score.margin_low": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  },
+  "score.margin_mid": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  },
+  "score.margin_top_points": {
+   "t": "num",
+   "int": true,
+   "min": 0,
+   "max": 10
+  },
+  "reco.ok": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "reco.none": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "roles.primary": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "roles.backup": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "why": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 200
+   }
+  }
+ }
+}

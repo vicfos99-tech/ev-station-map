@@ -1,0 +1,118 @@
+{
+ "keys": {
+  "request_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "my_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "relay_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "stations_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "fix_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pos_piece": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ahead_piece": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "default_price": {
+   "t": "num",
+   "min": 0,
+   "max": 5000
+  },
+  "unknown_operator": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "type_map": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 20
+   }
+  },
+  "type_unknown": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "unknown_kw": {
+   "t": "num",
+   "min": 0.1,
+   "max": 1000
+  },
+  "state_status": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "private_words": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 20
+   }
+  },
+  "nearby_show": {
+   "t": "num",
+   "int": true,
+   "min": 0,
+   "max": 50
+  },
+  "blocked_status": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "soc_min": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  },
+  "soc_max": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  },
+  "dir_suffix": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "states": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 20
+   }
+  }
+ }
+}

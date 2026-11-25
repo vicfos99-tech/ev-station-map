@@ -1,0 +1,17 @@
+/* 내 차·할인 칸: 운전 화면 가운데 칸(.ev-center — 지도 아래)에 흐름으로 들어가 지도 칸을 줄인다(떠 있는 겹이 아님 — 양옆 판·지도 저작권·아래 띠를 덮지 않음).
+   칸 틀(.ev-panel*)은 목록 칸(style_ui_route.css)과 같은 모양 — 카드 없이 구분선 목록, 간격 8 단위, 누르는 곳 48px 이상.
+   여는 단추는 아래 띠 격자 자리 more(style_ui_drive.css) */
+.ev-more-btn { min-height: 48px; min-width: 64px; padding: 0 12px; font-size: 14px; }
+.ev-more-btn[hidden] { display: none; }
+.ev-more-btn[aria-pressed="true"] { font-weight: 700; outline: 2px solid #2563eb; }
+.ev-my-list { display: flex; flex-direction: column; }
+.ev-my-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(96px, 40%); gap: 0 8px; align-items: center; padding: 8px 0; }
+.ev-my-row + .ev-my-row, .ev-my-op + .ev-my-op { border-top: 1px solid #4b5563; }
+.ev-my-label { font-size: 15px; overflow-wrap: anywhere; }
+.ev-my-input { box-sizing: border-box; min-height: 48px; width: 100%; min-width: 0; padding: 0 8px; font-size: 18px; font-variant-numeric: tabular-nums; border: 1px solid #6b7280; border-radius: 8px; background: #1f2937; color: #f9fafb; }
+.ev-my-check { width: 32px; height: 32px; margin: 8px 0; justify-self: start; }
+.ev-my-err { grid-column: 1 / -1; font-size: 13px; color: #fca5a5; }
+.ev-my-err:empty { display: none; }
+.ev-my-op { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 8px 0; }
+.ev-my-op-name { grid-column: 1 / -1; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.ev-my-note-line { font-size: 13px; color: #9ca3af; }

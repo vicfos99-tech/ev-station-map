@@ -108,6 +108,13 @@ function placesOf(st, r, lib, rl) {
   return places;
 }
 
+// (A7) 자리(휴게소) 목록을 밖에서도 같은 셈으로 — 목록·추천(planinput)이 휴게소를 같은 묶음·같은 km·같은 방향으로 쓴다(중복 최소화)
+export function places(st, r, lib) {
+  const rl = lib.rules[r.locate_rule];
+  if (!rl || !lib.parts[r.geo_part] || !lib.rules[r.geo_rule]) throw new TypeError(r.locate_rule);
+  return placesOf(st, r, lib, rl);
+}
+
 function round(v, k) {
   return Math.round(v * k) / k;
 }

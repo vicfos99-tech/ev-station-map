@@ -1,0 +1,99 @@
+{
+ "keys": {
+  "owner": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "my_piece": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "store_key": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "defaults.battery": {
+   "t": "num",
+   "min": 1,
+   "max": 300
+  },
+  "defaults.eff": {
+   "t": "num",
+   "min": 0.1,
+   "max": 20
+  },
+  "defaults.margin": {
+   "t": "num",
+   "min": 0,
+   "max": 99
+  },
+  "defaults.min_arrival": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  },
+  "defaults.stale": {
+   "t": "num",
+   "min": 0,
+   "max": 10080
+  },
+  "defaults.height": {
+   "t": "num",
+   "min": 0,
+   "max": 9.99
+  },
+  "defaults.sub_op": {
+   "t": "str",
+   "max": 40
+  },
+  "defaults.sub_rate": {
+   "t": "num",
+   "min": 0.01,
+   "max": 99.99
+  },
+  "defaults.sub_private": {
+   "t": "bool"
+  },
+  "defaults.card_name": {
+   "t": "str",
+   "max": 40
+  },
+  "defaults.card_rate": {
+   "t": "num",
+   "min": 0.01,
+   "max": 99.99
+  },
+  "fields": {
+   "t": "arr",
+   "min": 1,
+   "max": 40,
+   "of": {
+    "t": "obj"
+   }
+  },
+  "ids": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 40
+   }
+  },
+  "texts.open": {
+   "t": "str",
+   "min": 1,
+   "max": 10
+  },
+  "texts.why": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 60
+   }
+  }
+ }
+}

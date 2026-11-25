@@ -1,6 +1,10 @@
 {
-  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선). features.ahead 의 sources 가 빈 까닭: 위치가 끊겨도 마지막 위치로 세 곳을 그대로 보인다(설계 5-7 (4) (나)). (A4) conn.relay(충전소 목록)·conn.relay.status(충전기 상태)는 둘 다 다리 자료 길(data) — 하나라도 실패면 '충전소 자료 — 끊김'. features.station 의 sources 가 빈 까닭: 끊겨도 정보 칸은 들고 있는 상태를 받은 때와 함께 보이고 '다시 받기'를 늘 누를 수 있어야 한다. (A5) conn.relay.limit(제한 속도 자료)도 다리 자료 길(data). features.limit 의 sources 가 빈 까닭: 끊겨도 들고 있는 제한 속도 자료로 그대로 찾는다(설계 5-7 (4)) — 못 받은 칸의 길만 속도판 제한 칸이 빈다. (A6) conn.route(RouteClient — 집 PC 길: 끊김·잠금·시간 넘음)는 home, conn.route.kakao(오늘 한도·카카오 실패)는 kakao — 길찾기(navi)·기록 올리기(upload)는 home 이 끊길 때만 나쁨(카카오 쪽만 안 되면 쌓인 주소는 계속 찾아지므로 단추를 흐리게 하지 않고 상태 자리 한 줄만)",
-  "stages": {"starting": "starting", "good": "good", "broken": "broken"},
+  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선). features.ahead 의 sources 가 빈 까닭: 위치가 끊겨도 마지막 위치로 세 곳을 그대로 보인다(설계 5-7 (4) (나)). (A4) conn.relay(충전소 목록)·conn.relay.status(충전기 상태)는 둘 다 다리 자료 길(data) — 하나라도 실패면 '충전소 자료 — 끊김'. features.station 의 sources 가 빈 까닭: 끊겨도 정보 칸은 들고 있는 상태를 받은 때와 함께 보이고 '다시 받기'를 늘 누를 수 있어야 한다. (A5) conn.relay.limit(제한 속도 자료)도 다리 자료 길(data). features.limit 의 sources 가 빈 까닭: 끊겨도 들고 있는 제한 속도 자료로 그대로 찾는다(설계 5-7 (4)) — 못 받은 칸의 길만 속도판 제한 칸이 빈다. (A6) conn.route(RouteClient — 집 PC 길: 끊김·잠금·시간 넘음)는 home, conn.route.kakao(오늘 한도·카카오 실패)는 kakao — 길찾기(navi)·기록 올리기(upload)는 home 이 끊길 때만 나쁨(카카오 쪽만 안 되면 쌓인 주소는 계속 찾아지므로 단추를 흐리게 하지 않고 상태 자리 한 줄만) (A7) plan(목록·추천)·my(내 차·할인): plan 의 sources 가 빈 까닭 — 상태 받기가 끊겨도 들고 있는 상태로 목록을 셈하고 '상태 모름'을 보인다",
+  "stages": {
+    "starting": "starting",
+    "good": "good",
+    "broken": "broken"
+  },
   "app_grade": "app",
   "unknown_grade": "app",
   "grades": {
@@ -49,29 +53,181 @@
     "config_net_route": "navi",
     "config_naviroute": "navi",
     "config_ui_navi": "navi",
-    "config_navi": "ahead"
+    "config_navi": "ahead",
+    "config_engine": "plan",
+    "config_planinput": "plan",
+    "config_mine": "plan",
+    "config_ui_route": "plan",
+    "config_ui_my": "my"
   },
-  "reason_of_file": {"config_gateway": "gateway", "config_app_secret": "secret"},
+  "reason_of_file": {
+    "config_gateway": "gateway",
+    "config_app_secret": "secret"
+  },
   "reason_default": "config",
   "reason_need": "need",
   "reason_timeout": "start_timeout",
-  "start_needs": ["health", "stations", "lines"],
+  "start_needs": [
+    "health",
+    "stations",
+    "lines"
+  ],
   "start_timeout_ms": 15000,
-  "conn_source": {"conn.loc": "loc", "conn.tiles": "tiles", "conn.relay": "data", "conn.relay.status": "data", "conn.relay.limit": "data", "conn.route": "home", "conn.route.kakao": "kakao"},
-  "trouble_source": {"log": "logdir", "store": "datadir"},
+  "conn_source": {
+    "conn.loc": "loc",
+    "conn.tiles": "tiles",
+    "conn.relay": "data",
+    "conn.relay.status": "data",
+    "conn.relay.limit": "data",
+    "conn.route": "home",
+    "conn.route.kakao": "kakao"
+  },
+  "trouble_source": {
+    "log": "logdir",
+    "store": "datadir"
+  },
   "features": {
-    "loc": {"configs": ["config_loc_watch", "config_fixcheck", "config_geo"], "sources": ["loc"]},
-    "map": {"configs": ["config_ui_map", "config_mapcam"], "sources": ["tiles"]},
-    "log": {"configs": ["config_ui_log"], "sources": ["logdir"]},
-    "calc": {"configs": ["config_statecalc", "config_calcrunner", "config_locate"], "sources": []},
-    "speed": {"configs": ["config_speed", "config_ui_speed", "config_geo", "config_statecalc", "config_calcrunner"], "sources": ["loc"]},
-    "boards": {"configs": ["config_ui_boards"], "sources": []},
-    "ahead": {"configs": ["config_ahead", "config_ui_ahead", "config_locate", "config_geo", "config_statecalc", "config_calcrunner"], "sources": []},
-    "locate": {"configs": ["config_ui_locate"], "sources": []},
-    "odd": {"configs": ["config_ui_odd", "config_formcheck", "config_store"], "sources": ["datadir"]},
-    "station": {"configs": ["config_ui_station", "config_relay_status", "config_relay_read", "config_relay_fresh", "config_navlink"], "sources": []},
-    "limit": {"configs": ["config_relay_limit", "config_limitmatch", "config_statecalc", "config_calcrunner"], "sources": []},
-    "navi": {"configs": ["config_net_route", "config_naviroute", "config_ui_navi", "config_formcheck"], "sources": ["home"]},
-    "upload": {"configs": ["config_net_route", "config_ui_log", "config_store"], "sources": ["home"]}
+    "loc": {
+      "configs": [
+        "config_loc_watch",
+        "config_fixcheck",
+        "config_geo"
+      ],
+      "sources": [
+        "loc"
+      ]
+    },
+    "map": {
+      "configs": [
+        "config_ui_map",
+        "config_mapcam"
+      ],
+      "sources": [
+        "tiles"
+      ]
+    },
+    "log": {
+      "configs": [
+        "config_ui_log"
+      ],
+      "sources": [
+        "logdir"
+      ]
+    },
+    "calc": {
+      "configs": [
+        "config_statecalc",
+        "config_calcrunner",
+        "config_locate"
+      ],
+      "sources": []
+    },
+    "speed": {
+      "configs": [
+        "config_speed",
+        "config_ui_speed",
+        "config_geo",
+        "config_statecalc",
+        "config_calcrunner"
+      ],
+      "sources": [
+        "loc"
+      ]
+    },
+    "boards": {
+      "configs": [
+        "config_ui_boards"
+      ],
+      "sources": []
+    },
+    "ahead": {
+      "configs": [
+        "config_ahead",
+        "config_ui_ahead",
+        "config_locate",
+        "config_geo",
+        "config_statecalc",
+        "config_calcrunner"
+      ],
+      "sources": []
+    },
+    "locate": {
+      "configs": [
+        "config_ui_locate"
+      ],
+      "sources": []
+    },
+    "odd": {
+      "configs": [
+        "config_ui_odd",
+        "config_formcheck",
+        "config_store"
+      ],
+      "sources": [
+        "datadir"
+      ]
+    },
+    "station": {
+      "configs": [
+        "config_ui_station",
+        "config_relay_status",
+        "config_relay_read",
+        "config_relay_fresh",
+        "config_navlink"
+      ],
+      "sources": []
+    },
+    "limit": {
+      "configs": [
+        "config_relay_limit",
+        "config_limitmatch",
+        "config_statecalc",
+        "config_calcrunner"
+      ],
+      "sources": []
+    },
+    "navi": {
+      "configs": [
+        "config_net_route",
+        "config_naviroute",
+        "config_ui_navi",
+        "config_formcheck"
+      ],
+      "sources": [
+        "home"
+      ]
+    },
+    "upload": {
+      "configs": [
+        "config_net_route",
+        "config_ui_log",
+        "config_store"
+      ],
+      "sources": [
+        "home"
+      ]
+    },
+    "plan": {
+      "configs": [
+        "config_engine",
+        "config_planinput",
+        "config_mine",
+        "config_ui_route",
+        "config_statecalc",
+        "config_calcrunner",
+        "config_formcheck"
+      ],
+      "sources": []
+    },
+    "my": {
+      "configs": [
+        "config_ui_my",
+        "config_formcheck",
+        "config_store"
+      ],
+      "sources": [
+        "datadir"
+      ]
+    }
   }
 }

@@ -30,7 +30,7 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_odd", "ui_log"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_route", "ui_my", "ui_odd", "ui_log"],
     "views_optional": ["ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
@@ -125,6 +125,9 @@
       "limitmatch": "pure",
       "naviroute": "pure",
       "navi": "pure",
+      "engine": "pure",
+      "planinput": "pure",
+      "mine": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -149,6 +152,8 @@
       "ui_odd": "screen",
       "ui_station": "screen",
       "ui_navi": "screen",
+      "ui_route": "screen",
+      "ui_my": "screen",
       "app": "app"
     },
     "layer_may_need": {
@@ -199,7 +204,10 @@
       "navlink": "navlink",
       "limitmatch": "limitmatch",
       "naviroute": "naviroute",
-      "navi": "navi"
+      "navi": "navi",
+      "engine": "engine",
+      "planinput": "planinput",
+      "mine": "mine"
     },
     "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send"],
     "banned_everywhere": [
@@ -980,6 +988,453 @@
       "route_word": "안성"
     },
     "report_file": "try_a6_last.md"
+  },
+  "try_a7": {
+    "note": "A7 스스로 시험(try_a7.mjs). old_dir = 옛 앱(읽기만). engine_cases = 옛 실제 자료 노선마다 돌릴 경우(배터리 %·용량·전비·여유 비율·도착 최소·자리 km·오래됨 분·구독·카드). py_every = 몇 경우마다 하나를 파이썬 엔진과 견줄지. old_inputs = 옛 app.js 의 inputs()·applyMine 을 떼어 올 줄 범위(옛 파일은 고치지 않음 — 글 그대로 돌림)와 앞·뒤에 붙일 글. input_cases = 내 차·할인·내 값 경우(my 는 config_ui_my.defaults 에 덮음). s1 = S1 장면 중계 꼴 시험(앞 방향 낱말·km 허용 차이·지금 km·배터리). scene_state = 장면 충전기 상태 → 중계 상태 이름",
+    "old_dir": "../web",
+    "old_app": "app.js",
+    "old_engine": "engine.js",
+    "old_live": "live.js",
+    "old_data": "data.js",
+    "py_helper": "a7_py_plan.py",
+    "py_src": "../src",
+    "py_max_buffer": 268435456,
+    "py_every": 4,
+    "now_after_ms": 600000,
+    "engine_cases": [
+      {
+        "name": "기본",
+        "soc": 60,
+        "battery": 60,
+        "eff": 5,
+        "margin": 0.1,
+        "min_arrival": 15,
+        "pos": 0,
+        "stale": 30,
+        "sub": "채비",
+        "sub_rate": 0.1586,
+        "card": "",
+        "card_rate": 0.1
+      },
+      {
+        "name": "적은 배터리",
+        "soc": 22,
+        "battery": 60,
+        "eff": 5,
+        "margin": 0.1,
+        "min_arrival": 15,
+        "pos": 40,
+        "stale": 30,
+        "sub": "",
+        "sub_rate": 0.1,
+        "card": "",
+        "card_rate": 0.1
+      },
+      {
+        "name": "카드·긴 오래됨",
+        "soc": 80,
+        "battery": 77.4,
+        "eff": 4.2,
+        "margin": 0.15,
+        "min_arrival": 20,
+        "pos": 120,
+        "stale": 100000,
+        "sub": "SK일렉링크",
+        "sub_rate": 0.2,
+        "card": "그린",
+        "card_rate": 0.25
+      },
+      {
+        "name": "거의 빈 배터리",
+        "soc": 9,
+        "battery": 60,
+        "eff": 5,
+        "margin": 0.1,
+        "min_arrival": 15,
+        "pos": 0,
+        "stale": 30,
+        "sub": "",
+        "sub_rate": 0.1,
+        "card": "",
+        "card_rate": 0.1
+      }
+    ],
+    "old_inputs": {
+      "ranges": [
+        [
+          35,
+          51
+        ],
+        [
+          87,
+          87
+        ],
+        [
+          126,
+          185
+        ]
+      ],
+      "prefix": "const MINE_KEY = 'mine'; let lastRoute = null; const curRoute = () => CUR;",
+      "suffix": "return { inputs, blocked: () => blocked, hidden: () => hiddenIndoor };"
+    },
+    "input_cases": [
+      {
+        "name": "기본(채비 구독·민자 제외)",
+        "soc": 60,
+        "pos": 0,
+        "my": {},
+        "mine": "none"
+      },
+      {
+        "name": "카드·구독 없음·높은 차",
+        "soc": 45,
+        "pos": 30,
+        "my": {
+          "sub_op": "",
+          "card_name": "그린",
+          "card_rate": 12,
+          "height": 3.4
+        },
+        "mine": "none"
+      },
+      {
+        "name": "내 값(업체 요금·충전소 요금·상태·높이)",
+        "soc": 70,
+        "pos": 0,
+        "my": {
+          "height": 3.0
+        },
+        "mine": "sample"
+      },
+      {
+        "name": "민자 포함 구독",
+        "soc": 35,
+        "pos": 10,
+        "my": {
+          "sub_private": false,
+          "margin": 20,
+          "min_arrival": 10
+        },
+        "mine": "sample"
+      }
+    ],
+    "mine": {
+      "price": 300,
+      "height": 2.5,
+      "status": "out_of_service",
+      "alias": "내별명",
+      "op_price": 350,
+      "low_height": 2.2
+    },
+    "status_at": "20261126040000",
+    "scene_state": {
+      "available": "free",
+      "charging": "busy",
+      "out_of_service": "broken",
+      "maintenance": "broken",
+      "comm_error": "unknown"
+    },
+    "s1": {
+      "scene": "S1_고속도로",
+      "forward_words": [
+        "부산"
+      ],
+      "backward_words": [
+        "서울"
+      ],
+      "km_tol": 0.6,
+      "pos_km": 28.0,
+      "soc": 60
+    },
+    "s3_scene": "S3_상행하행",
+    "bad_soc": 120,
+    "form_cases": [
+      {
+        "f": "my_battery",
+        "v": "",
+        "ok": false
+      },
+      {
+        "f": "my_battery",
+        "v": "abc",
+        "ok": false
+      },
+      {
+        "f": "my_battery",
+        "v": "-5",
+        "ok": false
+      },
+      {
+        "f": "my_battery",
+        "v": "77.4",
+        "ok": true
+      },
+      {
+        "f": "my_eff",
+        "v": "0",
+        "ok": false
+      },
+      {
+        "f": "my_eff",
+        "v": "5.2",
+        "ok": true
+      },
+      {
+        "f": "my_margin",
+        "v": "100",
+        "ok": false
+      },
+      {
+        "f": "my_min_arrival",
+        "v": "101",
+        "ok": false
+      },
+      {
+        "f": "my_stale",
+        "v": "-1",
+        "ok": false
+      },
+      {
+        "f": "my_height",
+        "v": "12",
+        "ok": false
+      },
+      {
+        "f": "my_sub_rate",
+        "v": "15.86",
+        "ok": true
+      },
+      {
+        "f": "my_sub_rate",
+        "v": "0",
+        "ok": false
+      },
+      {
+        "f": "my_card_name",
+        "v": "카드\u0007",
+        "ok": false
+      },
+      {
+        "f": "my_op_price",
+        "v": "1e9",
+        "ok": false
+      },
+      {
+        "f": "soc",
+        "v": "60",
+        "ok": true
+      },
+      {
+        "f": "soc",
+        "v": "60.5",
+        "ok": false
+      }
+    ],
+    "report_prefix": "try_a7_last_",
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "wait_ms": 20000,
+    "app": {
+      "run_seconds": 200,
+      "tick": 0,
+      "status_word": "status/",
+      "watch_ms": 3000,
+      "soc_low": 20,
+      "bad_socs": [
+        "120",
+        "abc",
+        "",
+        "55.5",
+        "-3"
+      ],
+      "my": {
+        "battery": "77.4",
+        "eff": "4.2",
+        "sub_op": "",
+        "card_name": "그린",
+        "card_rate": "12",
+        "alias": "내 업체",
+        "op_price": "350"
+      },
+      "bad_my": [
+        {
+          "key": "battery",
+          "v": "",
+          "why": "type"
+        },
+        {
+          "key": "eff",
+          "v": "abc",
+          "why": "type"
+        },
+        {
+          "key": "margin",
+          "v": "100",
+          "why": "range"
+        },
+        {
+          "key": "height",
+          "v": "12",
+          "why": "range"
+        },
+        {
+          "key": "min_arrival",
+          "v": "-1",
+          "why": "range"
+        },
+        {
+          "key": "op_price",
+          "v": "-3",
+          "why": "range"
+        }
+      ],
+      "save_wait_ms": 300
+    },
+    "s12": {
+      "note": "S12 긴 주행을 다리 배속(scale)으로 — 3600틱 ÷ 배속 초. run_seconds = 그 초 + 여유. 처음(warm_fixes 뒤)·중간(every_ms 마다)·끝(end_fixes 또는 watch_ms) 표본: gc 뒤 힙, 그때 입력으로 표 전체를 reps 번 셈한 가운데 시간, 이벤트 늦음(loop_window_ms 동안), 기록장 크기",
+      "scene": "S12_긴주행",
+      "scale": 12,
+      "run_seconds": 345,
+      "warm_fixes": 60,
+      "end_fixes": 3500,
+      "watch_ms": 330000,
+      "every_ms": 60000,
+      "reps": 30,
+      "loop_resolution_ms": 10,
+      "loop_window_ms": 5000,
+      "tick_floor_ms": 0.05,
+      "tick_ratio_max": 2,
+      "loop_p99_max_ms": 100,
+      "heap_grow_max_mb": 30
+    },
+    "chrome": {
+      "tick": 193,
+      "json_file": "try_a7_chrome.json",
+      "sel": {
+        "center": {
+          "q": "#ev-center"
+        },
+        "route_root": {
+          "q": "#ev-route"
+        },
+        "my_root": {
+          "q": "#ev-my"
+        },
+        "route_btns": {
+          "q": "#ev-route-close, #ev-route-minus, #ev-route-plus, #ev-route-soc"
+        },
+        "route_rows": {
+          "q": "#ev-route-list > .ev-route-stop"
+        },
+        "route_km": {
+          "q": ".ev-route-stop-km, .ev-route-pick-dist"
+        },
+        "my_inputs": {
+          "q": "#ev-my .ev-my-input, #ev-my-save, #ev-my-close"
+        },
+        "more_btns": {
+          "q": "#ev-route-open, #ev-my-open"
+        },
+        "map_me": {
+          "q": "#ev-map-me"
+        },
+        "map_only3": {
+          "q": "#ev-map-only3"
+        }
+      },
+      "actions": [
+        {
+          "name": "목록 엶",
+          "q": "#ev-route-open",
+          "wait_ms": 8000
+        },
+        {
+          "name": "내 차 엶",
+          "q": "#ev-my-open",
+          "wait_ms": 2000
+        }
+      ],
+      "avoid": [
+        "slot_left",
+        "slot_right",
+        "odd",
+        "odd_memo",
+        "odd_button",
+        "log_open",
+        "map_me",
+        "map_only3",
+        "attrib_box",
+        "more_btns"
+      ],
+      "cut": [
+        "route_km",
+        "route_root",
+        "my_root"
+      ],
+      "touch": [
+        "route_btns",
+        "route_rows",
+        "my_inputs"
+      ],
+      "band_touch": [
+        "more_btns"
+      ],
+      "must_show": {
+        "목록 엶": [
+          "route_rows",
+          "route_btns"
+        ],
+        "내 차 엶": [
+          "my_inputs"
+        ]
+      }
+    },
+    "shots": {
+      "note": "옛·새 화면 나란히 그림. 옛 앱은 web/index.html 을 파일로 그대로 열고 폰 저장(old_key)에 노선·자리·배터리를 넣어 다시 읽음. 새 앱은 S1(tick)에서 목록 칸을 엶(배터리 = 옛 것). 크롬은 원격 길(port)로 열어 그림을 받음",
+      "out_dir": "../../../90_임시/a7_shots",
+      "old_png": "a7_old.png",
+      "new_png": "a7_new.png", "my_png": "a7_new_my.png",
+      "both_png": "a7_old_new.png",
+      "both_html": "a7_old_new.html",
+      "text_json": "a7_shots_text.json",
+      "w": 412,
+      "h": 915,
+      "both_pad": 48,
+      "tick": 0,
+      "bridge_seconds": 90,
+      "load_ms": 4000,
+      "panel_ms": 7000,
+      "boot_ms": 1500,
+      "tries": 40,
+      "port": 9337,
+      "port_arg": "--remote-debugging-port=",
+      "blank": "about:blank",
+      "json_url": "http://127.0.0.1:{port}/json/list",
+      "chrome_args": [
+        "--headless=new",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-swiftshader",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-extensions",
+        "--mute-audio",
+        "--allow-file-access-from-files"
+      ],
+      "old_index": "index.html",
+      "old_key": "ev-charge-planner/v1",
+      "old_state": {
+        "routeKey": "live-gb-down",
+        "soc": 60,
+        "pos": 28,
+        "chaeviSet": true
+      },
+      "old_reco_q": "#reco",
+      "old_range_q": "#range-line",
+      "old_caption": "옛 앱(web/ — 경부 부산 방향 28 km · 배터리 60%)",
+      "new_caption": "새 앱(web2 — S1 경부 부산 방향 28 km · 배터리 60%)",
+      "text_lines": 8,
+      "min_png_bytes": 2000
+    }
   },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",

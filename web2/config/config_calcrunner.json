@@ -1,8 +1,24 @@
 {
   "note": "구독할 입력과 발행할 조각(설계 5-1-나 알림 표). 셈하는 법은 config_statecalc 의 표",
   "owner": "calcrunner",
-  "inputs": ["fix", "stations", "limit.data", "route.answer", "route.clear"],
-  "outputs": ["pos", "limit", "speed", "route", "ahead"],
+  "inputs": [
+    "fix",
+    "stations",
+    "limit.data",
+    "route.answer",
+    "route.clear",
+    "relay",
+    "my",
+    "plan.request"
+  ],
+  "outputs": [
+    "pos",
+    "limit",
+    "speed",
+    "route",
+    "ahead",
+    "plan"
+  ],
   "batch_ms": 100,
   "where": "calcrunner"
 }

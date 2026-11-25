@@ -1,5 +1,5 @@
 {
-  "note": "FormCheck(화면 입력 검사) 규칙. 칸마다 한 줄: t = text(글) / num(숫자). odd_memo = '이상해' 한 줄 메모(안 써도 됨 — 운전 중). ctrl_re = 막을 제어 문자(줄바꿈·탭 포함). (A6) navi_q = 검색 칸 글(빈 글 안 됨, 길이 한도는 다리·집 PC 서버의 물음 한도와 같게)",
+  "note": "FormCheck(화면 입력 검사) 규칙. 칸마다 한 줄: t = text(글) / num(숫자). odd_memo = '이상해' 한 줄 메모(안 써도 됨 — 운전 중). ctrl_re = 막을 제어 문자(줄바꿈·탭 포함). (A6) navi_q = 검색 칸 글(빈 글 안 됨, 길이 한도는 다리·집 PC 서버의 물음 한도와 같게). (A7) soc = 목록 칸의 지금 배터리 %(정수), my_* = 내 차·할인 칸(옛 앱 readForms 의 범위: 용량·전비 0 초과, 여유 0~99, 도착 최소 0~100, 오래됨 0 이상, 높이 10 m 미만(빈 값 = 0 — 화면이 처리), 할인 0 초과 100 미만) · 업체 별명·요금",
   "fields": {
     "odd_memo": {
       "t": "text",
@@ -9,6 +9,18 @@
       "ctrl_re": "[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]",
       "why": {"type": "type", "long": "long", "ctrl": "ctrl", "empty": "empty"}
     },
+    "soc": {"t": "num", "min": 0, "max": 100, "int": true, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_battery": {"t": "num", "min": 1, "max": 300, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_eff": {"t": "num", "min": 0.1, "max": 20, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_margin": {"t": "num", "min": 0, "max": 99, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_min_arrival": {"t": "num", "min": 0, "max": 100, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_stale": {"t": "num", "min": 0, "max": 10080, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_height": {"t": "num", "min": 0, "max": 9.99, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_sub_rate": {"t": "num", "min": 0.01, "max": 99.99, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_card_rate": {"t": "num", "min": 0.01, "max": 99.99, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
+    "my_card_name": {"t": "text", "max": 40, "trim": true, "allow_empty": true, "ctrl_re": "[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]", "why": {"type": "type", "long": "long", "ctrl": "ctrl", "empty": "empty"}},
+    "my_op_alias": {"t": "text", "max": 40, "trim": true, "allow_empty": true, "ctrl_re": "[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]", "why": {"type": "type", "long": "long", "ctrl": "ctrl", "empty": "empty"}},
+    "my_op_price": {"t": "num", "min": 1, "max": 2000, "int": false, "why": {"type": "type", "range": "range", "int": "int"}},
     "navi_q": {
       "t": "text",
       "max": 100,

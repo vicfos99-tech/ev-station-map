@@ -1,0 +1,7 @@
+{
+  "note": "내가 확인한 값(mine — 옛 앱의 DEFAULT_ALIAS·opLabel). default_alias = 업체 이름 → 기본으로 보일 이름(내가 바꾸면 그것). label_tpl = 별명이 있을 때 보이는 꼴",
+  "default_alias": {"브라이트에너지파트너스": "워터", "기후에너지환경부": "환경부"},
+  "label_tpl": "{alias} ({op})",
+  "alias_mark": "{alias}",
+  "op_mark": "{op}"
+}
