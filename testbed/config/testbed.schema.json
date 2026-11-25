@@ -1,0 +1,112 @@
+{
+  "$comment": "testbed.json 의 꼴. tools/tbconfig.py 가 읽을 때 이것으로 검사한다(쓰는 부분 — JSON Schema 일부, tools/schemacheck.py 참고).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "config_schema", "kst_offset_hours", "tick_interval_s", "server", "active_scene", "scenes", "log", "db", "status_codes", "sources", "startup_fail_targets", "geo", "units", "checks"],
+  "properties": {
+    "version": {"type": "integer", "const": 1},
+    "config_schema": {"type": "string", "minLength": 1},
+    "kst_offset_hours": {"type": "number", "minimum": -14, "maximum": 14},
+    "tick_interval_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 60},
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port"],
+      "properties": {
+        "host": {"type": "string", "minLength": 1},
+        "port": {"type": "integer", "minimum": 1, "maximum": 65535}
+      }
+    },
+    "active_scene": {"type": "string", "minLength": 1},
+    "scenes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dir", "glob", "schema_file", "lines_dir", "line_suffix", "line_schema_file"],
+      "properties": {
+        "dir": {"type": "string", "minLength": 1},
+        "glob": {"type": "string", "minLength": 1},
+        "schema_file": {"type": "string", "minLength": 1},
+        "lines_dir": {"type": "string", "minLength": 1},
+        "line_suffix": {"type": "string", "minLength": 1},
+        "line_schema_file": {"type": "string", "minLength": 1}
+      }
+    },
+    "log": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dir", "file", "time_format", "max_value_chars", "secret_words"],
+      "properties": {
+        "dir": {"type": "string", "minLength": 1},
+        "file": {"type": "string", "minLength": 1},
+        "time_format": {"type": "string", "minLength": 1},
+        "max_value_chars": {"type": "integer", "minimum": 1},
+        "secret_words": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "db": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "note": {"type": "string"}
+      }
+    },
+    "status_codes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "sources": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "startup_fail_targets": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "geo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["earth_radius_km", "lat_min", "lat_max", "lng_min", "lng_max", "speed_max_kmh", "accuracy_max_m"],
+      "properties": {
+        "earth_radius_km": {"type": "number", "exclusiveMinimum": 0},
+        "lat_min": {"type": "number", "minimum": -90, "maximum": 90},
+        "lat_max": {"type": "number", "minimum": -90, "maximum": 90},
+        "lng_min": {"type": "number", "minimum": -180, "maximum": 180},
+        "lng_max": {"type": "number", "minimum": -180, "maximum": 180},
+        "speed_max_kmh": {"type": "number", "exclusiveMinimum": 0},
+        "accuracy_max_m": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seconds_per_hour", "report_decimals"],
+      "properties": {
+        "seconds_per_hour": {"type": "number", "exclusiveMinimum": 0},
+        "report_decimals": {"type": "integer", "minimum": 0}
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "py_glob", "json_glob", "skip_dirs", "hardcode", "imports_allowed"],
+      "properties": {
+        "root": {"type": "string", "minLength": 1},
+        "py_glob": {"type": "string", "minLength": 1},
+        "json_glob": {"type": "string", "minLength": 1},
+        "skip_dirs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "hardcode": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed_numbers", "exclude_files", "path_patterns"],
+          "properties": {
+            "allowed_numbers": {"type": "array", "items": {"type": "number"}},
+            "exclude_files": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "path_patterns": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+          }
+        },
+        "imports_allowed": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    }
+  }
+}

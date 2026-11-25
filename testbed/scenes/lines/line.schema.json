@@ -1,0 +1,19 @@
+{
+  "$comment": "선 파일(lines/<이름>.json) 한 개의 꼴. 장면의 길 조각(kind=line)이 이 선의 km 구간을 가리킨다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "highway", "direction", "real", "from", "note", "points"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "highway": {"type": "string", "minLength": 1},
+    "direction": {"type": "string", "minLength": 1},
+    "real": {"type": "boolean"},
+    "from": {"type": "string", "minLength": 1},
+    "taken_at": {"type": "string"},
+    "note": {"type": "string", "minLength": 1},
+    "points": {
+      "type": "array", "minItems": 2,
+      "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}
+    }
+  }
+}

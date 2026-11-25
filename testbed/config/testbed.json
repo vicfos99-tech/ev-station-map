@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "config_schema": "testbed.schema.json",
+  "kst_offset_hours": 9,
+  "tick_interval_s": 1.0,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8787
+  },
+  "active_scene": "S1_고속도로",
+  "scenes": {
+    "dir": "../scenes",
+    "glob": "S[0-9]*.json",
+    "schema_file": "../scenes/scene.schema.json",
+    "lines_dir": "../scenes/lines",
+    "line_suffix": ".json",
+    "line_schema_file": "../scenes/lines/line.schema.json"
+  },
+  "log": {
+    "dir": "../logs",
+    "file": "testbed.log",
+    "time_format": "%Y-%m-%d %H:%M:%S",
+    "max_value_chars": 200,
+    "secret_words": ["secret", "key", "token", "password", "lock"]
+  },
+  "db": {
+    "path": "../data/testbed.db",
+    "note": "T3 에서 쓰는 자리. T1 은 만들지 않는다"
+  },
+  "status_codes": {
+    "comm_error": "1",
+    "available": "2",
+    "charging": "3",
+    "out_of_service": "4",
+    "maintenance": "5",
+    "unknown": "9"
+  },
+  "sources": ["data", "home", "gate", "loc", "tiles"],
+  "startup_fail_targets": ["stations", "lines", "app_secret", "gateway_url"],
+  "geo": {
+    "earth_radius_km": 6371.0088,
+    "lat_min": 33.0,
+    "lat_max": 38.7,
+    "lng_min": 124.5,
+    "lng_max": 132.0,
+    "speed_max_kmh": 200,
+    "accuracy_max_m": 5000
+  },
+  "units": {
+    "seconds_per_hour": 3600,
+    "report_decimals": 1
+  },
+  "checks": {
+    "root": "..",
+    "py_glob": "**/*.py",
+    "json_glob": "**/*.json",
+    "skip_dirs": ["__pycache__", "logs", "data", ".git"],
+    "hardcode": {
+      "allowed_numbers": [0, 1, -1],
+      "exclude_files": [],
+      "path_patterns": [
+        "^[A-Za-z]:[\\\\/]",
+        "^\\.{1,2}[\\\\/]",
+        "^/[^/\\s]",
+        "\\\\",
+        "^[a-zA-Z][a-zA-Z0-9+.-]*://",
+        "\\.(json|py|md|db|log|txt|csv|js|html)$",
+        "^\\*\\*",
+        "^\\d{1,3}(\\.\\d{1,3}){3}$",
+        "^localhost$"
+      ]
+    },
+    "imports_allowed": {
+      "schemacheck": [],
+      "geo": [],
+      "tblog": [],
+      "tbconfig": ["schemacheck"],
+      "check_scenes": ["tbconfig", "tblog", "schemacheck", "geo"],
+      "check4": ["tbconfig", "tblog", "check_scenes"]
+    }
+  }
+}

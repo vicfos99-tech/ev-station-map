@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "name": "S1_고속도로",
+  "title": "고속도로 평범 주행",
+  "description": "경부고속도로 부산 방향, 수원신갈 나들목 조금 앞(선 km 28)에서 천안 나들목 지나(선 km 82)까지 54 km 를 시속 90~100 으로 달린다. 기흥·안성·망향 휴게소를 지나고, 끝 무렵에도 앞의 세 곳이 차도록 천안호두·옥산 휴게소까지 목록에 둔다. 시험하는 것: 앞의 충전소 세 곳, 남은 거리 줄어듦, 지나치면 다음 곳, 지도 따라가기.",
+  "data_source": {
+    "real": true,
+    "from": "선: scenes/lines/gyeongbu_down.json(옛 앱 web/live.js 의 경부선 꼭짓점). 휴게소·충전소: 같은 live.js 의 routes 'live-gb-down' 휴게소 목록(공공데이터 한국환경공단 충전소 정보)",
+    "taken_at": "2026-11-16 09:40 (live.js fetched_at, 한국 시각)",
+    "note": "휴게소 이름·km·좌표, 충전소 id·업체·제조사·좌표·충전기 출력·처음 상태는 그 스냅숏 그대로다. live.js 에 충전기 id 가 없어 충전기 id(01, 02 …)는 목록 차례로 붙였다. 제한 속도는 실제 자료(도로공사 구간별 제한속도)를 아직 받지 않아 시험용 값 100 이다. 속도 표는 지어낸 주행이다."
+  },
+  "route": {
+    "legs": [
+      {"kind": "line", "line": "gyeongbu_down", "from_km": 28.0, "to_km": 82.0, "note": "수원신갈 나들목(30.4) 앞 → 천안 나들목(80.4) 지나"}
+    ]
+  },
+  "speeds": [
+    {"leg": 0, "from_km": 28.0, "to_km": 45.0, "kmh": 95},
+    {"leg": 0, "from_km": 45.0, "to_km": 60.0, "kmh": 100},
+    {"leg": 0, "from_km": 60.0, "to_km": 70.0, "kmh": 90},
+    {"leg": 0, "from_km": 70.0, "to_km": 82.0, "kmh": 95}
+  ],
+  "stops": [],
+  "emit": {
+    "fields": ["t", "lat", "lng", "speed_kmh", "heading_deg", "accuracy_m"],
+    "accuracy_m": 5,
+    "heading": "from_path",
+    "speed": "device",
+    "note": "틱마다 길 위 지금 자리, 기기가 준 것처럼 속도, 길 방향으로 셈한 진행 방향, 정확도 5 m"
+  },
+  "limits": [
+    {"leg": 0, "from_km": 28.0, "to_km": 82.0, "limit_kmh": 100, "note": "시험용 값(실제 자료 아님)"}
+  ],
+  "stations": [
+    {"id": "live-gb-down-2", "name": "기흥휴게소", "kind": "rest", "direction": "부산 방향", "line": "gyeongbu_down", "km": 33.9, "loc": [37.23572, 127.10385], "operators": [
+      {"station_id": "ME178003", "operator": "기후에너지환경부", "maker": "채비", "loc": [37.23566, 127.10502], "chargers": [
+        {"id": "01", "type": "fast", "kw": 50.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 50.0, "status": "available"}]},
+      {"station_id": "ST414634", "operator": "SK일렉링크", "maker": "시그넷", "loc": [37.23573, 127.10356], "chargers": [
+        {"id": "01", "type": "fast", "kw": 350.0, "status": "charging"},
+        {"id": "02", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "03", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "04", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "05", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "06", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "07", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "08", "type": "fast", "kw": 200.0, "status": "available"}]}]},
+    {"id": "live-gb-down-3", "name": "안성휴게소", "kind": "rest", "direction": "부산 방향", "line": "gyeongbu_down", "km": 58.7, "loc": [37.01347, 127.14472], "operators": [
+      {"station_id": "HD000003", "operator": "현대자동차", "maker": "채비", "loc": [37.0129, 127.14522], "chargers": [
+        {"id": "01", "type": "fast", "kw": 260.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 260.0, "status": "available"},
+        {"id": "03", "type": "fast", "kw": 260.0, "status": "available"},
+        {"id": "04", "type": "fast", "kw": 260.0, "status": "available"},
+        {"id": "05", "type": "fast", "kw": 100.0, "status": "available"},
+        {"id": "06", "type": "fast", "kw": 100.0, "status": "available"}]},
+      {"station_id": "ME18B303", "operator": "기후에너지환경부", "maker": "채비", "loc": [37.01341, 127.1448], "chargers": [
+        {"id": "01", "type": "fast", "kw": 100.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "03", "type": "fast", "kw": 200.0, "status": "available"}]},
+      {"station_id": "ST601529", "operator": "SK일렉링크", "maker": "시그넷", "loc": [37.01437, 127.14392], "chargers": [
+        {"id": "01", "type": "fast", "kw": 350.0, "status": "charging"},
+        {"id": "02", "type": "fast", "kw": 350.0, "status": "charging"},
+        {"id": "03", "type": "fast", "kw": 350.0, "status": "available"},
+        {"id": "04", "type": "fast", "kw": 350.0, "status": "charging"}]}]},
+    {"id": "live-gb-down-4", "name": "망향휴게소", "kind": "rest", "direction": "부산 방향", "line": "gyeongbu_down", "km": 77.4, "loc": [36.85422, 127.18044], "operators": [
+      {"station_id": "SGMAC044", "operator": "SK시그넷", "maker": "시그넷", "loc": [36.85431, 127.18047], "chargers": [
+        {"id": "01", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 200.0, "status": "available"}]},
+      {"station_id": "ST441324", "operator": "SK일렉링크", "maker": "시그넷", "loc": [36.85418, 127.18043], "chargers": [
+        {"id": "01", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "03", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "04", "type": "fast", "kw": 200.0, "status": "charging"},
+        {"id": "05", "type": "fast", "kw": 200.0, "status": "charging"}]}]},
+    {"id": "live-gb-down-5", "name": "천안호두휴게소", "kind": "rest", "direction": "부산 방향", "line": "gyeongbu_down", "km": 95.0, "loc": [36.73043, 127.26335], "operators": [
+      {"station_id": "EC440004", "operator": "이지차저", "maker": "시그넷", "loc": [36.73043, 127.26308], "chargers": [
+        {"id": "01", "type": "fast", "kw": 200.0, "status": "charging"},
+        {"id": "02", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "03", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "04", "type": "fast", "kw": 200.0, "status": "charging"}]},
+      {"station_id": "ME21A209", "operator": "기후에너지환경부", "maker": "채비", "loc": [36.73042, 127.26388], "chargers": [
+        {"id": "01", "type": "fast", "kw": 100.0, "status": "charging"},
+        {"id": "02", "type": "fast", "kw": 100.0, "status": "comm_error"}]}]},
+    {"id": "live-gb-down-6", "name": "옥산휴게소", "kind": "rest", "direction": "부산 방향", "line": "gyeongbu_down", "km": 109.6, "loc": [36.65718, 127.37022], "operators": [
+      {"station_id": "EC430012", "operator": "이지차저", "maker": "시그넷", "loc": [36.65763, 127.36984], "chargers": [
+        {"id": "01", "type": "fast", "kw": 200.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 200.0, "status": "available"}]},
+      {"station_id": "ME178014", "operator": "기후에너지환경부", "maker": "채비", "loc": [36.65677, 127.3704], "chargers": [
+        {"id": "01", "type": "fast", "kw": 50.0, "status": "available"}]},
+      {"station_id": "ME18C510", "operator": "기후에너지환경부", "maker": "채비", "loc": [36.65695, 127.37055], "chargers": [
+        {"id": "01", "type": "fast", "kw": 100.0, "status": "available"}]},
+      {"station_id": "ME22A354", "operator": "기후에너지환경부", "maker": "채비", "loc": [36.65704, 127.37034], "chargers": [
+        {"id": "01", "type": "fast", "kw": 300.0, "status": "available"},
+        {"id": "02", "type": "fast", "kw": 300.0, "status": "charging"}]}]}
+  ],
+  "timeline": []
+}
