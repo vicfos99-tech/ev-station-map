@@ -1,0 +1,6 @@
+# 앱 비밀 값은 저장소에 넣지 않는다(설계 5-7 (3)). 저장소 밖 파일을 빌드 인자 --secret 으로 준다
+config/config_app_secret.json
+# 빌드 산출물·도구 기록장·받기 임시 자리
+dist/
+tools/logs/
+tools/tmp/

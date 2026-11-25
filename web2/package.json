@@ -1,0 +1,6 @@
+{
+  "name": "ev-charge-planner-web2",
+  "private": true,
+  "type": "module",
+  "description": "충전 길잡이 새 앱(web2). 묶음(npm) 의존은 없다 — 지도 라이브러리는 tools/vendor_get.mjs 로 한 번 받아 vendor/ 에 둔다"
+}

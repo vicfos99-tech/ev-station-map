@@ -1,0 +1,156 @@
+{
+  "note": "web2 도구(check4·vendor_get·install_hook …)의 값. 경로는 web2 폴더(app_dir) 기준. 시각 차이는 work.env 의 KST_OFFSET_HOURS 를 읽는다(설계 5-6)",
+  "app_dir": "..",
+  "work_env": {"file": "work.env", "kst_key": "KST_OFFSET_HOURS", "root_key": "CLAUDE_WORK_ROOT"},
+  "time": {"ms_per_hour": 3600000, "format": "YYYY-MM-DD hh:mm:ss"},
+  "log": {"dir": "tools/logs", "suffix": ".log", "sep": " · "},
+  "tmp_dir": "tools/tmp",
+  "pass_word": "통과",
+  "fail_word": "실패",
+  "exit": {"ok": 0, "fail": 1},
+  "git": {"cmd": "git"},
+  "check4": {
+    "src_dir": "src",
+    "module_ext": ".js",
+    "config_dir": "config",
+    "shape_dir": "config/shape",
+    "config_ext": ".json",
+    "build_tool": "tools/build.mjs",
+    "build_out_file": "index.html",
+    "build_stamp_file": "build.json",
+    "build_stamp_key": "stamp",
+    "build_secret_test_value": "check4-build-only-secret-value",
+    "hardcode": {
+      "allowed_numbers": [0, 1],
+      "string_patterns": [
+        "[\\uAC00-\\uD7A3\\u3131-\\u318E]",
+        "://",
+        "[\\\\/]",
+        "\\.(json|js|mjs|html|css|md|txt|log|py)$",
+        "^[A-Za-z0-9_+=-]{24,}$",
+        "^\\d{1,3}(\\.\\d{1,3}){3}",
+        "^localhost$"
+      ],
+      "allowed_strings": [],
+      "banned_code": [
+        "\\bget(Hours|Minutes|Seconds|Milliseconds|Day|Date|Month|FullYear|Year)\\s*\\(",
+        "\\btoLocale\\w*\\s*\\(",
+        "\\bgetTimezoneOffset\\b",
+        "\\bwindow\\s*\\.\\s*close\\b",
+        "\\balert\\s*\\(",
+        "\\bconfirm\\s*\\(",
+        "\\bprompt\\s*\\(",
+        "hours\\s*=\\s*9"
+      ],
+      "http_word": "http",
+      "http_ok_config_files": ["config_gateway.json", "config_ui_map.json"],
+      "secret_file": "config_app_secret.json"
+    },
+    "import_line": "^\\s*import\\b",
+    "import_named": "^\\s*import\\s*\\{([^}]*)\\}\\s*from\\s*['\"]\\./([A-Za-z0-9_]+)\\.js['\"]\\s*;?\\s*$",
+    "import_star": "^\\s*import\\s*\\*\\s*as\\s+([A-Za-z_$][\\w$]*)\\s+from\\s*['\"]\\./([A-Za-z0-9_]+)\\.js['\"]\\s*;?\\s*$",
+    "needs_decl": "export\\s+const\\s+NEEDS\\s*=\\s*\\[([^\\]]*)\\]",
+    "deps_use": "\\bdeps\\s*\\.\\s*([A-Za-z_$][\\w$]*)",
+    "imports_allowed": {
+      "app": "*",
+      "ui_map": ["mapview"]
+    },
+    "module_layer": {
+      "cfg": "cfg",
+      "timefmt": "pure",
+      "health": "pure",
+      "statecalc": "pure",
+      "disk_web": "platform",
+      "log": "log",
+      "store": "store",
+      "state": "state",
+      "netcore": "netcore",
+      "startprobe": "client",
+      "loc_watch": "client",
+      "healthrunner": "runner",
+      "calcrunner": "runner",
+      "mapview": "screen_part",
+      "ui_status": "screen",
+      "ui_drive": "screen",
+      "ui_map": "screen",
+      "ui_log": "screen",
+      "app": "app"
+    },
+    "layer_may_need": {
+      "pure": [],
+      "platform": ["platform"],
+      "cfg": [],
+      "log": ["cfg", "pure", "platform"],
+      "store": ["cfg", "log", "pure", "platform"],
+      "state": ["cfg", "log", "pure", "platform"],
+      "netcore": ["cfg", "log", "pure", "platform"],
+      "client": ["cfg", "log", "store", "state", "pure", "platform"],
+      "runner": ["cfg", "log", "store", "state", "pure", "platform"],
+      "screen_part": ["pure", "platform"],
+      "screen": ["cfg", "log", "store", "state", "pure", "platform"],
+      "app": ["*"]
+    },
+    "extra_needs": {
+      "startprobe": ["netcore"],
+      "loc_watch": ["netcore"],
+      "ui_map": ["mapview"]
+    },
+    "dep_module": {
+      "cfg": "cfg",
+      "log": "log",
+      "store": "store",
+      "state": "state",
+      "netcore": "netcore",
+      "timefmt": "timefmt",
+      "health": "health",
+      "statecalc": "statecalc",
+      "disk": "disk_web",
+      "mapview": "mapview"
+    },
+    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage"],
+    "banned_everywhere": [
+      "\\bnew\\s+(Logger|Store|Config|State)\\b",
+      "\\bgetInstance\\b",
+      "\\bwindow\\s*\\.",
+      "\\bdocument\\s*\\.",
+      "\\bnavigator\\s*\\.",
+      "\\bglobalThis\\b",
+      "\\brequire\\s*\\(",
+      "\\bimport\\s*\\("
+    ],
+    "banned_in": {
+      "calcrunner": ["health", "conn\\."],
+      "statecalc": ["health", "conn\\."]
+    },
+    "banned_in_layer": {
+      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
+      "pure": ["\\bdeps\\b", "\\blog\\s*\\.", "\\bLogger\\b"]
+    }
+  },
+  "vendor": {
+    "package": "maplibre-gl",
+    "version": "5.24.1",
+    "npm": "npm",
+    "out_dir": "vendor",
+    "files": {
+      "package/dist/maplibre-gl.js": "maplibre-gl.js",
+      "package/dist/maplibre-gl.css": "maplibre-gl.css",
+      "package/LICENSE.txt": "maplibre-gl.LICENSE.txt"
+    },
+    "tar_block": 512,
+    "tar_name_len": 100,
+    "tar_size_at": 124,
+    "tar_size_len": 12,
+    "tar_type_at": 156,
+    "tar_prefix_at": 345,
+    "tar_prefix_len": 155,
+    "tar_octal": 8,
+    "tar_file_types": ["0", "\u0000", ""]
+  },
+  "hook": {
+    "script": "tools/hooks/pre-commit-web2.sh",
+    "hook_name": "pre-commit",
+    "line": "sh web2/tools/hooks/pre-commit-web2.sh || exit 1",
+    "shebang": "#!/bin/sh"
+  }
+}
