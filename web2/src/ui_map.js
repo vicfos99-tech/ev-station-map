@@ -3,6 +3,7 @@
 //   · 손으로 만진 것(mapview 가 알림) → MapCam · '내 위치' 단추 → MapCam(따라가기 켬·진행 방향으로 되돌림)
 //   · ahead 구독 → 1·2·3번 표시(충전소판과 같은 조각 하나를 둘이 구독 — 번호가 바뀌면 같이 바뀜), stations 구독 → 다른 충전소 층
 //   · '세 곳만' 단추 → 다른 충전소 층 숨김·보임
+//   · (A6) route 구독 → 경로 선(선만 더 그림 — 카메라는 건드리지 않는다, 설계 5-8 바 2). 없으면(지움) 선을 지움
 //   · (A4) 번호·충전소 점을 누르면 station.select.map 으로 요청만(정보 칸이 듣는다 — 카메라는 그대로)
 //   · 카메라 상태(따라가기·굳음·확대·방향·'세 곳만')는 폰 데이터 폴더에 저장(손·단추로 바뀔 때만)하고 다시 열면 읽는다. map.cam 으로 알린다('이상해' 기록에 담김)
 // 바탕 그림(타일) 주소는 config_ui_map 에만 있고 지도 라이브러리가 직접 받는다(설계 원칙 '바깥 주소는 하나'의 예외). 바탕 그림 성공·실패는 conn.tiles 로(바뀔 때만).
@@ -28,6 +29,7 @@ export function createMapScreen(deps) {
   let loaded = false;
   let lastAhead = null;
   let lastStations = null;
+  let lastRoute = null;
 
   const $ = (id) => {
     const el = doc.getElementById(id);
@@ -71,6 +73,13 @@ export function createMapScreen(deps) {
     view.setNumbered(items, a && a.mode === c.around_mode ? c.marks.around_kind : c.marks.ahead_kind);
   }
 
+  // (A6) 경로 선 — CalcRunner 의 route(노선 꼴 [[위도, 경도]…])를 지도 꼴([경도, 위도])로. 없으면 지움. 카메라는 그대로
+  function drawRoute(rt) {
+    if (!view) return;
+    const pts = rt && Array.isArray(rt.points) ? rt.points : null;
+    view.setRoute(pts ? pts.map((p) => [p[1], p[0]]) : null);
+  }
+
   function drawStations(st) {
     if (!view) return;
     const list = st && Array.isArray(st[c.stations_list_key]) ? st[c.stations_list_key].filter((x) => x && typeof x.lat === 'number' && typeof x.lng === 'number') : [];
@@ -102,7 +111,7 @@ export function createMapScreen(deps) {
       if (!slot) throw new Error(c.slot_id);
       view = createMapView({ maplibre: deps.maplibre, doc }, {
         container: slot, style: c.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
-        geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events,
+        geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events, route: c.route,
         tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick,
       });
       view.onPick(pick);
@@ -122,6 +131,7 @@ export function createMapScreen(deps) {
       if (last) { view.setDot(last.lng, last.lat); fix(last); }
       drawAhead(lastAhead);
       drawStations(lastStations);
+      drawRoute(lastRoute);
     } catch (e) {
       log.error(e, { where: c.where, params: { slot: c.slot_id } });
       tiles(false, e && e.message);
@@ -205,6 +215,13 @@ export function createMapScreen(deps) {
   deps.state.subscribe(c.stations_piece, (st) => {
     lastStations = st;
     try { drawStations(st); } catch (e) { log.error(e, { where: c.where, params: { act: c.act_stations } }); }
+  });
+  deps.state.subscribe(c.route_piece, (rt) => {
+    lastRoute = rt || null;
+    try {
+      drawRoute(lastRoute);
+      log.info(c.where, c.word_route, { seq: lastRoute ? lastRoute.seq : null, points: lastRoute && lastRoute.points ? lastRoute.points.length : 0 });
+    } catch (e) { log.error(e, { where: c.where, params: { act: c.act_route } }); }
   });
   return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3, pick };
 }

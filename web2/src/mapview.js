@@ -1,7 +1,7 @@
 // 지도 라이브러리(MapLibre)를 감싼 한 파일 — 라이브러리를 바꿔도 여기만 바뀐다(설계 5-1-나 mapview).
 // 값(바탕 그림 꼴·처음 자리·점 모양·층·이벤트 이름·번호 표시 모양)은 모두 부르는 쪽(ui_map)이 설정에서 넘긴다. 로그는 쓰지 않고 알림 함수로 돌려준다.
 // 하는 일: 내 위치 점 · 카메라 명령 옮기기(효과 없이 — L068) · 손으로 한 일 알리기 · 1·2·3번 표시 · 다른 충전소 층과 그 켬·끔 ·
-// (A4) 번호·충전소 점을 누름 알리기(onPick — 카메라는 건드리지 않는다).
+// (A4) 번호·충전소 점을 누름 알리기(onPick — 카메라는 건드리지 않는다) · (A6) 경로 선(setRoute — 카메라는 건드리지 않는다).
 // 카메라 규칙은 여기 없다(MapCam). 손으로 만지는 동안에는 카메라 명령을 옮기지 않는다(손이 먼저 — 설계 5-8 다).
 export const NEEDS = ['maplibre', 'doc'];
 
@@ -14,6 +14,7 @@ export function createMapView(deps, o) {
   let pendingDot = null;
   let pendingCam = null;
   let pendingStations = null;
+  let pendingRoute = null;
   let othersShown = true;
   let touching = null;
   let onUser = null;
@@ -38,7 +39,15 @@ export function createMapView(deps, o) {
     map.jumpTo(to);
   }
 
+  // (A6) 경로 선: [[경도, 위도]…] 또는 빈 줄(지움) — 지도 층 하나(다른 충전소 점·내 위치 점 아래)
+  function routeData(coords) {
+    if (!coords || !coords.length) return { type: o.geo.collection, features: [] };
+    return { type: o.geo.feature, geometry: { type: o.route.line_type, coordinates: coords }, properties: {} };
+  }
+
   map.on(o.events.load, () => {
+    map.addSource(o.route.source_id, { type: o.route.source_type, data: routeData(pendingRoute) });
+    map.addLayer({ id: o.route.layer_id, type: o.route.layer_type, source: o.route.source_id, paint: o.route.paint, layout: o.route.layout });
     map.addSource(o.others.source_id, { type: o.others.source_type, data: collection(pendingStations || []) });
     map.addLayer({ id: o.others.layer_id, type: o.others.layer_type, source: o.others.source_id, paint: o.others.paint, layout: { [o.others.visibility_key]: othersShown ? o.others.shown_word : o.others.hidden_word } });
     map.addSource(o.dot.source_id, { type: o.dot.source_type, data: point(o.center) });
@@ -51,6 +60,7 @@ export function createMapView(deps, o) {
     });
     ready = true;
     pendingStations = null;
+    pendingRoute = null;
     if (pendingDot) { map.getSource(o.dot.source_id).setData(point(pendingDot)); pendingDot = null; }
     if (pendingCam) { jump(pendingCam); pendingCam = null; }
   });
@@ -102,6 +112,11 @@ export function createMapView(deps, o) {
       });
     },
     marked: () => markers.length,
+    // (A6) 경로 선 그리기·지우기 — 카메라는 건드리지 않는다(설계 5-8 바 2)
+    setRoute(coords) {
+      if (!ready) { pendingRoute = coords; return; }
+      map.getSource(o.route.source_id).setData(routeData(coords));
+    },
     // 다른 충전소 점(목록 통째) — 번호 표시보다 작고 흐린 층
     setStations(list) {
       if (!ready) { pendingStations = list; return; }

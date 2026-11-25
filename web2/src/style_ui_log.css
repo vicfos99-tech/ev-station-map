@@ -6,3 +6,18 @@
 .ev-log-head { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #d1d5db; flex-wrap: wrap; }
 .ev-log-version { font-weight: 700; margin-right: auto; }
 .ev-log-lines { flex: 1; overflow: auto; margin: 0; padding: 8px; font: 12px/1.4 ui-monospace, monospace; white-space: pre-wrap; }
+/* (A6) '이상해' 기록 목록(구분선 목록 — 카드 아님)과 '기록 올리기' 단추(누르는 곳 48px 이상, 쓸 수 없으면 흐리게) */
+.ev-log-odd { padding: 8px; border-bottom: 1px solid #d1d5db; max-height: 40%; overflow-y: auto; flex: 0 0 auto; }
+.ev-log-odd-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ev-log-upload { min-height: 48px; min-width: 64px; padding: 0 16px; font-size: 15px; font-weight: 700; border: 0; border-radius: 8px; background: #2563eb; color: #ffffff; }
+.ev-log-upload:disabled, .ev-log-odd[data-ok="no"] .ev-log-upload { opacity: .4; }
+.ev-log-odd-sum { font-size: 14px; }
+.ev-log-upnote { font-size: 13px; color: #92400e; padding: 8px 0 0; overflow-wrap: anywhere; }
+.ev-log-upnote:empty { display: none; }
+.ev-log-odd-list { display: flex; flex-direction: column; margin-top: 8px; }
+.ev-log-odd-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 8px; padding: 4px 0; font-size: 13px; }
+.ev-log-odd-row + .ev-log-odd-row { border-top: 1px solid #d1d5db; }
+.ev-log-odd-name { font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+.ev-log-odd-state[data-state="sent"] { color: #15803d; font-weight: 700; }
+.ev-log-odd-state[data-state="failed"] { color: #b91c1c; font-weight: 700; }
+.ev-log-odd-state[data-state="left"] { color: #4b5563; }

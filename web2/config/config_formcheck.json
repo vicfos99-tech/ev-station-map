@@ -1,11 +1,19 @@
 {
-  "note": "FormCheck(화면 입력 검사) 규칙. 칸마다 한 줄: t = text(글) / num(숫자). odd_memo = '이상해' 한 줄 메모(안 써도 됨 — 운전 중). ctrl_re = 막을 제어 문자(줄바꿈·탭 포함)",
+  "note": "FormCheck(화면 입력 검사) 규칙. 칸마다 한 줄: t = text(글) / num(숫자). odd_memo = '이상해' 한 줄 메모(안 써도 됨 — 운전 중). ctrl_re = 막을 제어 문자(줄바꿈·탭 포함). (A6) navi_q = 검색 칸 글(빈 글 안 됨, 길이 한도는 다리·집 PC 서버의 물음 한도와 같게)",
   "fields": {
     "odd_memo": {
       "t": "text",
       "max": 200,
       "trim": true,
       "allow_empty": true,
+      "ctrl_re": "[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]",
+      "why": {"type": "type", "long": "long", "ctrl": "ctrl", "empty": "empty"}
+    },
+    "navi_q": {
+      "t": "text",
+      "max": 100,
+      "trim": true,
+      "allow_empty": false,
       "ctrl_re": "[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]",
       "why": {"type": "type", "long": "long", "ctrl": "ctrl", "empty": "empty"}
     }

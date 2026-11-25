@@ -36,7 +36,8 @@ export function createStatusBar(deps) {
       out.push(fill(x.src_line, {
         src: x.src_names[s] || s,
         time: v.since === null ? '' : deps.timefmt.format(v.since, x.time_pattern, t),
-        why: x.why_words[v.why] || v.why,
+        // 같은 까닭 코드라도 출처마다 뜻이 다르면(집 PC 의 잠금 틀림·카카오 실패 — A6) 출처의 글이 먼저
+        why: (x.why_by_src[s] && x.why_by_src[s][v.why]) || x.why_words[v.why] || v.why,
       }));
     }
     return out;

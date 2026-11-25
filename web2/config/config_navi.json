@@ -1,0 +1,9 @@
+{
+  "note": "Navi(순수 — 경로 따라 앞의 충전소, 설계 5-8 가-6). 내 위치가 경로 선에서 off_route_m 보다 멀면 경로 기준을 쓰지 않음(선·주변 셈으로). 휴게소 자리는 경로 선에서 station_route_m 안이고 그 자리에서 경로가 휴게소 방향으로 지날 때(방향 문턱은 config_locate.dir_max_deg)만 경로 위. 개수·지나침 여유·km 반올림·방향 모름 처리는 config_ahead 를 같이 쓴다. fill_after_end = 경로 위에서 모자라면 경로 끝의 고속도로(끝 점에서 end_line_m 안의 선)를 끝 방향으로 이어서 채움(끝에서 end_pass_km 넘게 앞인 곳)",
+  "route_piece": "route",
+  "off_route_m": 300,
+  "station_route_m": 1500,
+  "fill_after_end": true,
+  "end_line_m": 300,
+  "end_pass_km": 0
+}

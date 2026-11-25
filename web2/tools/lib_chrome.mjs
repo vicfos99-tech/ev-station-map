@@ -74,7 +74,8 @@ async function one(fr) {
     res.got = grab(d, w);
     for (const act of P.actions || []) {
       const el = d.querySelector(act.q);
-      if (el) el.click();
+      // (A6) value 가 있으면 글을 넣고 input 알림(검색 칸), 없으면 누름
+      if (el && act.value !== undefined) { el.value = act.value; el.dispatchEvent(new Event('input', { bubbles: true })); } else if (el) el.click();
       await sleep(act.wait_ms);
       res.steps.push({ name: act.name, clicked: !!el, got: grab(d, w) });
     }

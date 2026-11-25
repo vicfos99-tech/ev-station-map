@@ -27,8 +27,11 @@ export class El {
   hasAttribute(k) { return k in this.attrs; }
   addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }
   appendChild(c) { this.children.push(c); }
+  insertBefore(c, ref) { const i = this.children.indexOf(ref); if (i < 0) this.children.push(c); else this.children.splice(i, 0, c); }
   replaceChildren(...cs) { this.children = cs; }
   click() { for (const f of this.listeners.click || []) f(); }
+  // (A6) 이벤트 하나를 그대로(엔터 키 등)
+  fire(t, e) { for (const f of this.listeners[t] || []) f(e || {}); }
   set innerHTML(h) { this.html = String(h); if (this.doc) this.doc.register(this.html); }
   get innerHTML() { return this.html; }
 }
@@ -214,7 +217,7 @@ export function startApp(ctx, opts) {
   };
   const made = main(platform);
   const win = platform.win;
-  const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [], limit: [] };
+  const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [], limit: [], route: [], place: [], progress: [], odd: [], conn: [] };
   if (made.state) {
     made.state.subscribe('ahead', (v) => seen.ahead.push({ v, at: Date.now() }));
     made.state.subscribe('health.app', (v) => seen.app.push({ ...v, at: Date.now() }));
@@ -223,6 +226,12 @@ export function startApp(ctx, opts) {
     made.state.subscribe('pos', (v) => seen.pos.push({ ...v, at: Date.now() }));
     made.state.subscribe('stations', (v) => seen.stations.push({ v, at: Date.now() }));
     made.state.subscribe('limit', (v) => seen.limit.push({ ...v, at: Date.now() }));
+    // (A6) 경로·검색 답·올리기 결과·집 PC 연결
+    made.state.subscribe('route', (v) => seen.route.push({ v, at: Date.now() }));
+    made.state.subscribe('place', (v) => seen.place.push({ ...v, at: Date.now() }));
+    made.state.subscribe('route.progress', (v) => seen.progress.push({ ...v, at: Date.now() }));
+    made.state.subscribe('odd.result', (v) => seen.odd.push({ ...v, at: Date.now() }));
+    made.state.subscribe('conn.route*', (v, name) => seen.conn.push({ name, ...v, at: Date.now() }));
   }
   let stopped = false;
   return {
@@ -234,6 +243,7 @@ export function startApp(ctx, opts) {
       if (made.relay_stations) made.relay_stations.halt();
       if (made.relay_status) made.relay_status.halt();
       if (made.relay_limit) made.relay_limit.halt();
+      if (made.net_route) made.net_route.halt();
       for (const h of timers) clearTimeout(h);
       for (const h of intervals) clearInterval(h);
     },

@@ -75,6 +75,24 @@ export function createStore(deps) {
         return { ok: false, why: c.code_write };
       }
     },
+    // (A6) 기록 하나 읽기(올리기 — RouteClient). 없으면 {ok:false, why: code_missing}, 판 번호가 다르면 code_bad_version
+    async readRecord(kind, name) {
+      try {
+        const k = c.records[kind];
+        if (!k) throw new Error(kind);
+        const text = await disk.read(c.dir, name);
+        if (!text) return { ok: false, why: c.code_missing };
+        const obj = JSON.parse(text);
+        if (!obj || obj[c.version_key] !== k.v) {
+          log.warn(c.where_record, c.word_bad_version, { kind, name, got: obj && obj[c.version_key] });
+          return { ok: false, why: c.code_bad_version };
+        }
+        return { ok: true, value: obj[c.value_key] };
+      } catch (e) {
+        log.error(e, { where: c.where_record, params: { kind, name } });
+        return { ok: false, why: c.code_read };
+      }
+    },
     async listRecords(kind) {
       try {
         const k = c.records[kind];

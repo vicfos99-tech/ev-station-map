@@ -8,6 +8,7 @@
   "record_kind": {"t": "str", "min": 1, "max": 20},
   "memo_field": {"t": "str", "min": 1, "max": 40},
   "pieces": {"t": "arr", "min": 1, "max": 30, "of": {"t": "str", "min": 1, "max": 40}},
+  "piece_keys": {"t": "map", "of": {"t": "arr", "max": 30, "of": {"t": "str", "min": 1, "max": 40}}},
   "file_pattern": {"t": "str", "min": 1, "max": 64, "re": "^[A-Za-z0-9_.{}-]+$"},
   "time_mark": {"t": "str", "min": 1, "max": 10},
   "seq_mark": {"t": "str", "min": 1, "max": 10},

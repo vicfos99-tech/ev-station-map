@@ -50,7 +50,8 @@ export function createNetCore(deps) {
       let data;
       try { data = JSON.parse(text); } catch (e) { return { ok: false, code: codes.parse, status: resp.status }; }
       if (!resp.ok || (data && data.ok === false)) {
-        return { ok: false, code: (data && data[n.code_field]) || codes.status, src: data && data[n.src_field], status: resp.status };
+        // 실패 답도 본문을 함께 돌려준다(다리 상태 길은 ok 거짓이어도 출처마다의 좋음·나쁨을 싣는다 — A6)
+        return { ok: false, code: (data && data[n.code_field]) || codes.status, src: data && data[n.src_field], status: resp.status, data };
       }
       return { ok: true, data, status: resp.status };
     } catch (e) {

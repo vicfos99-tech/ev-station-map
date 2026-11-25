@@ -1,0 +1,32 @@
+{
+ "keys": {
+  "route_piece": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "off_route_m": {
+   "t": "num",
+   "min": 1,
+   "max": 10000
+  },
+  "station_route_m": {
+   "t": "num",
+   "min": 1,
+   "max": 10000
+  },
+  "fill_after_end": {
+   "t": "bool"
+  },
+  "end_line_m": {
+   "t": "num",
+   "min": 1,
+   "max": 10000
+  },
+  "end_pass_km": {
+   "t": "num",
+   "min": 0,
+   "max": 100
+  }
+ }
+}

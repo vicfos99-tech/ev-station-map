@@ -1,5 +1,5 @@
 {
-  "note": "지도(ui_map + mapview). 바탕 그림(타일) 주소는 이 파일에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). 카메라 규칙 값은 config_mapcam. attribution.compact false = 좁은 지도에서도 저작권 글을 접지 않음(고칠 것 ③). others = 다른 충전소 점 층('세 곳만'이면 숨김 — 점 속성 id_prop = 충전소 id, 누르면 정보 칸 A4), marks = 1·2·3번 표시(HTML 표시 — 글꼴 파일 없이, 다른 점보다 크고 위에; kinds 는 앞의 충전소·주변 모양). events.user_starts = 손으로 만진 시작 알림 → 종류(originalEvent 가 있는 것만), move_end 에 한 번 알림. store_key = 카메라 상태를 저장하는 데이터 폴더 키(config_store.keys). select_piece = 번호·점을 누르면 내는 요청(정보 칸이 들음, pick = 누른 것의 종류 이름)",
+  "note": "지도(ui_map + mapview). 바탕 그림(타일) 주소는 이 파일에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). 카메라 규칙 값은 config_mapcam. attribution.compact false = 좁은 지도에서도 저작권 글을 접지 않음(고칠 것 ③). others = 다른 충전소 점 층('세 곳만'이면 숨김 — 점 속성 id_prop = 충전소 id, 누르면 정보 칸 A4), marks = 1·2·3번 표시(HTML 표시 — 글꼴 파일 없이, 다른 점보다 크고 위에; kinds 는 앞의 충전소·주변 모양). events.user_starts = 손으로 만진 시작 알림 → 종류(originalEvent 가 있는 것만), move_end 에 한 번 알림. store_key = 카메라 상태를 저장하는 데이터 폴더 키(config_store.keys). select_piece = 번호·점을 누르면 내는 요청(정보 칸이 들음, pick = 누른 것의 종류 이름). (A6) route = 경로 선 층(다른 충전소 점·내 위치 점 아래) — route_piece(CalcRunner 의 노선 꼴)를 그대로 그림, 카메라는 그대로",
   "owner": "ui_map",
   "tiles_piece": "conn.tiles",
   "cam_piece": "map.cam",
@@ -8,6 +8,7 @@
   "fix_piece": "fix",
   "ahead_piece": "ahead",
   "stations_piece": "stations",
+  "route_piece": "route",
   "stations_list_key": "list",
   "around_mode": "around",
   "app_piece": "health.app",
@@ -42,6 +43,15 @@
     "layer_id": "me-dot",
     "layer_type": "circle",
     "paint": {"circle-radius": 9, "circle-color": "#2563eb", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3}
+  },
+  "route": {
+    "source_id": "route",
+    "source_type": "geojson",
+    "layer_id": "route-line",
+    "layer_type": "line",
+    "line_type": "LineString",
+    "paint": {"line-color": "#2563eb", "line-width": 6, "line-opacity": 0.75},
+    "layout": {"line-join": "round", "line-cap": "round"}
   },
   "others": {
     "source_id": "stations",
@@ -80,11 +90,13 @@
   "act_marks": "marks",
   "act_stations": "stations",
   "act_pick": "pick",
+  "act_route": "route",
   "word_tiles_bad": "tiles_bad",
   "word_user": "map_user",
   "word_me": "map_me",
   "word_only3": "map_only3",
   "word_save_failed": "map_save_failed",
   "word_load_failed": "map_load_failed",
-  "word_pick": "map_pick"
+  "word_pick": "map_pick",
+  "word_route": "map_route"
 }

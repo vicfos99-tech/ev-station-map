@@ -1,4 +1,4 @@
-<!-- 기록 칸: 글은 ui_log.js 가 설정(config_ui_log)에서 넣는다 -->
+<!-- 기록 칸: 글은 ui_log.js 가 설정(config_ui_log)에서 넣는다. (A6) '이상해' 기록 목록과 올림 여부 + '기록 올리기' 단추 -->
 <button id="ev-log-open" class="ev-log-open" type="button" hidden></button>
 <section id="ev-log" class="ev-log" hidden>
   <div class="ev-log-head">
@@ -7,6 +7,14 @@
     <button id="ev-log-save" type="button"></button>
     <button id="ev-log-close" type="button"></button>
     <span id="ev-log-note" class="ev-log-note"></span>
+  </div>
+  <div id="ev-log-odd" class="ev-log-odd" data-ok="yes">
+    <div class="ev-log-odd-head">
+      <button id="ev-log-upload" class="ev-log-upload" type="button"></button>
+      <span id="ev-log-odd-sum" class="ev-log-odd-sum"></span>
+    </div>
+    <div id="ev-log-upnote" class="ev-log-upnote"></div>
+    <div id="ev-log-odd-list" class="ev-log-odd-list"></div>
   </div>
   <pre id="ev-log-lines" class="ev-log-lines"></pre>
 </section>

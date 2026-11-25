@@ -1,5 +1,5 @@
 {
-  "note": "Ahead(앞의 충전소 — 설계 5-8 가·C8) 값. count = 보일 곳 수. 휴게소 충전소(rest)를 선에 붙여(station_line_m 안 — 옛 선은 휴게소 좌표를 이은 선이라 1 km 넘게 떨어진 곳이 있음) 같은 선·방향·group_km 안의 것을 한 자리로 묶는다. 휴게소 방향은 이름의 낱말로(line_dir_words — 선 이름마다 선 방향(forward)·거꾸로(backward) 낱말. 중계 R0 의 목록에 방향 칸이 생기면 그것으로 바꾼다). 둘 다 있거나 없으면 모름 → dir_unknown_keep 이면 두 방향 모두에 보임. pass_margin_km = 지나친 뒤 이만큼까지는 남김(0 으로 보임). 선에서 around_after_m 넘게 떨어지면 '주변'(곧은 거리 around_max_km 안, around_skip_rest 면 휴게소는 뺌 — 일반 도로에서 못 들어감), 선 위(config_locate.on_line_m)로 돌아오면 다시 앞의 충전소. 주변 충전소는 around_group_m 안이면 한 자리. 이름 다듬기: name_strip_re 를 지우고 빈칸 무리(name_space_re)를 name_space 하나로(자리 이름은 묶인 것 가운데 빈칸 뺀 꼴로 가장 많이 나온 것, 같으면 짧은 것)",
+  "note": "Ahead(앞의 충전소 — 설계 5-8 가·C8) 값. count = 보일 곳 수. 휴게소 충전소(rest)를 선에 붙여(station_line_m 안 — 옛 선은 휴게소 좌표를 이은 선이라 1 km 넘게 떨어진 곳이 있음) 같은 선·방향·group_km 안의 것을 한 자리로 묶는다. 휴게소 방향은 이름의 낱말로(line_dir_words — 선 이름마다 선 방향(forward)·거꾸로(backward) 낱말. 중계 R0 의 목록에 방향 칸이 생기면 그것으로 바꾼다). 둘 다 있거나 없으면 모름 → dir_unknown_keep 이면 두 방향 모두에 보임. pass_margin_km = 지나친 뒤 이만큼까지는 남김(0 으로 보임). 선에서 around_after_m 넘게 떨어지면 '주변'(곧은 거리 around_max_km 안, around_skip_rest 면 휴게소는 뺌 — 일반 도로에서 못 들어감), 선 위(config_locate.on_line_m)로 돌아오면 다시 앞의 충전소. 주변 충전소는 around_group_m 안이면 한 자리. 이름 다듬기: name_strip_re 를 지우고 빈칸 무리(name_space_re)를 name_space 하나로(자리 이름은 묶인 것 가운데 빈칸 뺀 꼴로 가장 많이 나온 것, 같으면 짧은 것). (A6) 같은 셈의 경로(route_piece)가 있고 그 위면 모드 route — 경로 위 차례로(navi_part·navi_rule, 설계 5-8 가-6)",
   "fix_input": "fix",
   "stations_input": "stations",
   "pos_piece": "pos",
@@ -8,6 +8,9 @@
   "geo_part": "geo",
   "geo_rule": "config_geo",
   "locate_rule": "config_locate",
+  "route_piece": "route",
+  "navi_part": "navi",
+  "navi_rule": "config_navi",
   "count": 3,
   "station_line_m": 2000,
   "group_km": 0.6,
@@ -19,7 +22,7 @@
   "around_max_km": 30,
   "around_skip_rest": true,
   "km_round": 10,
-  "modes": {"ahead": "ahead", "around": "around"},
+  "modes": {"ahead": "ahead", "around": "around", "route": "route"},
   "line_dir_words": {
     "gyeongbu_down": {"forward": ["부산"], "backward": ["서울"]}
   },

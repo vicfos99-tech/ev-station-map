@@ -30,7 +30,7 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_odd", "ui_log"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_odd", "ui_log"],
     "views_optional": ["ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
@@ -123,6 +123,8 @@
       "relay_html": "pure",
       "navlink": "pure",
       "limitmatch": "pure",
+      "naviroute": "pure",
+      "navi": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -134,6 +136,7 @@
       "relay_stations": "client",
       "relay_status": "client",
       "relay_limit": "client",
+      "net_route": "client",
       "healthrunner": "runner",
       "calcrunner": "runner",
       "mapview": "screen_part",
@@ -145,6 +148,7 @@
       "ui_locate": "screen",
       "ui_odd": "screen",
       "ui_station": "screen",
+      "ui_navi": "screen",
       "app": "app"
     },
     "layer_may_need": {
@@ -168,6 +172,7 @@
       "relay_stations": ["relay_base"],
       "relay_status": ["relay_base"],
       "relay_limit": ["relay_base"],
+      "net_route": ["netcore"],
       "ui_map": ["mapview"]
     },
     "dep_module": {
@@ -192,7 +197,9 @@
       "relay_fresh": "relay_fresh",
       "relay_html": "relay_html",
       "navlink": "navlink",
-      "limitmatch": "limitmatch"
+      "limitmatch": "limitmatch",
+      "naviroute": "naviroute",
+      "navi": "navi"
     },
     "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send"],
     "banned_everywhere": [
@@ -210,7 +217,7 @@
       "statecalc": ["health", "conn\\."]
     },
     "banned_in_layer": {
-      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\brelay_status\\b", "\\brelay_limit\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
+      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\brelay_status\\b", "\\brelay_limit\\b", "\\bnet_route\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
       "pure": ["\\bdeps\\b", "\\blog\\s*\\.", "\\bLogger\\b"]
     }
   },
@@ -659,6 +666,320 @@
     },
     "judge_mark": "{judge}",
     "report_file": "try_a5_last.md"
+  },
+  "try_a6": {
+    "note": "A6 스스로 시험(try_a6.mjs). pure = 다리 없이 순수 셈(답 검사·노선 꼴·경로 기준 앞의 충전소 — 갈아타는 곳 너머·끝 뒤 채움·벗어남, 검색 글 검사) — 시험 선 둘(A 동쪽·B 북쪽, 갈림 지점)과 휴게소는 시험이 정한 값, 기대 거리는 시험이 따로 셈. s9 = 정상(틱 10)·느림(125)·실패(245 — 검색 upstream, 길 home_off)·돌아옴(365). 시간 한도는 시험만 줄인 값으로 느린 답에서. fake = 다리 앞에서 시험이 대신 답하는 검색 글(오늘 한도·끊김·이상한 답). s10 = 받음(5)·거절(335)·다시 받음(405)·꽉 참(155). s7 = 집 PC 끊김(60~120). health_ms = 시험만 줄인 집 PC 확인 간격",
+    "run_seconds": 540,
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "health_ms": 3000,
+    "wait_ms": 15000,
+    "slow_wait_ms": 12000,
+    "quiet_ms": 6000,
+    "timeout_ms": 2000,
+    "dist_tol_km": 0.6,
+    "pure": {
+      "line_a": {
+        "name": "test_east",
+        "from": [
+          36.0,
+          127.0
+        ],
+        "to": [
+          36.0,
+          127.5
+        ],
+        "step_deg": 0.005
+      },
+      "line_b": {
+        "name": "test_north",
+        "from": [
+          36.0,
+          127.25
+        ],
+        "to": [
+          36.5,
+          127.25
+        ],
+        "step_deg": 0.005
+      },
+      "dir_words": {
+        "test_east": {
+          "forward": [
+            "동쪽"
+          ],
+          "backward": [
+            "서쪽"
+          ]
+        },
+        "test_north": {
+          "forward": [
+            "북쪽"
+          ],
+          "backward": [
+            "남쪽"
+          ]
+        }
+      },
+      "off_deg": 0.0004,
+      "stations": [
+        {
+          "id": "AE1",
+          "name": "가휴게소(동쪽)",
+          "line": "a",
+          "at": 127.1
+        },
+        {
+          "id": "AE2",
+          "name": "나휴게소(동쪽)",
+          "line": "a",
+          "at": 127.2
+        },
+        {
+          "id": "AE3",
+          "name": "다휴게소(동쪽)",
+          "line": "a",
+          "at": 127.35
+        },
+        {
+          "id": "AW1",
+          "name": "라휴게소(서쪽)",
+          "line": "a",
+          "at": 127.15
+        },
+        {
+          "id": "BN1",
+          "name": "마휴게소(북쪽)",
+          "line": "b",
+          "at": 36.1
+        },
+        {
+          "id": "BN2",
+          "name": "바휴게소(북쪽)",
+          "line": "b",
+          "at": 36.2
+        },
+        {
+          "id": "BS1",
+          "name": "사휴게소(남쪽)",
+          "line": "b",
+          "at": 36.15
+        }
+      ],
+      "me": [
+        36.0,
+        127.02
+      ],
+      "heading": 90,
+      "off_me": [
+        36.05,
+        127.02
+      ],
+      "route_b_to": 36.3,
+      "short_end": 127.12,
+      "expect_line": [
+        "AE1",
+        "AE2",
+        "AE3"
+      ],
+      "expect_route": [
+        "AE1",
+        "AE2",
+        "BN1"
+      ],
+      "expect_short": [
+        "AE1",
+        "AE2",
+        "AE3"
+      ],
+      "tol_km": 0.3,
+      "q_ok": "안성휴게소",
+      "q_long_n": 101,
+      "q_ctrl": "안성\u0007휴게소"
+    },
+    "s9": {
+      "scene": "S9_주소검색경로",
+      "found_tick": 10,
+      "slow_tick": 125,
+      "fail_tick": 245,
+      "back_tick": 365,
+      "query": "안성휴게소",
+      "query_none": "서울역",
+      "user_bearing": 33,
+      "user_zoom": 14.5
+    },
+    "fake": {
+      "quota": {
+        "q": "한도시험",
+        "status": 429,
+        "body": {
+          "v": 1,
+          "ok": false,
+          "code": "quota",
+          "src": "home"
+        }
+      },
+      "offline": {
+        "q": "끊김시험"
+      },
+      "bad": {
+        "q": "이상한답시험",
+        "status": 200,
+        "body": {
+          "v": 1,
+          "ok": true,
+          "source": "store",
+          "places": [],
+          "extra": 1
+        }
+      },
+      "far": {
+        "q": "먼곳시험",
+        "status": 200,
+        "body": {
+          "v": 1,
+          "ok": true,
+          "source": "store",
+          "places": [
+            {
+              "kind": "place",
+              "name": "먼곳",
+              "addr": "",
+              "loc": [
+                10.0,
+                127.0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "s10": {
+      "scene": "S10_이상해기록",
+      "accept_tick": 5,
+      "reject_tick": 335,
+      "again_tick": 405,
+      "full_tick": 155,
+      "memo": "시험 메모"
+    },
+    "s7": {
+      "scene": "S7_출처끊김",
+      "start_tick": 50,
+      "down_wait_ms": 30000,
+      "back_tick": 120,
+      "back_wait_ms": 80000
+    },
+    "chrome": {
+      "scene": "S9_주소검색경로",
+      "tick": 10,
+      "sel": {
+        "center": {
+          "q": "#ev-center"
+        },
+        "navi_root": {
+          "q": "#ev-navi"
+        },
+        "navi_slot": {
+          "q": "#ev-slot-navi"
+        },
+        "mapwrap": {
+          "q": "#ev-mapwrap"
+        },
+        "navi_q": {
+          "q": "#ev-navi-q"
+        },
+        "navi_go": {
+          "q": "#ev-navi-go"
+        },
+        "navi_note": {
+          "q": "#ev-navi-note"
+        },
+        "navi_list": {
+          "q": "#ev-navi-list"
+        },
+        "navi_items": {
+          "q": "#ev-navi-list > .ev-navi-item",
+          "hit": true
+        },
+        "navi_close": {
+          "q": "#ev-navi-list .ev-navi-close"
+        },
+        "navi_route": {
+          "q": "#ev-navi-route"
+        },
+        "navi_route_text": {
+          "q": "#ev-navi-route-text",
+          "hit": true
+        },
+        "navi_route_km": {
+          "q": ".ev-navi-route-km",
+          "hit": true
+        },
+        "navi_clear": {
+          "q": "#ev-navi-clear"
+        },
+        "station": {
+          "q": "#ev-station"
+        },
+        "map_me": {
+          "q": "#ev-map-me"
+        },
+        "map_only3": {
+          "q": "#ev-map-only3"
+        }
+      },
+      "actions": [
+        {
+          "name": "글 넣음",
+          "q": "#ev-navi-q",
+          "value": "안성휴게소",
+          "wait_ms": 300
+        },
+        {
+          "name": "찾기",
+          "q": "#ev-navi-go",
+          "wait_ms": 3000
+        },
+        {
+          "name": "첫 곳 고름",
+          "q": "#ev-navi-list > .ev-navi-item",
+          "wait_ms": 3500
+        },
+        {
+          "name": "충전소판 첫 줄 누름(정보 칸)",
+          "q": "#ev-ahead-list > *",
+          "wait_ms": 3000
+        }
+      ],
+      "navi_parts": [
+        "navi_root",
+        "navi_items",
+        "navi_route",
+        "navi_clear",
+        "navi_q",
+        "navi_go"
+      ],
+      "avoid": [
+        "slot_left",
+        "slot_right",
+        "odd",
+        "odd_memo",
+        "odd_button",
+        "log_open",
+        "map_me",
+        "map_only3",
+        "attrib_box"
+      ],
+      "touch": [
+        "navi_q",
+        "navi_go",
+        "navi_items",
+        "navi_clear",
+        "navi_close"
+      ],
+      "route_word": "안성"
+    },
+    "report_file": "try_a6_last.md"
   },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",

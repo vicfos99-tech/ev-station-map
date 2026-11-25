@@ -9,6 +9,7 @@
   "interval_ms": 1000,
   "slot": "right",
   "around_mode": "around",
+  "route_mode": "route",
   "ids": {"root": "ev-ahead", "head": "ev-ahead-head", "list": "ev-ahead-list"},
   "row_tag": "div",
   "part_tag": "span",
@@ -23,6 +24,7 @@
   "texts": {
     "head_ahead": "앞의 충전소",
     "head_around": "주변 충전소 (고속도로 밖)",
+    "head_route": "경로 따라 앞의 충전소",
     "around_tag": "주변",
     "straight": "직선",
     "km_unit": "km",

@@ -19,6 +19,9 @@ import * as relayFresh from './relay_fresh.js';
 import { createRelayStatus } from './relay_status.js';
 import { createRelayLimit } from './relay_limit.js';
 import * as limitmatch from './limitmatch.js';
+import * as naviroute from './naviroute.js';
+import * as navi from './navi.js';
+import { createRouteClient } from './net_route.js';
 import * as navlink from './navlink.js';
 import * as geo from './geo.js';
 import * as fixcheck from './fixcheck.js';
@@ -41,6 +44,7 @@ import { createLogScreen } from './ui_log.js';
 import { createLocateGuide } from './ui_locate.js';
 import { createOddButton } from './ui_odd.js';
 import { createStationCard } from './ui_station.js';
+import { createSearchScreen } from './ui_navi.js';
 
 export const NEEDS = ['platform'];
 
@@ -99,8 +103,9 @@ export function main(platform) {
     if (made.relay_base) make('relay_status', () => createRelayStatus({ ...s, relay_base: made.relay_base, relay_parse: relayParse, relay_read: relayRead }));
     if (made.relay_base) make('relay_limit', () => createRelayLimit({ ...s, relay_base: made.relay_base, relay_parse: relayParse, limitmatch }));
     make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo, fixcheck, geomath: geo }));
+    make('net_route', () => createRouteClient({ ...s, netcore: made.netcore, naviroute }));
   }
-  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, limitmatch, speed, ahead } }));
+  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, limitmatch, speed, ahead, naviroute, navi } }));
   make('healthrunner', () => createHealthRunner({ ...s, health }));
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));
@@ -111,6 +116,7 @@ export function main(platform) {
   make('ui_locate', () => createLocateGuide(screen));
   make('ui_odd', () => createOddButton({ ...screen, formcheck }));
   make('ui_station', () => createStationCard({ ...screen, relay_read: relayRead, relay_fresh: relayFresh, navlink }));
+  make('ui_navi', () => createSearchScreen({ ...screen, formcheck }));
 
   try {
     made.state.claim(c.owner, [c.events.start])(c.events.start, { at: p.clock.now() });

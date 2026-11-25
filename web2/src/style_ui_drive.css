@@ -12,8 +12,10 @@ body {
 .ev-drive { grid-area: drive; display: flex; min-height: 0; min-width: 0; }
 .ev-drive[hidden] { display: none; }
 .ev-slot-side { flex: 1; background: #1f2937; container-type: inline-size; min-width: 0; }
-/* 가운데 칸 = 지도 + 그 아래 충전소 정보 칸(A4). 정보 칸이 열리면 지도 칸이 줄어든다(겹치지 않음) */
+/* 가운데 칸 = 지도 묶음(지도 + 그 위에 겹친 검색 칸 — A6) + 그 아래 충전소 정보 칸(A4). 정보 칸이 열리면 지도 묶음이 줄어든다(겹치지 않음).
+   검색 칸은 지도 묶음 안에서만 겹친다 — 지도 칸 크기·자리는 그대로, 양옆 판·아래 띠·정보 칸에는 닿지 않음 */
 .ev-center { flex: 3; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.ev-mapwrap { flex: 1 1 auto; display: flex; flex-direction: column; position: relative; min-width: 0; }
 .ev-slot-center { flex: 1 1 auto; position: relative; min-width: 0; }
 /* 좁은 창: 아래 띠를 두 줄로(지도 단추·기록 / 이상해) — 여전히 흐름이라 겹치지 않는다 */
 @media (max-width: 560px) {

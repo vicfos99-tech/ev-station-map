@@ -8,5 +8,14 @@
   "fields.odd_memo.why.type": {"t": "str", "min": 1, "max": 20},
   "fields.odd_memo.why.long": {"t": "str", "min": 1, "max": 20},
   "fields.odd_memo.why.ctrl": {"t": "str", "min": 1, "max": 20},
-  "fields.odd_memo.why.empty": {"t": "str", "min": 1, "max": 20}
+  "fields.odd_memo.why.empty": {"t": "str", "min": 1, "max": 20},
+  "fields.navi_q.t": {"t": "str", "one_of": ["text"]},
+  "fields.navi_q.max": {"t": "num", "int": true, "min": 1, "max": 1000},
+  "fields.navi_q.trim": {"t": "bool"},
+  "fields.navi_q.allow_empty": {"t": "bool"},
+  "fields.navi_q.ctrl_re": {"t": "str", "min": 1, "max": 200},
+  "fields.navi_q.why.type": {"t": "str", "min": 1, "max": 20},
+  "fields.navi_q.why.long": {"t": "str", "min": 1, "max": 20},
+  "fields.navi_q.why.ctrl": {"t": "str", "min": 1, "max": 20},
+  "fields.navi_q.why.empty": {"t": "str", "min": 1, "max": 20}
 }}

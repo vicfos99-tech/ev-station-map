@@ -1,0 +1,412 @@
+{
+ "keys": {
+  "owner": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "app_piece": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "client": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "health_client": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "routes.place": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "routes.route": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "routes.odd": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "routes.health": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "post_method": {
+   "t": "str",
+   "one_of": [
+    "POST"
+   ]
+  },
+  "q_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "from_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "to_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "pieces.place_request": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.route_request": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.upload_request": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.place": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.progress": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.answer": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.odd_result": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.conn": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pieces.conn_kakao": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "stages.asking": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "stages.slow": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "stages.done": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "stages.fail": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "stages.busy": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "stages.start": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "stages.one": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "slow_ms": {
+   "t": "num",
+   "min": 100,
+   "max": 60000,
+   "int": true
+  },
+  "q_max_chars": {
+   "t": "num",
+   "min": 1,
+   "max": 1000,
+   "int": true
+  },
+  "health_ms": {
+   "t": "num",
+   "min": 1000,
+   "max": 3600000,
+   "int": true
+  },
+  "health_down_ms": {
+   "t": "num",
+   "min": 1000,
+   "max": 3600000,
+   "int": true
+  },
+  "src_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "home_src_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "good_word": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "src_home": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "src_kakao": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "down_codes": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "kakao_codes": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "codes": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "codes.home_off": {"t": "str", "min": 1, "max": 30},
+  "codes.not_ready": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "codes.bad_input": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "codes.bad_answer": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "codes.internal": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "codes.too_big": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "codes.read": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "codes.stopped": {
+   "t": "str",
+   "min": 1,
+   "max": 30
+  },
+  "log_head_chars": {
+   "t": "num",
+   "min": 10,
+   "max": 5000,
+   "int": true
+  },
+  "odd.kind": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "odd.sent_key": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "odd.v_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "odd.v": {
+   "t": "num",
+   "min": 1,
+   "max": 1000,
+   "int": true
+  },
+  "odd.at_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "odd.memo_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "odd.state_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "odd.name_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "odd.max_chars": {
+   "t": "num",
+   "min": 100,
+   "max": 1000000,
+   "int": true
+  },
+  "odd.max_per_press": {
+   "t": "num",
+   "min": 1,
+   "max": 10000,
+   "int": true
+  },
+  "odd.stop_codes": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "where": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "act_place": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "act_route": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "act_upload": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "act_health": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "words": {
+   "t": "map",
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 40
+   }
+  },
+  "words.got": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.fail": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.dropped": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.bad_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.bad_answer": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.upload_busy": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.upload_fail": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.upload_start": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.upload_one": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.upload_end": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.sent_write_fail": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  }
+ }
+}

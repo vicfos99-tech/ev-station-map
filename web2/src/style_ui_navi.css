@@ -1,0 +1,26 @@
+/* 검색 칸(ui_navi): 운전 화면 가운데 칸의 지도 묶음(.ev-mapwrap) 안, 지도 위쪽에 겹친 자리(.ev-slot-navi) —
+   지도 묶음 밖(양옆 판·아래 띠·정보 칸)으로 나가지 않고, 아래 지도 저작권 표시(지도 칸 안 오른쪽 아래)는 높이 한도로 비켜 간다.
+   결과는 구분선 목록(카드 아님). 간격 8 단위, 누르는 곳 48px 이상. 쓸 수 없으면(data-ok="no") 칸·단추를 흐리게 + '사용 불가' 한 줄 */
+/* 지도 묶음(.ev-mapwrap) 위쪽에 겹친다(설계 5-8 바 1 '지도 위에 겹친 검색 칸') — 지도 칸 크기는 그대로. 높이 한도 = 지도 묶음 - 아래 28px(지도 저작권 글 20px + 8 — 가리지 않게).
+   넘으면 칸 안에서 넘겨 봄 */
+.ev-slot-navi { position: absolute; top: 0; left: 0; right: 0; z-index: 3; max-height: calc(100% - 28px); overflow-y: auto; display: flex; flex-direction: column; }
+.ev-navi { flex: 0 0 auto; display: flex; flex-direction: column; box-sizing: border-box; padding: 8px; background: #111827; border-bottom: 2px solid #4b5563; color: #f9fafb; font-family: system-ui, sans-serif; }
+.ev-navi[hidden] { display: none; }
+.ev-navi-bar { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.ev-navi-q { flex: 1 1 80px; min-width: 0; height: 48px; padding: 0 8px; font-size: 15px; border-radius: 8px; border: 1px solid #4b5563; background: #1f2937; color: #f9fafb; box-sizing: border-box; }
+.ev-navi-btn { flex: 0 0 auto; min-height: 48px; min-width: 64px; padding: 0 12px; font-size: 15px; font-weight: 700; border: 1px solid #4b5563; border-radius: 8px; background: #1f2937; color: #f9fafb; }
+.ev-navi-go { background: #2563eb; border-color: #2563eb; }
+.ev-navi[data-ok="no"] .ev-navi-q, .ev-navi[data-ok="no"] .ev-navi-go { opacity: .4; }
+.ev-navi-note { font-size: 13px; color: #fde68a; padding: 8px 0 0; overflow-wrap: anywhere; }
+.ev-navi-note:empty { display: none; }
+.ev-navi-list { display: flex; flex-direction: column; margin-top: 8px; }
+.ev-navi-list[hidden] { display: none; }
+.ev-navi-item { display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; min-height: 48px; padding: 4px 8px; cursor: pointer; }
+.ev-navi-item + .ev-navi-item { border-top: 1px solid #4b5563; }
+.ev-navi-item-name { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.ev-navi-item-addr { font-size: 12px; color: #9ca3af; overflow-wrap: anywhere; }
+.ev-navi-close { align-self: flex-start; margin-top: 8px; }
+.ev-navi-route { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 0 0; min-width: 0; }
+.ev-navi-route[hidden] { display: none; }
+.ev-navi-route-text { flex: 1 1 96px; min-width: 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.ev-navi-route-km { font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }

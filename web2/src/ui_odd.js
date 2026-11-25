@@ -27,9 +27,18 @@ export function createOddButton(deps) {
     $(c.ids.note).textContent = text;
   }
 
+  // (A6) 큰 조각(경로의 점 줄 등)은 설정 piece_keys 에 적힌 칸만 담는다 — 올리기 한 건의 크기 한도 안에 들게
   function snapshot() {
     const pieces = {};
-    for (const name of c.pieces) pieces[name] = deps.state.get(name) === undefined ? null : deps.state.get(name);
+    for (const name of c.pieces) {
+      const v = deps.state.get(name);
+      const keys = c.piece_keys[name];
+      if (v && typeof v === 'object' && Array.isArray(keys)) {
+        const part = {};
+        for (const k of keys) if (k in v) part[k] = v[k];
+        pieces[name] = part;
+      } else pieces[name] = v === undefined ? null : v;
+    }
     return pieces;
   }
 

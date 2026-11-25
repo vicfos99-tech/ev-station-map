@@ -1,0 +1,187 @@
+{
+ "keys": {
+  "v_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "v": {
+   "t": "num",
+   "min": 1,
+   "max": 1000,
+   "int": true
+  },
+  "ok_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "source_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "places_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "pieces_key": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "sources": {
+   "t": "arr",
+   "max": 10,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "place_answer_keys": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "place_keys": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "place_kinds": {
+   "t": "arr",
+   "max": 10,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "route_answer_keys": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "piece_keys": {
+   "t": "arr",
+   "max": 20,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 30
+   }
+  },
+  "max_places": {
+   "t": "num",
+   "min": 1,
+   "max": 200,
+   "int": true
+  },
+  "max_pieces": {
+   "t": "num",
+   "min": 1,
+   "max": 5000,
+   "int": true
+  },
+  "max_points": {
+   "t": "num",
+   "min": 2,
+   "max": 200000,
+   "int": true
+  },
+  "min_line_points": {
+   "t": "num",
+   "min": 1,
+   "max": 10,
+   "int": true
+  },
+  "max_km": {
+   "t": "num",
+   "min": 1,
+   "max": 5000,
+   "int": true
+  },
+  "text_max_chars": {
+   "t": "num",
+   "min": 1,
+   "max": 1000,
+   "int": true
+  },
+  "at_max_chars": {
+   "t": "num",
+   "min": 1,
+   "max": 100,
+   "int": true
+  },
+  "ctrl_re": {
+   "t": "str",
+   "min": 1,
+   "max": 200
+  },
+  "latlng_len": {
+   "t": "num",
+   "min": 2,
+   "max": 2,
+   "int": true
+  },
+  "lat_min": {
+   "t": "num",
+   "min": -90,
+   "max": 90
+  },
+  "lat_max": {
+   "t": "num",
+   "min": -90,
+   "max": 90
+  },
+  "lng_min": {
+   "t": "num",
+   "min": -180,
+   "max": 180
+  },
+  "lng_max": {
+   "t": "num",
+   "min": -180,
+   "max": 180
+  },
+  "answer_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "clear_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "geo_part": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "geo_rule": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "words.answer": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  }
+ }
+}

@@ -7,6 +7,9 @@
   "paths": {
     "health": "/v1/health",
     "data": "/v1/data/",
-    "stream": "/v1/test/stream"
+    "stream": "/v1/test/stream",
+    "place": "/v1/place",
+    "route": "/v1/route",
+    "odd": "/v1/odd"
   }
 }

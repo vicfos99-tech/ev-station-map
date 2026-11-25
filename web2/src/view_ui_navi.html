@@ -1,0 +1,13 @@
+<!-- 검색 칸(ui_navi — SearchScreen): 처음엔 숨김. ui_navi.js 가 운전 화면 가운데 칸의 지도 바로 위 자리(ev-slot-navi)로 옮겨 꽂는다 — 떠 있는 겹이 아니라 흐름이라 판·지도 저작권·아래 띠·정보 칸을 가리지 않는다. 글은 설정(config_ui_navi)에서 -->
+<section id="ev-navi" class="ev-navi" data-ok="yes" hidden>
+  <div class="ev-navi-bar">
+    <input id="ev-navi-q" class="ev-navi-q" type="search" autocomplete="off" enterkeyhint="search">
+    <button id="ev-navi-go" class="ev-navi-btn ev-navi-go" type="button"></button>
+  </div>
+  <div id="ev-navi-note" class="ev-navi-note"></div>
+  <div id="ev-navi-list" class="ev-navi-list" hidden></div>
+  <div id="ev-navi-route" class="ev-navi-route" hidden>
+    <span id="ev-navi-route-text" class="ev-navi-route-text"></span>
+    <button id="ev-navi-clear" class="ev-navi-btn ev-navi-clear" type="button"></button>
+  </div>
+</section>

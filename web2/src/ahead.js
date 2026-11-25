@@ -5,6 +5,7 @@
 //   · 고속도로 밖('around'): 곧은 거리로 가까운 충전소 r.count 곳('주변' — 거리는 곧은 거리 표시). 선에서 r.around_after_m 넘게 떨어져야 바뀌고(깜빡임 여유),
 //     선 위(Locate 의 on_line)로 돌아오면 다시 'ahead'. 그 사이(여유 띠)에서는 앞 결과를 그대로 둔다.
 // 진행 방향: pos.dir(Locate — 진행 방향 각도) → 없으면 앞 결과와의 km 변화(r.dir_min_move_km 이상) → 없으면 앞 방향 → 없으면 모름(빈 목록 — 지어내지 않는다).
+// (A6) 같은 셈의 앞 결과에 경로(done.route — naviroute)가 있고 내가 그 위면 'route': 경로 위 차례로(Navi — 갈아타는 곳 너머까지, 경로 끝 뒤는 끝의 선으로 채움).
 // ahead = {t, mode, dir, line, km, items: [{no, key, ids, name, ops, rest, dir, km, dist_km, straight, lat, lng}]} — lat·lng = 그 자리(묶인 첫 충전소) 좌표(지도의 1·2·3번 표시, A3), ids = 그 자리에 묶인 충전소 id 들(정보 칸, A4). 로그 없음, 틀린 입력은 던진다.
 export const NEEDS = [];
 
@@ -126,6 +127,15 @@ export function aheadOf(inputs, done, r, lib, own) {
   const g = lib.rules[r.geo_rule];
   if (!rl || !geo || !g) throw new TypeError(r.locate_rule);
   const places = placesOf(st, r, lib, rl);
+  // (A6) 경로가 있고 그 위에 있으면 경로 기준(설계 5-8 가-6) — 셈은 Navi(lib.parts[r.navi_part]). 경로에서 벗어나면 아래 선·주변 셈
+  const route = done[r.route_piece];
+  if (route && Array.isArray(route.points)) {
+    const navi = lib.parts[r.navi_part];
+    const rn = lib.rules[r.navi_rule];
+    if (!navi || !rn) throw new TypeError(r.navi_part);
+    const on = navi.aheadOnRoute({ fix, route, places, lines: st[r.lines_key] }, r, rn, rl, geo, g);
+    if (on) return { t: fix.t, mode: r.modes.route, dir: null, line: null, km: null, route_seq: route.seq, route_km: round(on.my_km, r.km_round), items: numbered(on.items) };
+  }
   const prevMode = own ? own.mode : null;
   let mode;
   if (pos.on_line) mode = r.modes.ahead;
