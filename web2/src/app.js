@@ -24,6 +24,7 @@ import * as locate from './locate.js';
 import * as speed from './speed.js';
 import * as ahead from './ahead.js';
 import * as formcheck from './formcheck.js';
+import * as mapcam from './mapcam.js';
 import { createCalcRunner } from './calcrunner.js';
 import * as board from './board.js';
 import { createStatusBar } from './ui_status.js';
@@ -95,7 +96,7 @@ export function main(platform) {
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));
   make('ui_drive', () => createDriveScreen(screen));
-  make('ui_map', () => createMapScreen({ ...screen, maplibre: p.maplibre }));
+  make('ui_map', () => createMapScreen({ ...screen, maplibre: p.maplibre, mapcam }));
   make('ui_boards', () => createBoardHost({ ...screen, board, boards: p.boards || [] }));
   make('ui_log', () => createLogScreen(screen));
   make('ui_locate', () => createLocateGuide(screen));

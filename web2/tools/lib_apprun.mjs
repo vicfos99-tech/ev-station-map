@@ -67,25 +67,48 @@ export function fakeWin() {
   return { innerWidth: 1280, innerHeight: 720, listeners: {}, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, navigator: { clipboard: { writeText: async () => {} } }, Blob, URL };
 }
 
-// 가짜 지도 라이브러리: 'load' 와 첫 그림 조각을 곧바로 알리고, 점 옮김을 센다
+// 가짜 지도 라이브러리: 'load' 와 첫 그림 조각을 곧바로 알리고, 점 옮김(moves)·카메라 명령(jumps)·층 켬끔·번호 표시(Marker)를 적는다.
+// user(종류, 값) = 손으로 만진 것처럼: 값을 바꾸고 시작 알림(originalEvent 있음) → moveend (A3 카메라 시험)
 export function fakeMapLib(tileSourceId) {
   const maps = [];
+  const markers = [];
   class Map {
     constructor(o) {
-      this.o = o; this.h = {}; this.sources = {}; this.moves = [];
+      this.o = o; this.h = {}; this.sources = {}; this.moves = []; this.jumps = []; this.layers = {}; this.data = {};
+      this.cam = { center: o.center, bearing: typeof o.bearing === 'number' ? o.bearing : 0, zoom: o.zoom };
       maps.push(this);
       setTimeout(() => { this.fire('load', {}); this.fire('data', { tile: {}, sourceId: tileSourceId }); }, 0);
     }
     on(ev, fn) { (this.h[ev] = this.h[ev] || []).push(fn); }
     fire(ev, e) { for (const f of this.h[ev] || []) f(e); }
-    addSource(id) { this.sources[id] = { setData: (d) => this.moves.push(d.geometry.coordinates) }; }
-    addLayer() {}
+    addSource(id, o) {
+      this.data[id] = o && o.data;
+      this.sources[id] = { setData: (d) => { this.data[id] = d; if (d && d.geometry) this.moves.push(d.geometry.coordinates); } };
+    }
+    addLayer(l) { this.layers[l.id] = { ...(l.layout || {}) }; }
+    setLayoutProperty(id, k, v) { (this.layers[id] = this.layers[id] || {})[k] = v; }
     getSource(id) { return this.sources[id]; }
-    easeTo() {}
-    getZoom() { return this.o.zoom; }
+    jumpTo(to) { this.jumps.push({ ...to, at: Date.now() }); Object.assign(this.cam, to); this.fire('moveend', {}); }
+    easeTo(to) { this.jumpTo(to); }
+    getZoom() { return this.cam.zoom; }
+    getBearing() { return this.cam.bearing; }
+    getCenter() { return { lng: this.cam.center[0], lat: this.cam.center[1] }; }
+    user(kind, to) {
+      const start = { moved: 'dragstart', rotated: 'rotatestart', zoomed: 'zoomstart' }[kind];
+      Object.assign(this.cam, to || {});
+      this.fire(start, { originalEvent: {} });
+      this.fire('moveend', { originalEvent: {} });
+    }
     remove() {}
   }
-  return { Map, maps };
+  class Marker {
+    constructor(o) { this.el = o.element; this.removed = false; markers.push(this); }
+    setLngLat(ll) { this.ll = ll; return this; }
+    addTo(m) { this.map = m; return this; }
+    remove() { this.removed = true; }
+    getElement() { return this.el; }
+  }
+  return { Map, Marker, maps, markers, live: () => markers.filter((x) => !x.removed) };
 }
 
 // 브라우저 개인 파일 저장소(OPFS) 가짜 — 빌드한 페이지의 disk_web.js 가 그대로 쓴다
@@ -162,7 +185,8 @@ export function startApp(ctx, opts) {
   const { raw, errors } = loadAppConfig(app, tc.build, { secretPath: opts.secretFile, buildInfo: { stamp: opts.stamp || 'try', at: kstText(tc), commit: 'try' }, overrides: opts.overrides });
   if (errors.length) throw new Error('설정 읽기 실패: ' + JSON.stringify(errors));
   const doc = fakeDoc(srcViews(app, tc));
-  const disk = memDisk();
+  // opts.disk = 앞 앱의 폰 데이터 폴더를 이어 씀(다시 열어도 같은가 — A3 카메라 상태)
+  const disk = opts.disk || memDisk();
   const consoleLines = [];
   const con = { error: (...a) => consoleLines.push(a.map(String).join(' ')), log: (...a) => consoleLines.push(a.map(String).join(' ')) };
   const lib = fakeMapLib(raw.files.config_ui_map.tile_source_id);

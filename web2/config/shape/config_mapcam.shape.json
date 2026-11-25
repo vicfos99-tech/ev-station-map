@@ -1,0 +1,14 @@
+{"keys": {
+  "start_bearing": {"t": "num", "min": 0, "max": 360},
+  "start_zoom": {"t": "num", "min": 1, "max": 20},
+  "follow_min_zoom": {"t": "num", "min": 1, "max": 20},
+  "min_zoom": {"t": "num", "min": 0, "max": 24},
+  "max_zoom": {"t": "num", "min": 1, "max": 24},
+  "heading_min_kmh": {"t": "num", "min": 0, "max": 60},
+  "bearing_min_change_deg": {"t": "num", "min": 0, "max": 90},
+  "full_turn_deg": {"t": "num", "min": 360, "max": 360},
+  "only3_default": {"t": "bool"},
+  "saved_bools": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 1, "max": 40}},
+  "user_event": {"t": "str", "min": 1, "max": 40},
+  "fix_word": {"t": "str", "min": 1, "max": 40}
+}}

@@ -61,6 +61,11 @@
     "odd_save_failed": "이상해 누름 — 기록 저장 못 함",
     "odd_memo_bad": "이상해 메모 거절",
     "locate_guide_shown": "위치 권한 안내 띄움",
-    "locate_guide_hidden": "위치 권한 안내 닫음"
+    "locate_guide_hidden": "위치 권한 안내 닫음",
+    "map_user": "지도를 손으로 만짐",
+    "map_me": "내 위치 단추",
+    "map_only3": "세 곳만 보기",
+    "map_save_failed": "지도 상태 저장 못 함",
+    "map_load_failed": "지도 상태 읽기 못 함"
   }
 }

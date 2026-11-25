@@ -1,4 +1,12 @@
-/* 지도는 운전 화면 가운데 칸을 꽉 채운다(조각 html 없음 — 칸은 view_ui_drive 의 ev-slot-center) */
+/* 지도는 운전 화면 가운데 칸을 꽉 채운다(칸은 view_ui_drive 의 ev-slot-center). 지도 단추 둘은 아래 띠 왼쪽 칸(격자 자리 tools).
+   1·2·3번 표시: 다른 충전소 점(작은 회색 — 지도 층)보다 크고 진한 동그라미에 번호, 지도 위 겹(다른 점보다 위). '주변'이면 색이 다르다(충전소판과 같은 색). */
 .ev-slot-center .maplibregl-canvas-container,
 .ev-slot-center canvas { outline: none; }
 .ev-slot-center { min-height: 240px; }
+.ev-map-bar { grid-area: tools; display: flex; gap: 8px; align-items: center; padding: 8px; }
+.ev-map-bar[hidden] { display: none; }
+.ev-map-me, .ev-map-only3 { min-height: 48px; min-width: 64px; padding: 0 12px; font-size: 15px; font-weight: 700; border: 1px solid #4b5563; border-radius: 8px; background: #1f2937; color: #f9fafb; }
+.ev-map-only3[aria-pressed="true"] { background: #fbbf24; color: #111827; border-color: #fbbf24; }
+.ev-map-no { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 700 20px/1 system-ui, sans-serif; border: 3px solid #ffffff; box-shadow: 0 1px 4px rgba(0, 0, 0, .5); box-sizing: border-box; }
+.ev-map-no-ahead { background: #fbbf24; color: #111827; }
+.ev-map-no-around { background: #93c5fd; color: #111827; }

@@ -30,8 +30,8 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_odd", "ui_log"],
-    "views_optional": ["ui_map", "ui_boards"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_odd", "ui_log"],
+    "views_optional": ["ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
     "vendor_css": ["vendor/maplibre-gl.css"],
@@ -117,6 +117,7 @@
       "board": "pure",
       "ahead": "pure",
       "formcheck": "pure",
+      "mapcam": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -175,7 +176,8 @@
       "relay_base": "relay_base",
       "relay_parse": "relay_parse",
       "board": "board",
-      "formcheck": "formcheck"
+      "formcheck": "formcheck",
+      "mapcam": "mapcam"
     },
     "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts"],
     "banned_everywhere": [
@@ -414,6 +416,38 @@
     ], "heading_step_km": 0.05, "speed_kmh": 95, "accuracy_m": 5, "t_step_ms": 1000},
     "s2": {"scene": "S2_제한속도", "tick": 460, "window_s": 60, "tail_s": 25, "sample_ms": 1000, "kmh": 115, "start_wait_ms": 20000},
     "report_file": "try_fix7_last.md"
+  },
+  "try_a3": {
+    "note": "A3 지도 스스로 시험(try_a3.mjs). 가상 창(가짜 지도 — 손 조작을 흉내: 값을 바꾸고 originalEvent 있는 시작 알림 → moveend)으로 카메라 규칙, 진짜 크롬으로 단추·번호 표시 자리. user = 손으로 돌리고 키운 값, drag_to = 손으로 옮긴 자리, far_zoom = 너무 멀리 줄인 값('내 위치'에서 최소 확대로 당김). s6.cases = 정차·튐·후진 창(그 틱 앞 lead 부터 ticks+after 동안) — max_step_m = 이어진 카메라 가운데 사이 가장 큰 걸음(95 km/h 로 1~3틱), 모든 창: 느릴 때(config_mapcam.heading_min_kmh 아래) 낸 방향 명령 0 · 이어진 방향 명령 사이 가장 큰 각 ≤ max_turn_deg. turn = slow 면 그 창에 느린 위치가 꼭 있어야(정차·후진)",
+    "run_seconds": 330,
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "settle_fixes": 3,
+    "watch_fixes": 5,
+    "fix_wait_ms": 15000,
+    "center_tol_deg": 0.000001,
+    "user": {"bearing": 45, "zoom": 16.5},
+    "drag_to": [127.0, 37.0],
+    "far_zoom": 10,
+    "s1": {"scene": "S1_고속도로", "pass_seek": 215, "pass_wait_ms": 60000},
+    "s6": {"scene": "S6_정차출발튐", "lead_ticks": 4, "after_ticks": 4, "max_step_m": 100, "max_turn_deg": 30, "cases": [
+      {"t_s": 100, "ticks": 2, "title": "달리는 중 400 m 튐", "turn": "small"},
+      {"t_s": 250, "ticks": 5, "title": "멈춘 중 60 m 흔들림", "turn": "slow"},
+      {"t_s": 364, "ticks": 16, "title": "정차 끝 · 주차 자리에서 20 m 후진(시속 5)", "turn": "slow"},
+      {"t_s": 470, "ticks": 1, "title": "다시 달릴 때 1.5 km 튐", "turn": "small"}
+    ]},
+    "chrome_sel": {
+      "map_me": {"q": "#ev-map-me"},
+      "map_only3": {"q": "#ev-map-only3", "attrs": ["aria-pressed"]},
+      "marks": {"q": ".ev-map-no", "hit": true, "attrs": ["data-key"]}
+    },
+    "chrome_controls": ["map_me", "map_only3"],
+    "chrome_ready": {"marks": {"min": 3, "text": true}},
+    "chrome_tick": 193,
+    "chrome_tick_note": "S1 틱 193 = 선 km 33.1 — 첫 곳(기흥 km 33.9)이 0.8 km 앞이라 따라갈 때 확대 14(MapLibre — 화면 위쪽으로 약 1.2 km)에서도 지도 안에 1번이 보인다. 지도 밖 번호는 가림을 보지 않는다(보일 수 없음)",
+    "chrome_frames": ["넓은 가로 1280×720", "폰 세로 360×740"],
+    "chrome_actions": [{"name": "세 곳만 누름", "q": "#ev-map-only3", "wait_ms": 1500}],
+    "report_file": "try_a3_last.md"
   },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",

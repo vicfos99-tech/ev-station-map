@@ -72,6 +72,15 @@ node web2/tools/try_fix7.mjs chrome-old <앱 사본 폴더>   # 같은 재기를
 - ①②③⑤⑦ `lib_chrome.mjs`: 앱을 빌드해 작은 서버(`127.0.0.1:5173` — 보기 도구와 함께 돌리지 않는다)에 내고, **크롬을 창 없이** 띄워 정한 크기의 iframe(넓은 가로·좁은 가로·좁은 세로 둘 — `layout.frames`)에 앱을 차례로 연다. 실제로 그린 상자(`getBoundingClientRect`)와 **그 자리에 실제로 보이는 것**(`elementFromPoint` — 가운데와 네 귀퉁이)을 재서: 충전소판 줄·거리·속도 숫자·지도 저작권 글이 가려지지 않음, 단추·메모 칸과 겹치는 넓이 0, 구분선 목록 모양, 세 칸 배치(세로 창도 왼편·가운데·오른편), 숫자 잘림, 누르는 높이 48px. 잰 값 통째는 `tools/logs/try_fix7_chrome.json`.
 - 한계: 창 없는 크롬의 글꼴·그림(소프트웨어 WebGL)이라 묘성 폰·PC 크롬과 글꼴 폭이 조금 다를 수 있다.
 
+## 스스로 시험 — `try_a3.mjs` (A3 지도)
+```
+node web2/tools/try_a3.mjs              # 전부(약 8분 — 다리가 끝날 때까지 + 크롬)
+node web2/tools/try_a3.mjs cam|s6|chrome
+```
+- ① S1 카메라 규칙: 가짜 지도(`lib_apprun.fakeMapLib`)의 `user(종류, 값)` 로 손 조작을 흉내(값을 바꾸고 originalEvent 가 있는 시작 알림 → moveend). 따라가기 · 돌리고 키운 것이 위치가 바뀌어도 그대로 · 옮기면 따라가기 끔 · '내 위치'(진행 방향·확대 그대로·너무 멀면 최소 확대) · 1·2·3번 = 충전소판(지나쳐 바뀐 뒤도) · '세 곳만' · 다시 열어도 같음(같은 폰 데이터 폴더로 새 앱 — `startApp` 의 `opts.disk`) · '이상해' 조각에 `map.cam`.
+- ② S6 정차·튐·후진 창마다 이어진 카메라 가운데 사이 가장 큰 걸음, 느릴 때(설정 `config_mapcam.heading_min_kmh` 아래) 낸 방향 명령 0, 이어진 방향 사이 가장 큰 각.
+- ③ 진짜 크롬(`lib_chrome`, 넓은 가로·폰 세로): 지도 단추 둘이 판·저작권·번호를 가리지 않음, 번호 셋 = 판 줄 셋, '세 곳만' 누름. 표 사본 `tools/logs/try_a3_last.md`, 잰 값 `try_a3_chrome.json`.
+
 ## 크롬으로 보기 — `view_s1.mjs`
 ```
 node web2/tools/view_s1.mjs [초] [장면] [틱]
