@@ -23,8 +23,33 @@
   "max_chargers": 200,
   "min_line_points": 2,
   "max_line_points": 20000,
+  "limit": {
+    "note": "(A5) 제한 속도 파일 검사 — 고속도로 표(sections: 선·km 구간·선 방향 fwd·반대 방향 back 값) · 일반 도로 칸 목차(cells) · 칸 파일(segs: id·kmh·both 양방향·pts 꼭짓점). 값은 kmh_min~kmh_max 의 숫자만, 0·빈 값·범위 밖은 '없음'(LimitMatch 도 이 범위를 씀). 중계 R5 전의 임시 꼴(web2/README.md)",
+    "sections_key": "sections",
+    "line_key": "line",
+    "from_key": "from_km",
+    "to_key": "to_km",
+    "fwd_key": "fwd",
+    "back_key": "back",
+    "cells_key": "cells",
+    "cell_key": "cell",
+    "cell_re": "^-?[0-9]{1,5}_-?[0-9]{1,5}$",
+    "segs_key": "segs",
+    "id_key": "id",
+    "kmh_key": "kmh",
+    "both_key": "both",
+    "pts_key": "pts",
+    "kmh_min": 10,
+    "kmh_max": 150,
+    "km_max": 1000,
+    "max_sections": 20000,
+    "max_cells": 100000,
+    "max_segs": 50000,
+    "max_seg_points": 2000
+  },
   "why": {
     "meta": "meta_shape", "file": "file_shape", "too_many": "too_many", "item": "item_shape", "id": "id", "name": "name",
-    "loc": "loc_range", "chargers": "chargers", "line": "line_shape", "line_points": "line_points", "line_point": "line_point_range"
+    "loc": "loc_range", "chargers": "chargers", "line": "line_shape", "line_points": "line_points", "line_point": "line_point_range",
+    "empty": "empty", "km": "km_range"
   }
 }

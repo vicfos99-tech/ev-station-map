@@ -1,0 +1,22 @@
+{
+  "note": "LimitMatch(제한 속도 찾기 — 순수) 값. 고속도로: 같은 셈의 pos 가 선 위이고 방향(forward·backward)을 알 때 표의 그 선·km 구간(from_km 이상 to_km 미만)의 fwd_key·back_key 값. 일반 도로: 지금 칸과 둘레 cell.match_ring 바퀴 칸의 조각 가운데 road_dist_m 안·진행 방향 road_dir_max_deg 안(both 인 조각은 반대 방향도). 값이 제한 속도 범위(range_rule 설정의 limit.kmh_min~kmh_max — 중계 파일 검사와 같은 한 곳) 밖(0·빈 값 포함)이면 그 후보는 없음. 남은 후보 값이 둘 이상이면 split(없음). cell = 칸 나누기(deg 도 크기, sep 이음표) — relay_limit 과 시험 도구도 같은 값으로 칸을 셈. road_box_deg = 조각 둘레 상자 여유(먼 조각은 붙여 보지 않음)",
+  "fix_input": "fix",
+  "data_input": "limit.data",
+  "pos_piece": "pos",
+  "geo_part": "geo",
+  "geo_rule": "config_geo",
+  "highway_key": "highway",
+  "sections_key": "sections",
+  "cells_key": "cells",
+  "segs_key": "segs",
+  "fwd_key": "fwd",
+  "back_key": "back",
+  "dir_words": {"forward": "forward", "backward": "backward"},
+  "cell": {"deg": 0.05, "sep": "_", "match_ring": 1},
+  "road_dist_m": 25,
+  "road_dir_max_deg": 45,
+  "road_box_deg": 0.001,
+  "range_rule": "config_relay_parse",
+  "src_words": {"highway": "highway", "road": "road", "both": "both"},
+  "why_words": {"found": "found", "no_data": "no_data", "none": "none", "split": "split", "bad_input": "bad_input"}
+}

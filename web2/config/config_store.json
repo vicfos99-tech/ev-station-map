@@ -1,7 +1,7 @@
 {
   "note": "데이터 폴더(브라우저 개인 파일 저장소 안)와 저장 키. records = 기록 하나가 파일 하나인 종류(A2-나 '이상해'): 이름 목록 파일(index_file)·판 번호·보관 개수(keep — 넘으면 오래된 것부터 지움)",
   "dir": "data",
-  "keys": {"my": {"file": "my.json", "v": 1}, "mapcam": {"file": "mapcam.json", "v": 1}},
+  "keys": {"my": {"file": "my.json", "v": 1}, "mapcam": {"file": "mapcam.json", "v": 1}, "limit": {"file": "limit.json", "v": 1}},
   "records": {"odd": {"index_file": "odd_index.json", "v": 1, "keep": 300}},
   "version_key": "v",
   "value_key": "value",

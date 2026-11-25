@@ -3,7 +3,7 @@
 // 다리를 시험 모드(try_a2ga.run_seconds 초)로 띄우고, 이번만 쓰는 앱 비밀 값을 저장소 밖 임시 파일로 만든다.
 // 고속도로 선은 R0 전이라 시험 다리가 내주지 않아 선 파일만 lib_testbed.fetchWithLines 가 대신 답한다(앱은 그대로 다리 자료 길에 묻는다).
 // ① S1  속도판 시속 = 흐름의 시속 · 위치가 선에 붙고 km 가 늘어남 · 나가는 주소가 다리 하나이고 모든 물음에 비밀 값 머리
-// ② S2  시속 115 가 속도판에(제한 속도 칸은 빔 — A5)
+// ② S2  시속 115 가 속도판에(A5 뒤: 제한 100 · 넘음 표시 — 자세한 것은 try_a5)
 // ③ S6  튀는 위치 셋이 걸러지고 기록 · 정차 중 시속 0
 // ④ S7  자료 길이 끊긴 동안 화면 그대로 + 상태 자리 한 줄, 돌아오면 사라짐
 // ⑤ S11 나쁜 자료(흐름 넷 · 자료 길 셋)가 걸러지고 기록, 앱은 그대로
@@ -203,8 +203,9 @@ async function main2() {
     row('②-1', 'S2 (틱 ' + T.s2.seek + '부터 — km 40~48 시속 ' + T.s2.kmh + ') 속도판', '"' + T.s2.kmh + '"', JSON.stringify(boardText(b)) + ' · 조각 ' + (bs ? bs.kmh : '-'),
       boardText(b) === String(T.s2.kmh) && bs && bs.kmh === T.s2.kmh);
     const judge = b.el(SP.ids.root) ? b.el(SP.ids.root).getAttribute(SP.judge_attr) : null;
-    row('②-2', 'S2 제한 속도 칸(A5 전)', '제한 칸 빔 · 판단 none(넘음 표시 없음)', '제한 ' + JSON.stringify(b.el(SP.ids.limit).textContent) + ' · 판단 ' + judge,
-      b.el(SP.ids.limit).textContent === '' && judge === cfgOf('config_speed').judge_words.none);
+    // (A5 뒤) 제한 속도가 들어옴 — km 40~48 은 제한 100 에 시속 115: 넘음(주의). 자세한 제한 속도 시험은 try_a5
+    row('②-2', 'S2 제한 속도 칸(A5 뒤 — 장면 limits 로 만든 제한 속도 파일)', '제한 칸 "100" · 판단 over(넘음 표시)', '제한 ' + JSON.stringify(b.el(SP.ids.limit).textContent) + ' · 판단 ' + judge,
+      b.el(SP.ids.limit).textContent === '100' && judge === cfgOf('config_speed').judge_words.over);
     b.stop();
 
     // ---------- ③ S6 ----------

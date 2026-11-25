@@ -1,5 +1,5 @@
-<!-- 속도판: 판 틀(ui_boards)이 왼편 자리에 꽂는다. 글은 ui_speed.js 가 설정에서 넣는다. data-judge = 정상·넘음·자료 없음(넘음이면 경고 모양) -->
+<!-- 속도판: 판 틀(ui_boards)이 왼편 자리에 꽂는다. 글은 ui_speed.js 가 설정에서 넣는다. data-judge = 정상·넘음(주의)·위험·자료 없음, 제한 칸 data-limit = 보임·빈 칸 -->
 <div id="ev-speed" class="ev-speed" data-judge="empty">
   <div class="ev-speed-now"><span id="ev-speed-value" class="ev-speed-value"></span><span id="ev-speed-unit" class="ev-speed-unit"></span></div>
-  <div class="ev-speed-limit-row"><span id="ev-speed-limit-label" class="ev-speed-limit-label"></span><span id="ev-speed-limit" class="ev-speed-limit"></span></div>
+  <div id="ev-speed-limit-row" class="ev-speed-limit-row" data-limit="blank"><span id="ev-speed-limit-label" class="ev-speed-limit-label"></span><span id="ev-speed-limit" class="ev-speed-limit"></span></div>
 </div>

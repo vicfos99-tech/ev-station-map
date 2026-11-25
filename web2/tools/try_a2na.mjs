@@ -274,7 +274,9 @@ async function main2() {
     so.records[UO.record_kind].keep = T.odd.keep_override;
     const f = await openAt(T.odd.scene, T.odd.seek, { overrides: { config_store: so } });
     await wait(() => f.get('ahead') && f.get('speed'), T.start_wait_ms);
-    const oddFiles = () => Object.keys(f.disk.files).filter((k) => k.startsWith(ST.dir + '/') && !k.endsWith('/' + ST.records[UO.record_kind].index_file));
+    // 데이터 폴더의 기록 파일만 — 목록 파일과 다른 저장 키 파일(A5 의 제한 속도 사본 limit.json·A3 의 mapcam.json 등 config_store.keys)은 뺀다
+    const keyFiles = new Set(Object.values(ST.keys).map((k) => ST.dir + '/' + k.file));
+    const oddFiles = () => Object.keys(f.disk.files).filter((k) => k.startsWith(ST.dir + '/') && !k.endsWith('/' + ST.records[UO.record_kind].index_file) && !keyFiles.has(k));
     const indexOf = () => { const t = f.disk.files[ST.dir + '/' + ST.records[UO.record_kind].index_file]; return t ? JSON.parse(t) : []; };
     const callsBefore = f.fetchCalls.length;
     const press = async (memo) => {

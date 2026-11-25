@@ -214,7 +214,7 @@ export function startApp(ctx, opts) {
   };
   const made = main(platform);
   const win = platform.win;
-  const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [] };
+  const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [], limit: [] };
   if (made.state) {
     made.state.subscribe('ahead', (v) => seen.ahead.push({ v, at: Date.now() }));
     made.state.subscribe('health.app', (v) => seen.app.push({ ...v, at: Date.now() }));
@@ -222,6 +222,7 @@ export function startApp(ctx, opts) {
     made.state.subscribe('speed', (v) => seen.speed.push({ ...v, at: Date.now() }));
     made.state.subscribe('pos', (v) => seen.pos.push({ ...v, at: Date.now() }));
     made.state.subscribe('stations', (v) => seen.stations.push({ v, at: Date.now() }));
+    made.state.subscribe('limit', (v) => seen.limit.push({ ...v, at: Date.now() }));
   }
   let stopped = false;
   return {
@@ -232,6 +233,7 @@ export function startApp(ctx, opts) {
       if (made.loc_watch) made.loc_watch.halt();
       if (made.relay_stations) made.relay_stations.halt();
       if (made.relay_status) made.relay_status.halt();
+      if (made.relay_limit) made.relay_limit.halt();
       for (const h of timers) clearTimeout(h);
       for (const h of intervals) clearInterval(h);
     },

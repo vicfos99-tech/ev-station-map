@@ -71,6 +71,79 @@ export function stations(obj, r) {
   return { zscode, good, bad };
 }
 
+// ---------- 제한 속도 파일(A5 — 규칙 r.limit. 꼴은 중계 R5 전의 임시 꼴: web2/README.md '제한 속도 자료') ----------
+// 제한 속도 값: 범위 안의 숫자만, 0·빈 값·범위 밖은 null('없음' — 설계 5-7 RelayClient 줄)
+function kmhOf(v, L) {
+  return typeof v === 'number' && Number.isFinite(v) && v >= L.kmh_min && v <= L.kmh_max ? v : null;
+}
+
+function head(obj, r, listKey) {
+  const L = r.limit;
+  if (!isObj(obj) || obj[r.v_key] !== r.v || !Array.isArray(obj[listKey])) throw new TypeError(r.why.file);
+  return { L, at: typeof obj[r.meta_at_key] === 'string' ? obj[r.meta_at_key] : null };
+}
+
+// 고속도로 표 → {at, good: [{line, from_km, to_km, fwd, back}], bad: [{i, why}], blank: 값이 없는 방향 수}. 구간이 0 개면 던진다(건수 0 은 실패 — L063)
+export function limitHighway(obj, r) {
+  const { L, at } = head(obj, r, r.limit.sections_key);
+  const list = obj[L.sections_key];
+  if (!list.length) throw new TypeError(r.why.empty);
+  if (list.length > L.max_sections) throw new TypeError(r.why.too_many);
+  const good = [];
+  const bad = [];
+  let blank = 0;
+  list.forEach((s, i) => {
+    if (!isObj(s) || !isStr(s[L.line_key], r.name_max)) { bad.push({ i, why: r.why.item }); return; }
+    const a = s[L.from_key];
+    const b = s[L.to_key];
+    if (typeof a !== 'number' || typeof b !== 'number' || !Number.isFinite(a) || !Number.isFinite(b) || a < 0 || b > L.km_max || a >= b) { bad.push({ i, why: r.why.km }); return; }
+    const fwd = kmhOf(s[L.fwd_key], L);
+    const back = kmhOf(s[L.back_key], L);
+    blank += (fwd === null ? 1 : 0) + (back === null ? 1 : 0);
+    good.push({ line: s[L.line_key], from_km: a, to_km: b, fwd, back });
+  });
+  return { at, good, bad, blank };
+}
+
+// 일반 도로 칸 목차 → {at, cells: [칸 열쇠]} (꼴이 틀린 열쇠는 뺌 — bad 수)
+export function limitIndex(obj, r) {
+  const { L, at } = head(obj, r, r.limit.cells_key);
+  const list = obj[L.cells_key];
+  if (list.length > L.max_cells) throw new TypeError(r.why.too_many);
+  const rx = new RegExp(L.cell_re);
+  const cells = list.filter((k) => typeof k === 'string' && rx.test(k));
+  return { at, cells, bad: list.length - cells.length };
+}
+
+// 일반 도로 칸 하나 → {at, cell, good: [{id, kmh, both, pts, box: 둘레 상자 {lat0, lng0, lat1, lng1}}], bad, blank}. 값이 0·빈 조각은 '없음'이라 싣지 않는다(blank 수). 조각 0 개면 던진다
+export function limitCell(obj, r) {
+  const { L, at } = head(obj, r, r.limit.segs_key);
+  const list = obj[L.segs_key];
+  if (!list.length) throw new TypeError(r.why.empty);
+  if (list.length > L.max_segs) throw new TypeError(r.why.too_many);
+  const cell = typeof obj[L.cell_key] === 'string' && new RegExp(L.cell_re).test(obj[L.cell_key]) ? obj[L.cell_key] : null;
+  const good = [];
+  const bad = [];
+  let blank = 0;
+  list.forEach((s, i) => {
+    if (!isObj(s) || !isStr(s[L.id_key], r.id_max)) { bad.push({ i, why: r.why.id }); return; }
+    const raw = s[L.pts_key];
+    if (!Array.isArray(raw) || raw.length < r.min_line_points || raw.length > L.max_seg_points) { bad.push({ i, id: s[L.id_key], why: r.why.line_points }); return; }
+    const pts = [];
+    for (const p of raw) {
+      const ll = latLng(p, r);
+      if (!ll) { bad.push({ i, id: s[L.id_key], why: r.why.line_point }); return; }
+      pts.push([ll.lat, ll.lng]);
+    }
+    const kmh = kmhOf(s[L.kmh_key], L);
+    if (kmh === null) { blank += 1; return; }
+    const lats = pts.map((p) => p[0]);
+    const lngs = pts.map((p) => p[1]);
+    good.push({ id: s[L.id_key], kmh, both: s[L.both_key] === true, pts, box: { lat0: Math.min(...lats), lng0: Math.min(...lngs), lat1: Math.max(...lats), lng1: Math.max(...lngs) } });
+  });
+  return { at, cell, good, bad, blank };
+}
+
 // 고속도로 선 파일 → {name, highway, direction, points}. 꼭짓점 하나라도 틀리면 선 전체를 버린다(던짐)
 export function line(obj, r) {
   if (!isObj(obj) || !isStr(obj.name, r.name_max) || !Array.isArray(obj.points)) throw new TypeError(r.why.line);

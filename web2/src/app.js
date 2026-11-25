@@ -17,6 +17,8 @@ import { createRelayStations } from './relay_stations.js';
 import * as relayRead from './relay_read.js';
 import * as relayFresh from './relay_fresh.js';
 import { createRelayStatus } from './relay_status.js';
+import { createRelayLimit } from './relay_limit.js';
+import * as limitmatch from './limitmatch.js';
 import * as navlink from './navlink.js';
 import * as geo from './geo.js';
 import * as fixcheck from './fixcheck.js';
@@ -95,9 +97,10 @@ export function main(platform) {
     make('relay_base', () => createRelayBase({ ...base, netcore: made.netcore }));
     if (made.relay_base) make('relay_stations', () => createRelayStations({ ...s, relay_base: made.relay_base, relay_parse: relayParse }));
     if (made.relay_base) make('relay_status', () => createRelayStatus({ ...s, relay_base: made.relay_base, relay_parse: relayParse, relay_read: relayRead }));
+    if (made.relay_base) make('relay_limit', () => createRelayLimit({ ...s, relay_base: made.relay_base, relay_parse: relayParse, limitmatch }));
     make('loc_watch', () => createLocWatch({ ...s, netcore: made.netcore, geo: p.geo, fixcheck, geomath: geo }));
   }
-  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, speed, ahead } }));
+  make('calcrunner', () => createCalcRunner({ ...s, statecalc, parts: { geo, locate, limitmatch, speed, ahead } }));
   make('healthrunner', () => createHealthRunner({ ...s, health }));
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));

@@ -1,7 +1,7 @@
 {
-  "note": "Speed(지금 속도와 판단) 값. 기기 속도가 없으면 두 점 거리 ÷ 시간, 그 값이 max_kmh 를 넘으면 튐으로 보고 앞 값. 제한 속도 조각(limit — A5)이 없으면 판단은 none",
+  "note": "Speed(지금 속도와 판단) 값. 기기 속도가 없으면 두 점 거리 ÷ 시간, 그 값이 max_kmh 를 넘으면 튐으로 보고 앞 값. 제한 속도는 같은 셈의 앞 결과 limit_piece(LimitMatch)의 limit_key. 없으면 판단은 none(경고 없음). 넘음 = 속도 > 제한 + over_margin_kmh 가 over_hold_ms 이어짐(주의), 그때 제한 + danger_margin_kmh 도 넘으면 danger(위험). 내려가면 곧바로 ok",
   "fix_input": "fix",
-  "limit_input": "limit",
+  "limit_piece": "limit",
   "limit_key": "kmh",
   "geo_part": "geo",
   "geo_rule": "config_geo",
@@ -9,6 +9,8 @@
   "kmh_to_mps": 0.2777777777777778,
   "max_kmh": 250,
   "over_margin_kmh": 5,
+  "danger_margin_kmh": 20,
+  "over_hold_ms": 2000,
   "src_words": {"device": "device", "calc": "calc"},
-  "judge_words": {"ok": "ok", "over": "over", "none": "none"}
+  "judge_words": {"ok": "ok", "over": "over", "danger": "danger", "none": "none"}
 }

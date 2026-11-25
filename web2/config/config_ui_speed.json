@@ -1,11 +1,13 @@
 {
-  "note": "속도판(ui_speed — 알림판). 제한 속도 칸은 A5 에서 값이 들어올 때까지 빈다. judge_attr 값 = speed 조각의 judge(ok·over·none), 값이 없으면 judge_empty. fit = 숫자 크기 고르기: size_steps_px(정해 둔 크기 단계, 큰 것부터 봄) 가운데 max_digits 자리(최대 199)가 '판 폭 - pad_px' 안에 드는 가장 큰 것. 숫자 한 자의 폭 = digit_em × 크기(고정폭 숫자의 어림 — 실제 글꼴로 잰 값이 아님). 판 폭은 그려진 폭, 아직 없으면 panel_width_px(왼편 자리 가장 좁은 폭 config_ui_boards.slot_min_px.left 에서 자리 안쪽 여백을 뺀 값과 맞춘다). pad_px = 판 좌우 안쪽 여백(style_ui_speed.css 의 .ev-speed padding)",
+  "note": "속도판(ui_speed — 알림판). (A5) 세 모습: 정상(제한 칸에 limit_label + 값) · 넘음(judge over 주의 · danger 위험 — 색은 style_ui_speed.css) · 빈 칸(제한 속도가 없으면 limit_row 의 limit_attr = limit_words.blank, 글 없음). judge_attr 값 = speed 조각의 judge(ok·over·danger·none), 값이 없으면 judge_empty. fit = 숫자 크기 고르기: size_steps_px(정해 둔 크기 단계, 큰 것부터 봄) 가운데 max_digits 자리(최대 199)가 '판 폭 - pad_px' 안에 드는 가장 큰 것. 숫자 한 자의 폭 = digit_em × 크기(고정폭 숫자의 어림 — 실제 글꼴로 잰 값이 아님). 판 폭은 그려진 폭, 아직 없으면 panel_width_px(왼편 자리 가장 좁은 폭 config_ui_boards.slot_min_px.left 에서 자리 안쪽 여백을 뺀 값과 맞춘다). pad_px = 판 좌우 안쪽 여백(style_ui_speed.css 의 .ev-speed padding)",
   "speed_piece": "speed",
   "health_piece": "health.speed",
   "interval_ms": 500,
   "slot": "left",
-  "ids": {"root": "ev-speed", "value": "ev-speed-value", "unit": "ev-speed-unit", "limit": "ev-speed-limit", "limit_label": "ev-speed-limit-label"},
+  "ids": {"root": "ev-speed", "value": "ev-speed-value", "unit": "ev-speed-unit", "limit": "ev-speed-limit", "limit_label": "ev-speed-limit-label", "limit_row": "ev-speed-limit-row"},
   "texts": {"unit": "km/h", "limit_label": "제한"},
+  "limit_attr": "data-limit",
+  "limit_words": {"shown": "shown", "blank": "blank"},
   "judge_attr": "data-judge",
   "judge_empty": "empty",
   "fit": {

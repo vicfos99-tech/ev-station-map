@@ -122,6 +122,7 @@
       "relay_read": "pure",
       "relay_html": "pure",
       "navlink": "pure",
+      "limitmatch": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -132,6 +133,7 @@
       "relay_base": "client",
       "relay_stations": "client",
       "relay_status": "client",
+      "relay_limit": "client",
       "healthrunner": "runner",
       "calcrunner": "runner",
       "mapview": "screen_part",
@@ -165,6 +167,7 @@
       "relay_base": ["netcore"],
       "relay_stations": ["relay_base"],
       "relay_status": ["relay_base"],
+      "relay_limit": ["relay_base"],
       "ui_map": ["mapview"]
     },
     "dep_module": {
@@ -188,7 +191,8 @@
       "relay_read": "relay_read",
       "relay_fresh": "relay_fresh",
       "relay_html": "relay_html",
-      "navlink": "navlink"
+      "navlink": "navlink",
+      "limitmatch": "limitmatch"
     },
     "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send"],
     "banned_everywhere": [
@@ -206,7 +210,7 @@
       "statecalc": ["health", "conn\\."]
     },
     "banned_in_layer": {
-      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\brelay_status\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
+      "screen": ["\\bnetcore\\b", "\\bstartprobe\\b", "\\bloc_watch\\b", "\\brelay_base\\b", "\\brelay_stations\\b", "\\brelay_status\\b", "\\brelay_limit\\b", "\\bfetch\\b", "\\bRelayClient\\b", "\\bRouteClient\\b", "\\bLocationClient\\b"],
       "pure": ["\\bdeps\\b", "\\blog\\s*\\.", "\\bLogger\\b"]
     }
   },
@@ -244,7 +248,20 @@
     "lines_shim": {"lines/gyeongbu_down.json": "gyeongbu_down"},
     "json_type": "application/json; charset=utf-8",
     "lock_status": 401,
-    "lock_body": {"v": 1, "ok": false, "code": "lock", "src": "gate"}
+    "lock_body": {"v": 1, "ok": false, "code": "lock", "src": "gate"},
+    "limit_shim": {
+      "note": "(A5) 중계 R5 전이라 시험 다리가 제한 속도 파일을 내주지 않는다. 시험·보기 도구만 다리 자료 길의 제한 속도 파일 이름(앱 config_relay_limit)을 지금 장면의 limits 로 만든 파일로 대신 답한다(lib_testbed.limitFiles). piece_m = 좌표 조각을 자르는 길이. 없는 파일은 다리처럼 none(404), 시험이 끊김을 켜면 upstream(502, 자료 길)",
+      "piece_m": 500,
+      "id_sep": "-",
+      "at_text": "20261125230000",
+      "earth_radius_m": 6371008.8,
+      "deg_to_rad": 0.017453292519943295,
+      "m_per_km": 1000,
+      "none_status": 404,
+      "none_body": {"v": 1, "ok": false, "code": "none", "src": "data"},
+      "down_status": 502,
+      "down_body": {"v": 1, "ok": false, "code": "upstream", "src": "data"}
+    }
   },
   "try_a1": {
     "run_seconds": 140,
@@ -588,6 +605,60 @@
     ],
     "map_min_ratio": 0.35,
     "report_file": "try_a4_last.md"
+  },
+  "try_a5": {
+    "note": "A5 스스로 시험(try_a5.mjs). pure = 다리 없이 순수 셈(칸·파일 검사·고속도로·일반 도로·갈림·0 값·판단) — 좌표는 시험이 정한 값, 기대 값은 시험이 따로 셈. s2 = 넘음 → 풀림 두 곳(장면 속도 표: 틱 455~705 시속 115·제한 100, 틱 1312~1425 시속 95·제한 80, 그 뒤 78). s4 = 고속도로 100 → 나들목 길 40 → 일반 도로 60 → 자료 없는 길(빈 칸). down = 끊김(시험이 대신 답에 끊김을 켬): 들고 있는 값 그대로 · 처음부터 없으면 빈 칸 · 폰 사본으로 보임. refresh_ms = 시험만 줄인 다시 받기 간격. chrome = 세 모습(정상 S1·넘음 S2·빈 칸 S4)을 네 창에서",
+    "run_seconds": 420,
+    "exit_grace_ms": 20000,
+    "start_wait_ms": 20000,
+    "refresh_ms": 3000,
+    "pure": {
+      "cell_pt": [37.004, 127.185],
+      "line": "gyeongbu_down",
+      "road_a": [37.0040, 127.1850],
+      "road_b": [37.0040, 127.1950],
+      "east_deg": 90,
+      "north_deg": 0,
+      "off_far_m": 40,
+      "off_near_m": 10,
+      "m_per_deg_lat": 111195
+    },
+    "s2": {
+      "scene": "S2_제한속도",
+      "cases": [
+        {"seek": 680, "limit": 100, "over_wait_ms": 15000, "release_wait_ms": 40000, "title": "제한 100 에 시속 115(틱 455~705) → 95"},
+        {"seek": 1400, "limit": 80, "over_wait_ms": 15000, "release_wait_ms": 45000, "title": "제한 80 에 시속 95(틱 1312~1425) → 78"}
+      ]
+    },
+    "s4": {
+      "scene": "S4_나들목일반도로",
+      "first": {"seek": 195, "steps": [
+        {"limit": 100, "wait_ms": 15000, "title": "고속도로(제한 100)"},
+        {"limit": 40, "wait_ms": 60000, "title": "나들목 길(제한 40)"},
+        {"limit": 60, "wait_ms": 90000, "title": "일반 도로(제한 60)"}
+      ]},
+      "second": {"seek": 520, "steps": [
+        {"limit": 60, "wait_ms": 15000, "title": "일반 도로(제한 60)"},
+        {"limit": null, "wait_ms": 45000, "title": "자료 없는 길(빈 칸)"}
+      ]},
+      "allowed": [100, 40, 60]
+    },
+    "down": {"scene": "S1_고속도로", "seek": 0, "limit": 100, "down_wait_ms": 30000, "hold_ms": 8000, "back_wait_ms": 40000},
+    "chrome_looks": [
+      {"name": "정상", "scene": "S1_고속도로", "tick": 0, "judge": "ok", "limit": "100"},
+      {"name": "넘음", "scene": "S2_제한속도", "tick": 470, "judge": "over", "limit": "100"},
+      {"name": "빈 칸", "scene": "S4_나들목일반도로", "tick": 545, "judge": "none", "limit": ""}
+    ],
+    "chrome_sel": {
+      "speed_root": {"q": "#ev-speed", "attrs": ["data-judge"]},
+      "speed_value": {"q": "#ev-speed-value", "hit": true},
+      "speed_limit": {"q": "#ev-speed-limit", "hit": true},
+      "speed_limit_row": {"q": "#ev-speed-limit-row", "attrs": ["data-limit"]},
+      "speed_unit": {"q": "#ev-speed-unit"},
+      "look": {"q": "#ev-speed[data-judge=\"{judge}\"]"}
+    },
+    "judge_mark": "{judge}",
+    "report_file": "try_a5_last.md"
   },
   "view_s1": {
     "note": "묘성이 크롬으로 S1 을 보는 길: 빌드(임시 폴더) + 다리(시험 모드) + 작은 웹 서버를 같은 초만 띄운다",
