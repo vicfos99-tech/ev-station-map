@@ -1,9 +1,11 @@
 """시험 다리 — 앱이 다리에 묻는 길 다섯 + 1초 흐름 + 조종 길(파이썬 기본 모듈만).
 
-쓰는 법:  py server/bridge.py <설정 파일 경로>
+쓰는 법:  py server/bridge.py <설정 파일 경로> [돈 초]
   예)    py server/bridge.py config/testbed.json
   - 앱 비밀 값은 설정 bridge.secret_env 이름의 환경변수에서 읽는다(설정·코드에 값이 없다). 없으면 시작하지 않는다.
-  - 시험 모드만 있다: 설정 bridge.run_seconds 초 뒤 스스로 끝난다.
+  - 시험 모드만 있다: 설정 bridge.run_seconds 초(또는 둘째 인자로 준 초) 뒤 스스로 끝난다.
+  - 쏜 것(틱·사건·충전기 상태 바뀜)과 /v1/odd 로 받은 것을 시험 DB(설정 db)에 쌓는다(server/recorder.py).
+    장면 고르기·처음부터 한 번이 실행 하나(실행 번호)다.
 
 길(이름·방식은 설정 bridge.paths·methods — 설계 5-5 (가)):
   GET  /v1/data/<파일>   중계 꼴 그대로(meta·stations/<시군구>·status/<시군구>·status/rest/<id>) — 장면의 충전소와 지금 상태
@@ -32,6 +34,7 @@ from urllib.parse import urlsplit
 TOOLS_DIR = "tools"
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, TOOLS_DIR))
 
+import recorder  # noqa: E402
 import relay_view  # noqa: E402
 import scene_play  # noqa: E402
 import schemacheck  # noqa: E402
@@ -44,6 +47,9 @@ FAIL_CODE = 1
 SCENE_NAME_KEY = "name"
 ACTIONS = ("select", "restart", "pause", "resume", "seek", "inject", "status")
 SSE_SEP = "\n"
+USAGE_ARGS = ("<설정 파일 경로>", "[돈 초 — 없으면 설정 bridge.run_seconds]")
+START_WHY = "다리 시작"
+END_WHY = "다리 끝"
 
 
 class Fail(Exception):
@@ -75,6 +81,26 @@ class Bridge:
         self.schema_root = schema
         self.defaults = self._load_responses(tbconfig.read_json(cfg.resolve(self.b["default_responses_file"])),
                                              self.b["default_responses_file"])
+        self.rec = recorder.Recorder(cfg, log)
+
+    # ---- 쌓기(시험 DB) ----
+    def start_run(self, why):
+        """지금 장면으로 실행 하나를 열고 지금 틱을 쌓는다(틱 줄기와 섞이지 않게 장면 잠금 안에서)."""
+        with self.player.cond:
+            snap = self.player.snapshot()
+            self.rec.new_run(snap["scene"], why)
+            self.record_tick(snap)
+
+    def record_tick(self, snap):
+        payload = self.tick_payload(snap, snap["tick"], snap["tick"], snap["inject_count"])
+        self.rec.flow(payload)
+        for ev in payload["events"]:
+            self.rec.event(snap["tick"], recorder.ORIGIN_SCENE, ev)
+
+    def advance_and_record(self):
+        with self.player.cond:
+            if self.player.advance():
+                self.record_tick(self.player.snapshot())
 
     # ---- 바탕 ----
     def _load_responses(self, data, label):
@@ -248,22 +274,28 @@ class Bridge:
             if action not in ACTIONS:
                 raise Fail(self.b["codes"]["bad"], self.b["gate_source"], "모르는 action")
             try:
-                if action == "select":
-                    self.player.select(str(body.get(SCENE_NAME_KEY, "")))
-                elif action == "restart":
-                    self.player.restart()
-                elif action in ("pause", "resume"):
-                    self.player.pause(action == "pause")
-                elif action == "seek":
-                    tick = body.get("tick")
-                    if not isinstance(tick, int) or isinstance(tick, bool):
-                        raise scene_play.SceneError("tick 은 정수")
-                    self.player.seek(tick)
-                elif action == "inject":
-                    ev = body.get("event")
-                    if not isinstance(ev, dict):
-                        raise scene_play.SceneError("event 는 객체")
-                    self.player.inject(ev)
+                with self.player.cond:
+                    if action == "select":
+                        self.player.select(str(body.get(SCENE_NAME_KEY, "")))
+                        self.start_run(action)
+                    elif action == "restart":
+                        self.player.restart()
+                        self.start_run(action)
+                    elif action in ("pause", "resume"):
+                        self.player.pause(action == "pause")
+                    elif action == "seek":
+                        tick = body.get("tick")
+                        if not isinstance(tick, int) or isinstance(tick, bool):
+                            raise scene_play.SceneError("tick 은 정수")
+                        self.player.seek(tick)
+                    elif action == "inject":
+                        ev = body.get("event")
+                        if not isinstance(ev, dict):
+                            raise scene_play.SceneError("event 는 객체")
+                        ev = self.player.inject(ev)
+                        self.rec.event(self.player.tick, recorder.ORIGIN_INJECT, ev)
+                    if action in ("pause", "resume", "seek"):
+                        self.rec.event(self.player.tick, recorder.ORIGIN_CONTROL, dict(body, type=action))
             except scene_play.SceneError as e:
                 raise Fail(self.b["codes"]["bad"], self.b["gate_source"], str(e))
             self.log.write(WHERE + ".scene", action, detail=json.dumps(body, ensure_ascii=False))
@@ -272,7 +304,7 @@ class Bridge:
     def status(self):
         snap = self.player.snapshot()
         st = snap["state"]
-        return {"scene": snap["scene"].name, "gen": snap["gen"], "tick": snap["tick"],
+        return {"scene": snap["scene"].name, "run": self.rec.current_run(), "gen": snap["gen"], "tick": snap["tick"],
                 "last_tick": snap["scene"].last_tick, "t_s": snap["tick"] * self.player.dt,
                 "paused": snap["paused"], "ended": snap["ended"], "down": sorted(st["down"]),
                 "startup_fail": st["startup_fail"], "modes": st["modes"]}
@@ -389,6 +421,9 @@ def make_handler(bridge):
                     result["bytes"] = self._send_json(result["status"], bridge.fail_body(b["codes"]["gate"], b["gate_source"]))
                 except OSError as e2:
                     bridge.log.write(WHERE + ".req", "실패 답도 못 보냄", error=repr(e2))
+            if name == "odd" and method == "POST":
+                bridge.rec.odd(bridge.player.tick, result["status"], result["code"], result["why"],
+                               result.get("name"), result.get("body"))
             ms = round((time.monotonic() - t0) * cfg["units"]["ms_per_second"])
             bridge.log.write(WHERE + ".req", "끝", method=method, route=name or "(모름)", status=result["status"],
                              code=result["code"], why=result["why"], ms=ms, bytes=result["bytes"])
@@ -438,6 +473,7 @@ def make_handler(bridge):
             if method not in allowed:
                 raise Fail(b["codes"]["bad"], b["gate_source"], "방식이 다름")
             body = self._read_body() if method == "POST" else {}
+            result["body"] = body
             if name == "stream":
                 self._stream(result)
                 return
@@ -452,6 +488,8 @@ def make_handler(bridge):
                 out, status = bridge.do_data(path[len(b["paths"]["data"]):], snap), HTTPStatus.OK
             else:
                 status, out = bridge.do_ask(name, body, snap)
+                if name == "odd" and isinstance(out, dict):
+                    result["name"] = out.get("name")
             result["status"] = status
             result["bytes"] = self._send_json(status, out)
 
@@ -499,8 +537,8 @@ def make_handler(bridge):
 
 def main(argv):
     args = argv[1:]
-    if len(args) != 1:
-        print("쓰는 법: py bridge.py <설정 파일 경로>")
+    if len(args) not in (len(USAGE_ARGS) - 1, len(USAGE_ARGS)):
+        print("쓰는 법: py bridge.py " + " ".join(USAGE_ARGS))
         return FAIL_CODE
     try:
         cfg = tbconfig.Config(args[0])
@@ -509,12 +547,22 @@ def main(argv):
         return FAIL_CODE
     log = tblog.from_config(cfg, cfg.resolve)
     b = cfg["bridge"]
+    run_seconds = b["run_seconds"]
+    if len(args) == len(USAGE_ARGS):
+        try:
+            run_seconds = float(args[-1])
+        except ValueError:
+            run_seconds = None
+        if run_seconds is None or not run_seconds > 0:
+            print("돈 초는 0 보다 큰 수: " + args[-1])
+            return FAIL_CODE
     secret = os.environ.get(b["secret_env"])
     if secret is None or len(secret) < b["secret_min_chars"]:
         msg = "앱 비밀 값 환경변수 " + b["secret_env"] + " 이(가) 없거나 짧음 — 시작하지 않음"
         print(msg)
         log.write(WHERE + ".main", "시작 못 함", why=msg)
         return FAIL_CODE
+    bridge = None
     try:
         bridge = Bridge(cfg, log, secret)
         bridge.player.select(cfg["active_scene"])
@@ -522,30 +570,39 @@ def main(argv):
     except (tbconfig.ConfigError, scene_play.SceneError, OSError, ValueError) as e:
         print("시작 못 함: " + str(e))
         log.write(WHERE + ".main", "시작 못 함", error=repr(e))
+        if bridge is not None:
+            bridge.rec.close("시작 못 함")
         return FAIL_CODE
     server.daemon_threads = True
+    bridge.start_run(START_WHY)
 
     def ticker():
-        while not bridge.stop.wait(bridge.player.dt):
-            bridge.player.advance()
+        # 정해 둔 박자(시작 + n × 간격)에 맞춰 나아간다 — 한 번씩 늦어도 밀림이 쌓이지 않게
+        beat = time.monotonic()
+        while True:
+            beat += bridge.player.dt
+            if bridge.stop.wait(max(beat - time.monotonic(), 0)):
+                break
+            bridge.advance_and_record()
 
     def finish():
-        log.write(WHERE + ".main", "시험 모드 시간 끝 — 닫음", run_seconds=b["run_seconds"])
+        log.write(WHERE + ".main", "시험 모드 시간 끝 — 닫음", run_seconds=run_seconds)
         bridge.stop.set()
         with bridge.player.cond:
             bridge.player.cond.notify_all()
         server.shutdown()
 
-    timer = threading.Timer(b["run_seconds"], finish)
+    timer = threading.Timer(run_seconds, finish)
     timer.daemon = True
     threading.Thread(target=ticker, daemon=True).start()
     timer.start()
     snap = bridge.player.snapshot()
     log.write(WHERE + ".main", "시작", host=cfg["server"]["host"], port=cfg["server"]["port"],
-              scene=snap["scene"].name, ticks=snap["scene"].last_tick + 1, run_seconds=b["run_seconds"],
-              secret_env=b["secret_env"])
+              scene=snap["scene"].name, ticks=snap["scene"].last_tick + 1, run_seconds=run_seconds,
+              secret_env=b["secret_env"], db=bridge.rec.ok)
     print("시험 다리 시작: " + cfg["server"]["host"] + ":" + str(cfg["server"]["port"]) + " · 장면 " + snap["scene"].name
-          + " · " + str(b["run_seconds"]) + "초 뒤 스스로 끝남", flush=True)
+          + " · " + str(run_seconds) + "초 뒤 스스로 끝남 · 시험 DB " + ("쌓음" if bridge.rec.ok else "못 엶 — 쌓지 않음"),
+          flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -554,8 +611,10 @@ def main(argv):
     finally:
         timer.cancel()
         server.server_close()
+        counts = bridge.rec.close(END_WHY)
     log.write(WHERE + ".main", "끝")
-    print("시험 다리 끝", flush=True)
+    print("시험 다리 끝 · 시험 DB 씀 " + str(counts["written"]) + " · 실패 " + str(counts["failed"])
+          + " · 버림 " + str(counts["dropped"]), flush=True)
     return OK_CODE
 
 

@@ -46,10 +46,49 @@
     "db": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path"],
+      "required": ["path", "schema_file", "master_table", "run_table", "log_table", "common_columns", "kinds", "src_of_kind", "time_format", "journal_mode", "busy_timeout_s", "queue_max", "batch_max", "flush_s", "close_wait_s", "text_max_chars", "try"],
       "properties": {
         "path": {"type": "string", "minLength": 1},
-        "note": {"type": "string"}
+        "note": {"type": "string"},
+        "schema_file": {"type": "string", "minLength": 1},
+        "master_table": {"type": "string", "minLength": 1},
+        "run_table": {"type": "string", "minLength": 1},
+        "log_table": {"type": "string", "minLength": 1},
+        "common_columns": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "kinds": {
+          "type": "object", "additionalProperties": false,
+          "required": ["flow", "event", "charger", "speed", "odd"],
+          "properties": {
+            "flow": {"type": "string", "minLength": 1}, "event": {"type": "string", "minLength": 1},
+            "charger": {"type": "string", "minLength": 1}, "speed": {"type": "string", "minLength": 1},
+            "odd": {"type": "string", "minLength": 1}
+          }
+        },
+        "src_of_kind": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+        "time_format": {"type": "string", "minLength": 1},
+        "journal_mode": {"enum": ["DELETE", "TRUNCATE", "PERSIST", "MEMORY", "WAL"]},
+        "busy_timeout_s": {"type": "number", "exclusiveMinimum": 0},
+        "queue_max": {"type": "integer", "minimum": 1},
+        "batch_max": {"type": "integer", "minimum": 1},
+        "flush_s": {"type": "number", "exclusiveMinimum": 0},
+        "close_wait_s": {"type": "number", "exclusiveMinimum": 0},
+        "text_max_chars": {"type": "integer", "minimum": 1},
+        "try": {
+          "type": "object", "additionalProperties": false,
+          "required": ["scene", "run_seconds", "after_ticks", "run2_seconds", "poll_s", "tick_tolerance", "odd_good", "odd_bad", "broken_cause", "temp_db_name"],
+          "properties": {
+            "scene": {"type": "string", "minLength": 1},
+            "run_seconds": {"type": "number", "exclusiveMinimum": 0},
+            "after_ticks": {"type": "integer", "minimum": 1},
+            "run2_seconds": {"type": "number", "exclusiveMinimum": 0},
+            "poll_s": {"type": "number", "exclusiveMinimum": 0},
+            "tick_tolerance": {"type": "integer", "minimum": 0},
+            "odd_good": {"type": "object"},
+            "odd_bad": {"type": "object"},
+            "broken_cause": {"type": "string", "minLength": 1},
+            "temp_db_name": {"type": "string", "minLength": 1}
+          }
+        }
       }
     },
     "status_codes": {

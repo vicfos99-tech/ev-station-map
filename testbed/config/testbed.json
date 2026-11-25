@@ -25,7 +25,34 @@
   },
   "db": {
     "path": "../data/testbed.db",
-    "note": "T3 에서 쓰는 자리. T1 은 만들지 않는다"
+    "note": "시험 DB(T3). 표 정의는 schema_file 한 파일 — 판을 더할 때 마스터 한 줄 + 디테일 표 하나",
+    "schema_file": "../db/schema.sql",
+    "master_table": "board_master",
+    "run_table": "tb_run",
+    "log_table": "board_log",
+    "common_columns": ["run", "tick", "key", "at", "good_until", "src"],
+    "kinds": {"flow": "flow", "event": "event", "charger": "charger", "speed": "speed", "odd": "odd"},
+    "src_of_kind": {"flow": "loc", "event": "gate", "charger": "data", "speed": "data", "odd": "home"},
+    "time_format": "%Y-%m-%dT%H:%M:%S.%fZ",
+    "journal_mode": "WAL",
+    "busy_timeout_s": 5,
+    "queue_max": 20000,
+    "batch_max": 500,
+    "flush_s": 0.5,
+    "close_wait_s": 10,
+    "text_max_chars": 2000,
+    "try": {
+      "scene": "S5_충전기상태",
+      "run_seconds": 340,
+      "after_ticks": 5,
+      "run2_seconds": 6,
+      "poll_s": 1.0,
+      "tick_tolerance": 1,
+      "odd_good": {"v": 1, "at": "2026-11-25T00:00:00Z", "memo": "시험 DB — 받음", "state": {"where": "S5"}},
+      "odd_bad": {"v": 1, "at": "2026-11-25T00:00:00Z", "evil": "x"},
+      "broken_cause": "잘못된_원인",
+      "temp_db_name": "broken_test.db"
+    }
   },
   "status_codes": {
     "comm_error": "1",
@@ -190,12 +217,16 @@
       "tblog": [],
       "tbconfig": ["schemacheck"],
       "check_scenes": ["tbconfig", "tblog", "schemacheck", "geo"],
-      "check4": ["tbconfig", "tblog", "check_scenes"],
+      "check4": ["tbconfig", "tblog", "check_scenes", "tbdb"],
       "match_ids": ["tbconfig", "tblog"],
       "try_server": ["tbconfig", "tblog", "check_scenes"],
       "relay_view": [],
       "scene_play": ["tbconfig", "schemacheck", "geo"],
-      "bridge": ["tbconfig", "tblog", "schemacheck", "scene_play", "relay_view"]
+      "bridge": ["tbconfig", "tblog", "schemacheck", "scene_play", "relay_view", "recorder"],
+      "tbdb": [],
+      "recorder": ["tbdb"],
+      "db_peek": ["tbconfig", "tblog", "tbdb"],
+      "try_db": ["tbconfig", "tblog", "tbdb", "db_peek", "try_server", "recorder"]
     }
   }
 }

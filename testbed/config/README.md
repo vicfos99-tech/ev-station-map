@@ -20,7 +20,19 @@
 | `log.time_format` | `%Y-%m-%d %H:%M:%S` | 기록장 시각 꼴 | 기록장 |
 | `log.max_value_chars` | 200 | 값이 이보다 길면 앞부분만 | 기록장 |
 | `log.secret_words` | secret·key·token·password·lock | 이름에 이 낱말이 든 값은 '(가림)'으로 | 기록장 |
-| `db.path` | `../data/testbed.db` | 시험 DB 자리(T3 용 — T1 은 만들지 않음, git 제외) | T3 |
+| `db.path` | `../data/testbed.db` | 시험 DB 자리(git 제외 — `data/`) | T3 |
+| `db.schema_file` | `../db/schema.sql` | 표 정의 한 파일(마스터 `board_master` + 판마다 디테일 표 + `tb_run`·`board_log`). 판을 더할 때 마스터 한 줄 + 디테일 표 하나 | T3 |
+| `db.master_table` · `run_table` · `log_table` | board_master · tb_run · board_log | 표 이름(코드는 이 값과 마스터 `detail_table` 만 씀) | T3 |
+| `db.common_columns` | run·tick·key·at·good_until·src | 디테일 표마다 꼭 있어야 하는 칸(check4 ① 이 봄) | T3 |
+| `db.kinds` | flow·event·charger·speed·odd | 다리가 쏘는 자리(역할) → 마스터 판 종류 이름 | T3 |
+| `db.src_of_kind` | flow=loc · event=gate · charger·speed=data · odd=home | 디테일 줄의 `src`(어디서 받았나 — 다리의 출처 이름) | T3 |
+| `db.time_format` | `%Y-%m-%dT%H:%M:%S.%fZ` | DB 시각 꼴(UTC). 보여 줄 때만 `kst_offset_hours` 더함 | T3 |
+| `db.journal_mode` · `busy_timeout_s` | WAL · 5 | 쓰는 중에 꺼내 보기가 읽을 수 있게 · 잠김 기다림 | T3 |
+| `db.queue_max` | 20000 | 쓰기 줄 세우기 크기 한도 — 차면 그 줄은 버리고 기록장에 | T3 |
+| `db.batch_max` · `flush_s` | 500 · 0.5 | 한 트랜잭션에 쓰는 줄 수 · 쓰는 간격(초) | T3 |
+| `db.close_wait_s` | 10 | 다리가 끝날 때 남은 줄을 다 쓰기까지 기다리는 초 | T3 |
+| `db.text_max_chars` | 2000 | JSON·메모 칸 글 길이 한도 | T3 |
+| `db.try.*` | S5 · 340초 · 마지막 바뀜 + 5틱 · 둘째 실행 6초 · ±1 틱 · '이상해' 받을 것/거절될 것 · 틀린 원인 값 · 임시 DB 이름 | 시험 DB 스스로 시험(`tools/try_db.py`) | T3 |
 | `status_codes` | 낱말 → 중계 stat 코드 | 장면의 충전기 상태 낱말과 중계 자료 코드(`ref/relay_format.md`). 장면 낱말은 여기 있어야 한다 | 검사기 · T2 |
 | `sources` | data·home·gate·loc·tiles | 끊김 사건의 출처 이름(설계 `health.src` 의 출처) | 검사기 · T2 |
 | `startup_fail_targets` | stations·lines·app_secret·gateway_url | 켤 때 실패 사건의 대상 | 검사기 · T2 |

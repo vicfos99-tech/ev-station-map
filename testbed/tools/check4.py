@@ -3,7 +3,8 @@
 쓰는 법:  py tools/check4.py <설정 파일 경로>
   예)    py tools/check4.py config/testbed.json
 
-① 빌드      : 모든 .py 가 컴파일되고, 모든 .json 이 읽히고, 장면 검사기를 통과하나
+① 빌드      : 모든 .py 가 컴파일되고, 모든 .json 이 읽히고, 장면 검사기를 통과하고,
+              시험 DB 표 정의(설정 db.schema_file)가 메모리 DB 에 깔리며 마스터·디테일이 맞나
 ② 박힌 값   : .py 안의 숫자(설정 allowed_numbers 밖)와 경로·주소처럼 생긴 글(설정 path_patterns)
               — 설명 글(docstring)과 설정 exclude_files 는 뺀다
 ③ 순환 의존 : 이 폴더 .py 끼리의 import 고리
@@ -19,6 +20,7 @@ import sys
 
 import check_scenes
 import tbconfig
+import tbdb
 import tblog
 
 WHERE = "check4"
@@ -73,7 +75,10 @@ def check_build(cfg, log):
             bad.append(_rel(root, p) + ": JSON 이 안 읽힘 — " + str(e))
     ok, errors, summaries = check_scenes.run(cfg, log)
     bad.extend("장면: " + e for e in errors)
-    counts = ".py " + str(len(pys)) + " · .json " + str(len(jsons)) + " · 장면 " + str(len(summaries))
+    schema_errors = tbdb.check_schema(cfg)
+    bad.extend("표 정의: " + e for e in schema_errors)
+    counts = (".py " + str(len(pys)) + " · .json " + str(len(jsons)) + " · 장면 " + str(len(summaries))
+              + " · 표 정의 " + ("맞음" if not schema_errors else "틀림"))
     return bad, counts, summaries
 
 

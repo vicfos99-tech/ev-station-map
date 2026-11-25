@@ -1,4 +1,4 @@
-# 시험 다리 (테스트 베드 T2, 2026-11-25)
+# 시험 다리 (테스트 베드 T2 · 시험 DB T3, 2026-11-25)
 
 앱(web2)이 Workers 다리에 묻는 길을 그대로 흉내 내는 집 PC 의 작은 서버다. 앱은 다리 주소 설정(`config_gateway.json`)만 이 서버로 바꿔 붙인다. 파이썬 기본 모듈만 쓴다. 숫자·길 이름·머리 이름·포트는 모두 `config/testbed.json` 의 `bridge`·`server` 칸(칸 뜻은 `config/README.md`).
 
@@ -26,7 +26,17 @@ py server/bridge.py config/testbed.json
 - 사건이 길에 주는 영향: `source_down data` → `/v1/data` 가 `upstream`(src data) · `home` → place·route·odd 가 `home_off`(src home) · `gate` → 시험 길 말고 모두 답 없이 연결 닫음 · `loc` → 흐름의 `pos` 가 `null`. `startup_fail stations` → 자료 파일 넷이 `upstream` · `app_secret` → 모든 길 `lock`. `restart` 로 지워진다.
 - 기록장(`logs/testbed.log`): 물음마다 시작·끝(길·HTTP 코드·실패 코드·까닭·ms·바이트). 비밀 값·물음 본문(위치·목적지)은 싣지 않는다.
 
-## 아직 안 하는 것 (T3·T4 와 그 뒤)
+## 시험 DB 에 쌓기 (T3 — `server/recorder.py`, 표 정의 `db/schema.sql`)
+- 표 모양은 설계 5-5 (2-나) 마스터-디테일(묘성 결정 F5): 마스터 `board_master`(판 종류·출처·갱신 간격 …) + 판마다 디테일 표 `board_<종류>`(공통 칸 `key·at·good_until·src` + 그 판의 칸). 시험 베드에만 `run`(실행 번호)·`tick` 칸이 더 있다.
+- 지금 판 다섯: `flow`(틱마다 위치·속도) · `event`(장면 사건·넣은 사건·조종) · `charger`(실행 시작 때 모든 충전기 + 상태가 바뀔 때마다 — `/v1/data` 가 그 틱부터 내는 값) · `speed`(장면 limits) · `odd`(`/v1/odd` 로 온 것, 받음·거절 둘 다).
+- 실행 번호: 다리 시작·`select`·`restart` 한 번마다 새 번호(`tb_run`). 같은 장면을 다시 돌려도 앞 실행 줄은 그대로다.
+- 쓰기는 따로 도는 줄기 하나가 `db.flush_s` 마다 `db.batch_max` 줄씩 한 트랜잭션으로. 실패하면 한 줄씩 다시 써서 틀린 줄만 잃고 기록장에 까닭을 남긴다. 다리는 계속 돈다. DB 를 못 열면 쌓지 않고 돈다(시작 줄에 '못 엶').
+- 틱 박자는 '시작 + n × 간격'에 맞춘다 — 늦음이 쌓이지 않게(흐름 틱 수 = 돈 초).
+- 꺼내 보기: `py tools/db_peek.py config/testbed.json master | counts | runs | timeline <장면 이름 또는 실행 번호>`
+- 스스로 시험: `py tools/try_db.py config/testbed.json` (약 6분 — S5 를 실제 시간으로 돌림)
+- 다리 둘째 인자로 돈 초를 줄 수 있다: `py server/bridge.py config/testbed.json 340`(없으면 `bridge.run_seconds`).
+
+## 아직 안 하는 것 (T4 와 그 뒤)
 - `routes.json`·고속도로 선 파일(R0 꼴이 아직 없음) — 켤 때 실패 `lines` 는 지금 막을 파일이 없다.
 - 이어 달리기(`compose`, S12) 재생, `bad_payload`(S11) 사건의 나쁜 자료 만들기 — T4.
-- 시험 DB 에 쌓기 — T3.
+- 시험 DB 의 보관 날 수(`keep_days`)로 지우기 — 아직 지우지 않는다.
