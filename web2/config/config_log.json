@@ -9,7 +9,6 @@
   "levels": {"debug": 10, "info": 20, "warn": 30, "error": 40},
   "level_words": {"debug": "자세히", "info": "알림", "warn": "주의", "error": "오류"},
   "sep": " · ",
-  "time_pattern": "YYYY-MM-DD hh:mm:ss",
   "mask_keys": ["secret", "token", "password", "lock", "authorization"],
   "mask_patterns": [],
   "mask_value_files": ["config_app_secret"],
@@ -27,7 +26,6 @@
   "console_read_prefix": "[기록장 못 읽음 — 메모리에 든 줄만] ",
   "download_name": "충전길잡이_기록_{time}.txt",
   "download_time_mark": "{time}",
-  "download_time_pattern": "YYYYMMDD_hhmmss",
   "words": {
     "start": "앱 시작",
     "config_problem": "설정 문제",

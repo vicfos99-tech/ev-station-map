@@ -1,5 +1,5 @@
 {
-  "note": "충전소 고르기 엔진(engine — 옛 앱 web/engine.js · 파이썬 src/ev_charge_planner 와 같은 셈). 값은 옛 엔진에 박혀 있던 그대로: 안전 여유 기본 0.10 · 도착 최소 기본 15% · 허용 오차 1e-9 · 점수(빈 급속 1대 이하 0점 · 2대 1점 · 3대 이상 2점, 도착 여유 10% 미만 0점 · 20% 미만 1점 · 그 이상 2점, 신선하면 1점). 알림 글은 파이썬과 같은 글({n} 자리에 수). g_digits = 파이썬 {x:g} 와 같은 유효 자리",
+  "note": "충전소 고르기 엔진(engine — 옛 앱 web/engine.js · 파이썬 src/ev_charge_planner 와 같은 셈). 값은 옛 엔진에 박혀 있던 그대로: 안전 여유 기본 0.10 · 도착 최소 기본 15% · 허용 오차 1e-9 · 점수(빈 급속 1대 이하 0점 · 2대 1점 · 3대 이상 2점, 도착 여유 10% 미만 0점 · 20% 미만 1점 · 그 이상 2점, 신선하면 1점). 알림 글은 파이썬과 같은 글({n} 자리에 수). g_digits = 파이썬 {x:g} 와 같은 유효 자리. status = 엔진 상태 이름표(한 곳 — 목록·추천 입력 planinput 은 이 표의 키만 적는다)",
   "pct": 100,
   "ms_per_minute": 60000,
   "tolerance": 1e-9,
@@ -9,7 +9,7 @@
   "n_mark": "{n}",
   "subscription_word": "subscription",
   "charger_type": {"fast": "fast", "slow": "slow"},
-  "status": {"available": "available", "charging": "charging"},
+  "status": {"available": "available", "charging": "charging", "broken": "out_of_service", "unknown": "comm_error"},
   "status_order": ["available", "charging", "out_of_service", "maintenance", "comm_error"],
   "unusable_statuses": ["out_of_service", "maintenance", "comm_error"],
   "alert": {"unreachable": "unreachable", "all_unavailable": "all_unavailable", "no_usable_fast": "no_usable_fast", "unusable_chargers": "unusable_chargers", "stale_info": "stale_info", "no_backup": "no_backup", "no_safe_station": "no_safe_station"},

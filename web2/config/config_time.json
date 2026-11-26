@@ -1,7 +1,9 @@
 {
-  "note": "한국 시각 = UTC + kst_offset_hours. 폰·PC 지역 시각을 쓰지 않는다(설계 5-6). PC 의 work.env KST_OFFSET_HOURS 와 같은 값",
+  "note": "한국 시각 = UTC + kst_offset_hours. 폰·PC 지역 시각을 쓰지 않는다(설계 5-6). PC 의 work.env KST_OFFSET_HOURS 와 같은 값. 여러 모듈이 같이 쓰는 시각 꼴은 여기 한 곳: stamp_pattern = 로그 줄·'이상해' 기록의 시각, file_stamp_pattern = 내려받는 로그·'이상해' 기록 파일 이름의 시각",
   "kst_offset_hours": 9,
   "ms_per_hour": 3600000,
   "tokens_re": "YYYY|MM|DD|hh|mm|ss",
-  "pad_char": "0"
+  "pad_char": "0",
+  "stamp_pattern": "YYYY-MM-DD hh:mm:ss",
+  "file_stamp_pattern": "YYYYMMDD_hhmmss"
 }

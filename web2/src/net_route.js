@@ -18,7 +18,7 @@ export function createRouteClient(deps) {
   const net = deps.netcore;
   const nr = deps.naviroute;
   const c = cfg.section('config_net_route');
-  const rr = cfg.section('config_naviroute');
+  const rr = nr.withCtrl(cfg.section('config_naviroute'), cfg.section('config_formcheck'));
   const r = cfg.section('config_health');
   const P = c.pieces;
   const S = c.stages;
@@ -64,7 +64,10 @@ export function createRouteClient(deps) {
   }
 
   function head(data) {
-    try { return JSON.stringify(data).slice(0, c.log_head_chars); } catch (e) { return String(data).slice(0, c.log_head_chars); }
+    try { return JSON.stringify(data).slice(0, c.log_head_chars); } catch (e) {
+      log.warn(c.where, c.words.head_fail, { why: e && e.name });
+      return String(data).slice(0, c.log_head_chars);
+    }
   }
 
   // 길 하나에 POST — 늦으면(slow_ms) onSlow 를 한 번 부른다

@@ -8,7 +8,6 @@
   "levels": {"t": "map", "of": {"t": "num", "int": true, "min": 0, "max": 100}},
   "level_words": {"t": "map", "of": {"t": "str", "min": 1, "max": 20}},
   "sep": {"t": "str", "min": 1, "max": 8},
-  "time_pattern": {"t": "str", "min": 2, "max": 40},
   "mask_keys": {"t": "arr", "min": 1, "of": {"t": "str", "min": 2, "max": 40}},
   "mask_patterns": {"t": "arr", "of": {"t": "str", "min": 1, "max": 200}},
   "mask_value_files": {"t": "arr", "of": {"t": "str", "min": 1, "max": 60}},
@@ -26,6 +25,5 @@
   "console_read_prefix": {"t": "str", "min": 1, "max": 60},
   "download_name": {"t": "str", "min": 1, "max": 80},
   "download_time_mark": {"t": "str", "min": 1, "max": 20},
-  "download_time_pattern": {"t": "str", "min": 2, "max": 40},
   "words": {"t": "map", "of": {"t": "str", "min": 1, "max": 60}}
 }}

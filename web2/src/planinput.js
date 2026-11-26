@@ -3,7 +3,7 @@
 //   routeFromRelay — 중계 자료(충전소 목록·선·충전기 상태)를 옛 앱의 노선 꼴(휴게소 · 충전소 · 충전기)로. 휴게소 묶음·km·방향은 Ahead.places 와 같은 셈
 //   inputs         — 노선 꼴 + 내 차·할인(my) + 내가 확인한 값(mine) → 엔진 입력(옛 inputs() 와 같은 차례: 나들목 인근 거르기·내 값 덮기·높이 거르기·빈 나들목 빼기)
 //   planOf         — StateCalc 표 한 줄: (입력 조각들, 같은 셈의 앞 결과 done(pos·ahead), 규칙 r = config_planinput, lib, 내 앞 결과) → plan 조각
-// 충전기 상태를 모르는 것('모름')은 빈자리로 세지 않는다(엔진에는 r.state_status.unknown 으로 — 아는 척 추천하지 않음), 몇 대인지 따로 돌려준다. 로그 없음, 틀린 입력은 던진다.
+// 충전기 상태를 모르는 것('모름')은 빈자리로 세지 않는다(엔진에는 er.status[r.state_status.unknown] 으로 — 상태 이름은 config_engine.status 한 곳 — 아는 척 추천하지 않음), 몇 대인지 따로 돌려준다. 로그 없음, 틀린 입력은 던진다.
 export const NEEDS = [];
 
 const lenCache = new WeakMap();
@@ -39,9 +39,10 @@ export function routeFromRelay(input, r, lib) {
   const rf = lib.rules[r.fresh_rule];
   const t = lib.rules[r.time_rule];
   const g = lib.rules[r.geo_rule];
+  const er = lib.rules[r.engine_rule];
   const P = lib.parts;
   const geo = P[r.geo_part];
-  if (!ra || !rl || !rr || !rf || !t || !g || !geo) throw new TypeError(r.ahead_rule);
+  if (!ra || !rl || !rr || !rf || !t || !g || !er || !geo) throw new TypeError(r.ahead_rule);
   const st = input.stations;
   const lines = Array.isArray(st && st[ra.lines_key]) ? st[ra.lines_key] : [];
   const line = lines.find((x) => x.name === input.line);
@@ -74,7 +75,7 @@ export function routeFromRelay(input, r, lib) {
         return {
           type: Object.prototype.hasOwnProperty.call(r.type_map, row.type) ? r.type_map[row.type] : r.type_unknown,
           power_kw: isNum(row.kw) && row.kw > 0 ? row.kw : r.unknown_kw,
-          status: r.state_status[row.state] || r.state_status[rr.unknown_state],
+          status: er.status[r.state_status[row.state] || r.state_status[rr.unknown_state]],
         };
       });
       unknown[s.id] = n;
@@ -131,7 +132,7 @@ export function inputs(raw, my, soc, mine, now, r, er, lib) {
       const limit = M.heightLimit(st.id, mine);
       if (tall && limit > 0 && limit < my.height) { // 내 차가 못 들어가는 곳: 추천에서 빠지게 못 쓰는 것으로
         blocked.add(st.id);
-        for (const c of st.chargers) c.status = r.blocked_status;
+        for (const c of st.chargers) c.status = er.status[r.blocked_status];
       }
     }
   }

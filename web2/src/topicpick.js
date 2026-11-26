@@ -3,8 +3,9 @@
 // 주소 꼬리를 쓰는 까닭: 폰 데이터 폴더(Store) 읽기는 기다려야 해서 조립이 켤 때 바로 못 읽는다 — 켜는 차례·시간을 그대로 두려고(정비 나 갈림길 2). 로그 없음.
 export const NEEDS = [];
 
-// 주소 꼬리 글 → 제목 키(없거나 꼴이 틀리면 null)
-export function hashName(hash, r) {
+// 주소 꼬리 글 → 제목 키(없거나 꼴이 틀리면 null). 풀기 실패는 삼키지 않고 잡은 오류를 onBad(e) 로 넘긴다
+// (순수 모듈이라 로그를 못 쓴다 — 부르는 쪽 조립이 로그를 남긴다. onBad 가 없으면 null 만)
+export function hashName(hash, r, onBad) {
   if (typeof hash !== 'string' || !hash) return null;
   const body = hash.startsWith(r.hash_mark) ? hash.slice(r.hash_mark.length) : hash;
   for (const part of body.split(r.hash_sep)) {
@@ -12,7 +13,10 @@ export function hashName(hash, r) {
     if (at < 0) continue;
     if (part.slice(0, at) !== r.hash_key) continue;
     const v = part.slice(at + r.hash_eq.length);
-    try { return v ? decodeURIComponent(v) : null; } catch (e) { return null; }
+    try { return v ? decodeURIComponent(v) : null; } catch (e) {
+      if (onBad) onBad(e);
+      return null;
+    }
   }
   return null;
 }

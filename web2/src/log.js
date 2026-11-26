@@ -82,7 +82,7 @@ export function createLogger(deps) {
       const old = (await disk.read(c.dir, c.file)).split('\n').filter(Boolean);
       const keep = old.slice(old.length - c.keep_lines);
       const dropped = old.length - keep.length;
-      const note = [timefmt.format(clock.now(), c.time_pattern, t), c.level_words.info, c.self_where, c.words[c.trimmed_word] || c.trimmed_word, String(dropped)].join(c.sep);
+      const note = [timefmt.format(clock.now(), t.stamp_pattern, t), c.level_words.info, c.self_where, c.words[c.trimmed_word] || c.trimmed_word, String(dropped)].join(c.sep);
       await disk.write(c.dir, c.file, keep.concat([note]).join('\n') + '\n');
       count = keep.length + 1;
     }
@@ -93,7 +93,7 @@ export function createLogger(deps) {
   function write(level, where, what, params) {
     if (c.levels[level] < minLevel) return;
     const line = [
-      timefmt.format(clock.now(), c.time_pattern, t),
+      timefmt.format(clock.now(), t.stamp_pattern, t),
       c.level_words[level],
       where,
       c.words[what] || what,
@@ -139,6 +139,6 @@ export function createLogger(deps) {
     flush: () => chain,
     status: () => ({ ...state }),
     watch(fn) { watchers.push(fn); },
-    downloadName: () => c.download_name.split(c.download_time_mark).join(timefmt.format(clock.now(), c.download_time_pattern, t)),
+    downloadName: () => c.download_name.split(c.download_time_mark).join(timefmt.format(clock.now(), t.file_stamp_pattern, t)),
   };
 }

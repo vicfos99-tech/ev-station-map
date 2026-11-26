@@ -5,7 +5,15 @@
 //     route = {seq, dest: {name, lat, lng}, source, at, stored_at, dist_km, total_km, points: [[위도, 경도]…], km: [첫 점부터 누적 km…], roads: [{road, from_km, to_km}]}
 //     지우기(route.clear 의 seq 가 답의 seq 이상)면 null — 지운 뒤 늦게 온 앞 물음의 답도 그리지 않는다.
 // 값(판 번호·칸 이름 목록·한도·좌표 범위)은 규칙 r = config_naviroute. 로그 없음.
+// 막을 제어 문자 무늬는 한 곳(config_formcheck 의 칸 r.ctrl_field)에만 둔다 — checkPlaces·checkRoute 에는 withCtrl 로 붙인 규칙을 넘긴다.
 export const NEEDS = [];
+
+// config_naviroute + config_formcheck → 제어 문자 무늬(ctrl_re)를 붙인 규칙(새 객체)
+export function withCtrl(r, fc) {
+  const f = fc && fc.fields && fc.fields[r.ctrl_field];
+  if (!f || typeof f.ctrl_re !== 'string') throw bad(r.ctrl_field);
+  return { ...r, ctrl_re: f.ctrl_re };
+}
 
 function isNum(v) {
   return typeof v === 'number' && Number.isFinite(v);

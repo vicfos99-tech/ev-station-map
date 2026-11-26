@@ -16,6 +16,8 @@
     },
     "config_dup": {
       "files": ["config/*.json"],
+      "allow_values_note": "웹 표준 속성 이름(aria-pressed)은 앱이 정하는 값이 아니라 바뀔 일이 없어 화면 설정마다 적어도 중복으로 세지 않는다(원칙 위반 고치기 11/27 — 화면 넷이 한 설정을 읽게 하면 시험·조립까지 바뀌어 화면 공통 설정은 따로 걸음)",
+      "allow_values": ["aria-pressed"],
       "ref_values": ["^config_[a-z0-9_]+$"],
       "note_values": ["^[a-z0-9_]+(\\.[a-z0-9_]+)+$"]
     }

@@ -63,6 +63,7 @@
     "upload_start": "upload_start",
     "upload_one": "upload_one",
     "upload_end": "upload_end",
-    "sent_write_fail": "upload_sent_write_fail"
+    "sent_write_fail": "upload_sent_write_fail",
+    "head_fail": "route_log_head_fail"
   }
 }

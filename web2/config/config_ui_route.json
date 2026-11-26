@@ -1,5 +1,5 @@
 {
-  "note": "목록·추천 칸(ui_route — 옛 앱 '충전소' 화면의 목록·추천). request_piece = 열림·지금 배터리 %(CalcRunner 가 planinput 으로 셈해 plan_piece 로), select_piece = 줄을 누름(정보 칸), watch_piece = 열려 있는 동안 이 노선 충전소 id 들(상태 받기). soc 는 FormCheck 규칙 soc_field(정수 0~100), 처음 값 soc_default(옛 앱 처음 값 60), ± 단추 걸음 soc_step. max_rows = 보일 휴게소 줄 수. arrive_warn_pct = 도착 여유가 이보다 작으면 주의 모양(옛 앱 10). broken_statuses = 고장·점검으로 셀 엔진 상태(모름은 빼고 따로 보임). 점수 점은 score_max 개(옛 앱 5)",
+  "note": "목록·추천 칸(ui_route — 옛 앱 '충전소' 화면의 목록·추천). request_piece = 열림·지금 배터리 %(CalcRunner 가 planinput 으로 셈해 plan_piece 로), select_piece = 줄을 누름(정보 칸), watch_piece = 열려 있는 동안 이 노선 충전소 id 들(상태 받기). soc 는 FormCheck 규칙 soc_field(정수 0~100), 처음 값 soc_default(옛 앱 처음 값 60), ± 단추 걸음 soc_step. max_rows = 보일 휴게소 줄 수. arrive_warn_pct = 도착 여유가 이보다 작으면 주의 모양(옛 앱 10). 고장·점검으로 셀 엔진 상태는 config_engine.unusable_statuses 를 읽는다(모름은 빼고 따로 보임). 점수 점은 score_max 개(옛 앱 5)",
   "owner": "ui_route",
   "request_piece": "plan.request",
   "plan_piece": "plan",
@@ -21,7 +21,6 @@
   "score_max": 5,
   "dot_on": "●",
   "dot_off": "○",
-  "broken_statuses": ["out_of_service", "maintenance", "comm_error"],
   "states": {"ok": "ok", "wait": "wait"},
   "click_event": "click",
   "change_event": "change",

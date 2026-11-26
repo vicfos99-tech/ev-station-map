@@ -15,8 +15,6 @@
   "ms_mark": {"t": "str", "min": 1, "max": 10},
   "ms_digits": {"t": "num", "int": true, "min": 1, "max": 3},
   "max_mark": {"t": "str", "min": 1, "max": 10},
-  "file_time_pattern": {"t": "str", "min": 1, "max": 40},
-  "time_pattern": {"t": "str", "min": 1, "max": 40},
   "note_time_pattern": {"t": "str", "min": 1, "max": 40},
   "click_event": {"t": "str", "min": 1, "max": 20},
   "placeholder_attr": {"t": "str", "min": 1, "max": 20},

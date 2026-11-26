@@ -19,7 +19,7 @@
   "max_km": 2000,
   "text_max_chars": 120,
   "at_max_chars": 40,
-  "ctrl_re": "[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]",
+  "ctrl_field": "navi_q",
   "latlng_len": 2,
   "lat_min": 33.0,
   "lat_max": 38.7,

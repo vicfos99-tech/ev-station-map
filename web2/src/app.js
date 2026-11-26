@@ -113,7 +113,9 @@ export function main(platform) {
     // 제목 단추 설정이 깨져도 첫 꾸러미로 켠다(단추만 꺼짐 — 격리)
     log.error(e, { where, what: c.words.make_failed, params: { name: 'config_ui_topic' } });
   }
-  const want = topicpick.activeOf(topics.map((t) => t.name), tcfg ? topicpick.hashName(p.win && p.win.location ? p.win.location.hash : '', tcfg) : null);
+  // 주소 꼬리를 못 풀면 첫 꾸러미로 켜고(동작 같음) 까닭은 로그에
+  const badHash = (e) => log.warn(tcfg.where, tcfg.word_bad_hash, { why: e && e.name });
+  const want = topicpick.activeOf(topics.map((t) => t.name), tcfg ? topicpick.hashName(p.win && p.win.location ? p.win.location.hash : '', tcfg, badHash) : null);
   const topic = topics.find((t) => t.name === want) || null;
   make('netcore', () => createNetCore({ ...base, fetch: p.fetch, clock: p.clock }));
   if (made.netcore) {

@@ -60,6 +60,16 @@
    "min": 1,
    "max": 20
   },
+  "status.broken": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "status.unknown": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
   "status_order": {
    "t": "arr",
    "min": 1,

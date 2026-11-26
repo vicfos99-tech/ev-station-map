@@ -56,9 +56,9 @@ export function createOddButton(deps) {
     $(c.ids.button).disabled = true;
     try {
       seq += 1;
-      const at = deps.timefmt.format(now, c.time_pattern, t);
+      const at = deps.timefmt.format(now, t.stamp_pattern, t);
       // 같은 초에 두 번 눌러도, 다시 켠 뒤 같은 초여도 이름이 겹치지 않게 밀리초 끝자리(ms_digits)와 켠 뒤 차례(seq)를 붙인다
-      const name = c.file_pattern.split(c.time_mark).join(deps.timefmt.format(now, c.file_time_pattern, t))
+      const name = c.file_pattern.split(c.time_mark).join(deps.timefmt.format(now, t.file_stamp_pattern, t))
         .split(c.ms_mark).join(String(now).slice(-c.ms_digits)).split(c.seq_mark).join(String(seq));
       const record = { kind: c.record_kind, at_ms: now, at, build: b.stamp, memo: m.value, pieces: snapshot() };
       const res = await deps.store.addRecord(c.record_kind, name, record);

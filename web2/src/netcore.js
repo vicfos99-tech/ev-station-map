@@ -48,7 +48,8 @@ export function createNetCore(deps) {
       const text = await resp.text();
       if (text.length > l.max_chars) return { ok: false, code: codes.too_big, status: resp.status };
       let data;
-      try { data = JSON.parse(text); } catch (e) { return { ok: false, code: codes.parse, status: resp.status }; }
+      // 해석 실패는 까닭(오류 이름)을 실어 돌려준다 — ask 가 실패 로그에 함께 남긴다(받은 글은 싣지 않음)
+      try { data = JSON.parse(text); } catch (e) { return { ok: false, code: codes.parse, status: resp.status, detail: e && e.name }; }
       if (!resp.ok || (data && data.ok === false)) {
         // 실패 답도 본문을 함께 돌려준다(다리 상태 길은 ok 거짓이어도 출처마다의 좋음·나쁨을 싣는다 — A6)
         return { ok: false, code: (data && data[n.code_field]) || codes.status, src: data && data[n.src_field], status: resp.status, data };
@@ -62,8 +63,9 @@ export function createNetCore(deps) {
   }
 
   return {
+    // 다리 주소·앱 비밀 값 설정이 있나(gateway() 가 던지는 조건과 같음 — 예외를 삼키지 않게 조건을 직접 본다)
     ready() {
-      try { gateway(); return true; } catch (e) { return false; }
+      return cfg.has(n.gateway_file) && cfg.has(n.secret_file);
     },
     // 길 하나에 묻기. 결과 {ok, data | code, src, status} — 다시 받기를 다 쓰면 마지막 실패를 돌려준다
     async ask(client, route, opt) {
@@ -79,7 +81,7 @@ export function createNetCore(deps) {
         last = await once(url, init, l);
         if (last.ok || n.no_retry_codes.includes(last.code)) break;
       }
-      if (!last.ok) log.warn(n.where_ask, n.word_fail, { client, route, sub: o.sub, code: last.code, src: last.src, status: last.status });
+      if (!last.ok) log.warn(n.where_ask, n.word_fail, { client, route, sub: o.sub, code: last.code, src: last.src, status: last.status, detail: last.detail });
       return last;
     },
     // 서버 보냄 이벤트(시험 흐름 등) 열기. on.event(이름, 글) · on.open() · on.down(까닭 코드). 돌려받은 함수로 닫는다
@@ -92,13 +94,15 @@ export function createNetCore(deps) {
       const openTimer = clock.setTimeout(() => { if (!opened) ctrl.abort(); }, l.timeout_ms);
       (async () => {
         let why = codes.closed;
+        let detail;
         try {
           const resp = await fetchFn(urlOf(g, route, ''), { method: n.default_method, headers: headers(g, secret, false), signal: ctrl.signal, cache: n.cache_mode });
           opened = true;
           clock.clearTimeout(openTimer);
           if (!resp.ok || !resp.body) {
             let code = codes.status;
-            try { const d = JSON.parse(await resp.text()); code = d[n.code_field] || code; } catch (e) { code = codes.status; }
+            // 실패 답 본문을 못 읽으면 status 코드로 대신하고, 까닭(오류 이름)은 아래 끊김 로그에 싣는다
+            try { const d = JSON.parse(await resp.text()); code = d[n.code_field] || code; } catch (e) { code = codes.status; detail = e && e.name; }
             why = code;
             return;
           }
@@ -136,7 +140,7 @@ export function createNetCore(deps) {
         } finally {
           clock.clearTimeout(openTimer);
           if (!closed) {
-            log.warn(n.where_stream, n.word_down, { client, route, code: why });
+            log.warn(n.where_stream, n.word_down, { client, route, code: why, detail });
             on.down(why);
           }
         }

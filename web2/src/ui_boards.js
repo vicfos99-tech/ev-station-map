@@ -39,6 +39,7 @@ export function createBoardHost(deps) {
     const box = doc.createElement(c.box_tag);
     box.className = c.box_class;
     box.setAttribute(c.name_attr, entry.name);
+    // 원칙점검:허용 view 는 빌드가 저장소의 판 조각 파일(view_*.html)을 그대로 넣은 우리 화면 틀이다 — 밖에서 온 글이 아니고, 이스케이프하면 틀이 글로 보여 화면이 깨진다. 판이 그리는 글은 판 안에서 textContent
     box.innerHTML = entry.view || '';
     slot.appendChild(box);
     const latest = {};

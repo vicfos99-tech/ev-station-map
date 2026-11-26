@@ -2,5 +2,7 @@
   "kst_offset_hours": {"t": "num", "min": -12, "max": 14},
   "ms_per_hour": {"t": "num", "min": 3600000, "max": 3600000},
   "tokens_re": {"t": "str", "min": 1, "max": 60},
-  "pad_char": {"t": "str", "min": 1, "max": 1}
+  "pad_char": {"t": "str", "min": 1, "max": 1},
+  "stamp_pattern": {"t": "str", "min": 2, "max": 40},
+  "file_stamp_pattern": {"t": "str", "min": 2, "max": 40}
 }}

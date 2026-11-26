@@ -23,7 +23,8 @@ const log = toolLog(tc, 'try_a6');
 const cfgOf = (name) => JSON.parse(fs.readFileSync(path.join(APP, tc.build.config_dir, name + tc.build.config_ext), 'utf8'));
 const srcOf = async (name) => import(pathToFileURL(path.join(APP, tc.build.src_dir, name + '.js')).href);
 const NR = cfgOf('config_net_route');
-const RR = cfgOf('config_naviroute');
+// 제어 문자 무늬는 config_formcheck 한 곳 — 앱(net_route)과 같은 길(naviroute.withCtrl)로 붙인다(원칙 점검 중복 고침 11/27)
+const RR = { ...cfgOf('config_naviroute'), ctrl_re: cfgOf('config_formcheck').fields[cfgOf('config_naviroute').ctrl_field].ctrl_re };
 const NV = cfgOf('config_navi');
 const AH = cfgOf('config_ahead');
 const LC = cfgOf('config_locate');

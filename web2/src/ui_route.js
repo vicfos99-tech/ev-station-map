@@ -95,7 +95,7 @@ export function createRouteScreen(deps) {
       if (e.waiting_fast > 0) out.push(chip(fill(x.busy_fast, { n: e.waiting_fast })));
     }
     const S = e.status_counts;
-    const broken = c.broken_statuses.reduce((n, k) => n + (S[k] || 0), 0) - unknown;
+    const broken = er.unusable_statuses.reduce((n, k) => n + (S[k] || 0), 0) - unknown;
     if (broken > 0) out.push(chip(fill(x.broken, { n: broken }), c.tones.warn));
     if (unknown > 0) out.push(chip(fill(x.unknown, { n: unknown }), c.tones.warn));
     if (e.lowest_price !== null) out.push(chip(fill(x.lowest, { price: won(e.lowest_price) })));

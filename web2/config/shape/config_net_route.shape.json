@@ -407,6 +407,11 @@
    "t": "str",
    "min": 1,
    "max": 40
+  },
+  "words.head_fail": {
+   "t": "str",
+   "min": 1,
+   "max": 40
   }
  }
 }

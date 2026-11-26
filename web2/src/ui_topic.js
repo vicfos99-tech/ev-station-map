@@ -113,5 +113,12 @@ export function createTopicButton(deps) {
   }
   load();
 
-  return { choose, setOpen, isOpen: () => { try { return !$(c.ids.root).hidden; } catch (e) { return false; } }, active: () => (active ? active.name : null), stats: () => ({ ...stats }) };
+  function isOpen() {
+    try { return !$(c.ids.root).hidden; } catch (e) {
+      log.error(e, { where: c.where, params: { act: c.act_is_open } });
+      return false;
+    }
+  }
+
+  return { choose, setOpen, isOpen, active: () => (active ? active.name : null), stats: () => ({ ...stats }) };
 }
