@@ -1,0 +1,78 @@
+{
+  "note": "A8 스스로 시험(try_a8.mjs)의 값 — 기존 도구 설정(config_tools.json)을 고치지 않으려고 새 파일로 둠. pure = 다리 없이 순수 셈(알려진 두 점 — 기대 값은 시험이 따로 반지름 공식으로 셈, 시험 선은 시험이 정한 동서 직선). app = S1 가상 창(가짜 지도에 누름을 흉내). chrome = 진짜 크롬 네 창에서 지도 캔버스의 정한 자리(at = 폭·높이 비율)를 누름(lib_chrome 의 재는 쪽에 '자리 누름'만 더한 임시 사본을 tools/tmp 에 만들어 씀 — lib_chrome 은 그대로)",
+  "earth_radius_m": 6371008.8,
+  "deg_to_rad": 0.017453292519943295,
+  "m_per_km": 1000,
+  "pure": {
+    "known": [
+      {"name": "서울시청 ↔ 부산시청", "a": [37.5665, 126.978], "b": [35.1796, 129.0756], "sane_km": [320, 330]},
+      {"name": "위도 0.01° 차이(북쪽 1.11 km)", "a": [36.0, 127.0], "b": [36.01, 127.0], "sane_km": [1.1, 1.12]}
+    ],
+    "km_tol": 0.0015,
+    "line": {"name": "test_east", "from": [36.0, 127.0], "to": [36.0, 127.5], "step_deg": 0.005},
+    "me": [36.0, 127.1],
+    "heading_east": 90,
+    "heading_west": 270,
+    "speed_kmh": 95,
+    "ahead_tap": [36.0005, 127.3],
+    "behind_tap": [36.0004, 127.05],
+    "far_tap": [36.05, 127.3],
+    "off_me": [36.02, 127.1],
+    "along_tol_km": 0.02,
+    "bad_taps": [
+      {"seq": 1, "lat": 95, "lng": 127},
+      {"seq": 1, "lat": 36, "lng": 200},
+      {"seq": 0, "lat": 36, "lng": 127},
+      {"seq": 1.5, "lat": 36, "lng": 127},
+      {"seq": 1, "lng": 127}
+    ]
+  },
+  "app": {
+    "run_seconds": 150,
+    "scene": "S1_고속도로",
+    "tick": 0,
+    "ahead_km": 6,
+    "wait_ms": 4000,
+    "move_wait_ms": 3500,
+    "straight_tol_km": 0.06,
+    "along_tol_km": 0.06,
+    "user_bearing": 45,
+    "user_zoom": 15.5,
+    "watch_fixes": 3,
+    "fix_wait_ms": 8000
+  },
+  "chrome": {
+    "tick": 193,
+    "json_file": "try_a8_chrome.json",
+    "tmp_lib": "lib_chrome_a8.mjs",
+    "patch_from": "} else if (el) el.click();",
+    "patch_to": "} else if (el && act.at) { const D0 = el.ownerDocument; const W0 = D0.defaultView; const r0 = (act.box ? D0.querySelector(act.box) : el).getBoundingClientRect(); const x0 = r0.left + r0.width * act.at[0]; const y0 = r0.top + r0.height * act.at[1]; const h0 = D0.elementFromPoint(x0, y0) || el; h0.dispatchEvent(new W0.MouseEvent('click', { bubbles: true, cancelable: true, button: 0, view: W0, clientX: x0, clientY: y0 })); } else if (el) el.click();",
+    "patch_note": "act.at = box(없으면 그 요소) 안의 비율 자리. 사람이 누르듯 그 자리에 실제로 보이는 것(elementFromPoint)에 누름을 보낸다 — 검색 칸이 덮은 자리면 지도가 아니라 검색 칸이 받는다. 누름 이벤트는 iframe 창의 것으로 만든다(부모 창의 것은 지도 라이브러리가 받지 않았음)",
+    "own_wrap": "maplibregl-popup-content",
+    "import_from": "from './",
+    "import_to": "from '../",
+    "sel": {
+      "center": {"q": "#ev-slot-center"},
+      "tap": {"q": "#ev-tap", "hit": true},
+      "tap_along": {"q": "#ev-tap-along"},
+      "station": {"q": "#ev-station"},
+      "more_btns": {"q": "#ev-route-open, #ev-my-open"},
+      "map_me": {"q": "#ev-map-me"},
+      "map_only3": {"q": "#ev-map-only3"},
+      "marks": {"q": ".ev-map-no"}
+    },
+    "actions": [
+      {"name": "지도 가운데 누름", "q": ".maplibregl-canvas", "box": "#ev-slot-center", "at": [0.5, 0.5], "wait_ms": 2000, "expect": "shown"},
+      {"name": "표시를 누름(닫기)", "q": "#ev-tap", "wait_ms": 1500, "expect": "hidden"},
+      {"name": "왼쪽 위 가까이 누름(검색 칸 아래)", "q": ".maplibregl-canvas", "box": "#ev-slot-center", "at": [0.06, 0.3], "wait_ms": 2000, "expect": "shown"},
+      {"name": "다시 누름(지움)", "q": ".maplibregl-canvas", "box": "#ev-slot-center", "at": [0.5, 0.7], "wait_ms": 1500, "expect": "hidden"},
+      {"name": "오른쪽 아래 가까이 누름(저작권 글 위)", "q": ".maplibregl-canvas", "box": "#ev-slot-center", "at": [0.94, 0.9], "wait_ms": 2000, "expect": "shown"},
+      {"name": "충전소 번호 누름", "q": ".ev-map-no", "wait_ms": 3000, "expect": "shown_station"}
+    ],
+    "avoid": ["slot_left", "slot_right", "odd", "odd_memo", "odd_button", "log_open", "map_me", "map_only3", "more_btns"],
+    "contents": ["ahead_rows", "ahead_dist", "speed_value", "attrib"]
+  },
+  "report_prefix": "try_a8_last_",
+  "exit_grace_ms": 20000,
+  "start_wait_ms": 20000
+}

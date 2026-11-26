@@ -30,7 +30,7 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_route", "ui_my", "ui_odd", "ui_log"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_route", "ui_my", "ui_tap", "ui_odd", "ui_log"],
     "views_optional": ["ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "vendor_js": ["vendor/maplibre-gl.js"],
@@ -128,6 +128,7 @@
       "engine": "pure",
       "planinput": "pure",
       "mine": "pure",
+      "tapdist": "pure",
       "disk_web": "platform",
       "log": "log",
       "store": "store",
@@ -154,6 +155,7 @@
       "ui_navi": "screen",
       "ui_route": "screen",
       "ui_my": "screen",
+      "ui_tap": "screen",
       "app": "app"
     },
     "layer_may_need": {

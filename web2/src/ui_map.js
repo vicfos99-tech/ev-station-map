@@ -5,6 +5,7 @@
 //   · '세 곳만' 단추 → 다른 충전소 층 숨김·보임
 //   · (A6) route 구독 → 경로 선(선만 더 그림 — 카메라는 건드리지 않는다, 설계 5-8 바 2). 없으면(지움) 선을 지움
 //   · (A4) 번호·충전소 점을 누르면 station.select.map 으로 요청만(정보 칸이 듣는다 — 카메라는 그대로)
+//   · (A8) 빈 곳을 누르면 map.tap 으로 요청만(누른 지점 거리 — CalcRunner·ui_tap). map.pin 을 듣고 그 화면 조각을 그 좌표의 지도 풍선에 꽂음(카메라는 그대로)
 //   · 카메라 상태(따라가기·굳음·확대·방향·'세 곳만')는 폰 데이터 폴더에 저장(손·단추로 바뀔 때만)하고 다시 열면 읽는다. map.cam 으로 알린다('이상해' 기록에 담김)
 // 바탕 그림(타일) 주소는 config_ui_map 에만 있고 지도 라이브러리가 직접 받는다(설계 원칙 '바깥 주소는 하나'의 예외). 바탕 그림 성공·실패는 conn.tiles 로(바뀔 때만).
 import { createMapView } from './mapview.js';
@@ -19,7 +20,9 @@ export function createMapScreen(deps) {
   const log = deps.log;
   const doc = deps.doc;
   const clock = deps.clock;
-  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, c.select_piece]);
+  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, c.select_piece, c.tap.piece]);
+  let taps = 0;
+  let lastPin = null;
   let view = null;
   let last = null;
   let tilesOk = null;
@@ -105,6 +108,24 @@ export function createMapScreen(deps) {
     }
   }
 
+  // (A8) 빈 곳 누름 → 요청만(map.tap — 거리는 CalcRunner 가 셈, 표시는 ui_tap). 카메라는 그대로
+  function tap(p) {
+    try {
+      taps += 1;
+      pub(c.tap.piece, { seq: taps, lat: p.lat, lng: p.lng, at: clock.now() });
+      log.info(c.where, c.tap.word, { seq: taps, lat: p.lat, lng: p.lng });
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: c.tap.act } });
+    }
+  }
+
+  // (A8) map.pin = {id, lat, lng} → 그 화면 조각을 그 좌표의 지도 풍선에 · null → 뺌
+  function drawPin(p) {
+    if (!view) return;
+    const ok = p && typeof p.lat === 'number' && typeof p.lng === 'number' && p.id;
+    view.setPin(ok ? doc.getElementById(p.id) : null, ok ? [p.lng, p.lat] : null);
+  }
+
   function open() {
     try {
       const slot = doc.getElementById(c.slot_id);
@@ -112,9 +133,10 @@ export function createMapScreen(deps) {
       view = createMapView({ maplibre: deps.maplibre, doc }, {
         container: slot, style: c.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
         geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events, route: c.route,
-        tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick,
+        tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick, tap: c.tap,
       });
       view.onPick(pick);
+      view.onTap(tap);
       view.watchTiles(() => tiles(true, null), (why) => tiles(false, why));
       view.onUser((ev) => {
         try {
@@ -132,6 +154,7 @@ export function createMapScreen(deps) {
       drawAhead(lastAhead);
       drawStations(lastStations);
       drawRoute(lastRoute);
+      drawPin(lastPin);
     } catch (e) {
       log.error(e, { where: c.where, params: { slot: c.slot_id } });
       tiles(false, e && e.message);
@@ -223,5 +246,12 @@ export function createMapScreen(deps) {
       log.info(c.where, c.word_route, { seq: lastRoute ? lastRoute.seq : null, points: lastRoute && lastRoute.points ? lastRoute.points.length : 0 });
     } catch (e) { log.error(e, { where: c.where, params: { act: c.act_route } }); }
   });
-  return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3, pick };
+  deps.state.subscribe(c.tap.pin_piece, (p) => {
+    lastPin = p || null;
+    try {
+      drawPin(lastPin);
+      log.info(c.where, c.tap.word_pin, { id: lastPin ? lastPin.id : null, seq: lastPin ? lastPin.seq : null });
+    } catch (e) { log.error(e, { where: c.where, params: { act: c.tap.act_pin } }); }
+  });
+  return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3, pick, taps: () => taps, tap };
 }

@@ -1,7 +1,8 @@
 // 지도 라이브러리(MapLibre)를 감싼 한 파일 — 라이브러리를 바꿔도 여기만 바뀐다(설계 5-1-나 mapview).
 // 값(바탕 그림 꼴·처음 자리·점 모양·층·이벤트 이름·번호 표시 모양)은 모두 부르는 쪽(ui_map)이 설정에서 넘긴다. 로그는 쓰지 않고 알림 함수로 돌려준다.
 // 하는 일: 내 위치 점 · 카메라 명령 옮기기(효과 없이 — L068) · 손으로 한 일 알리기 · 1·2·3번 표시 · 다른 충전소 층과 그 켬·끔 ·
-// (A4) 번호·충전소 점을 누름 알리기(onPick — 카메라는 건드리지 않는다) · (A6) 경로 선(setRoute — 카메라는 건드리지 않는다).
+// (A4) 번호·충전소 점을 누름 알리기(onPick — 카메라는 건드리지 않는다) · (A6) 경로 선(setRoute — 카메라는 건드리지 않는다) ·
+// (A8) 빈 곳 누름 좌표 알리기(onTap) · 화면 조각 하나를 그 좌표의 지도 풍선에 꽂기(setPin — 카메라는 건드리지 않는다).
 // 카메라 규칙은 여기 없다(MapCam). 손으로 만지는 동안에는 카메라 명령을 옮기지 않는다(손이 먼저 — 설계 5-8 다).
 export const NEEDS = ['maplibre', 'doc'];
 
@@ -21,6 +22,31 @@ export function createMapView(deps, o) {
   let onPick = null;
   let markers = [];
   let markSig = '';
+  let onTap = null;
+  let pin = null;
+
+  // (A8) 빈 곳 누름 → 누른 좌표(번호·풍선 같은 지도 위 표시나 보이는 충전소 점을 누른 것은 빼고 — 그것은 onPick·제 단추가 받는다)
+  map.on(o.events.click, (e) => {
+    if (!onTap || !e || !e.lngLat) return;
+    const t = e.originalEvent && e.originalEvent.target;
+    if (t && typeof t.closest === 'function' && t.closest(o.tap.skip_selector)) return;
+    if (ready && othersShown && map.queryRenderedFeatures(e.point, { layers: [o.others.layer_id] }).length) return;
+    onTap({ lng: e.lngLat.lng, lat: e.lngLat.lat });
+  });
+
+  // (A8) 화면 조각 하나(el)를 그 좌표의 지도 풍선에 꽂음 · null 이면 뺌(조각은 제자리로 돌려 둔다). 카메라는 건드리지 않는다
+  function setPin(el, lnglat) {
+    if (pin && (!el || pin.el !== el)) {
+      pin.pop.remove();
+      if (pin.home) pin.home.appendChild(pin.el);
+      pin = null;
+    }
+    if (!el || !lnglat) return;
+    if (pin) { pin.pop.setLngLat(lnglat); return; }
+    const home = el.parentNode || null;
+    const pop = new lib.Popup({ ...o.tap.popup }).setDOMContent(el).setLngLat(lnglat).addTo(map);
+    pin = { el, pop, home };
+  }
 
   function point(lnglat, props) {
     return { type: o.geo.feature, geometry: { type: o.geo.point, coordinates: lnglat }, properties: props || {} };
@@ -95,6 +121,8 @@ export function createMapView(deps, o) {
     },
     onUser(fn) { onUser = fn; },
     onPick(fn) { onPick = fn; },
+    onTap(fn) { onTap = fn; },
+    setPin,
     // 1·2·3번: items = [{no, key, lat, lng}], kind = 모양 이름(o.marks.kinds 의 키 — 앞의 충전소·주변). 같으면 다시 그리지 않는다
     setNumbered(items, kind) {
       const sig = kind + o.marks.sig_join + items.map((it) => [it.no, it.key, it.lng, it.lat].join(o.marks.sig_join)).join(o.marks.sig_join);

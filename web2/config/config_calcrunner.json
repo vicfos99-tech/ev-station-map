@@ -9,7 +9,9 @@
     "route.clear",
     "relay",
     "my",
-    "plan.request"
+    "plan.request",
+    "map.tap",
+    "tap.close"
   ],
   "outputs": [
     "pos",
@@ -17,7 +19,8 @@
     "speed",
     "route",
     "ahead",
-    "plan"
+    "plan",
+    "tap"
   ],
   "batch_ms": 100,
   "where": "calcrunner"

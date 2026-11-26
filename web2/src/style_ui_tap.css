@@ -1,0 +1,13 @@
+/* 누른 지점 거리(A8): 지도 풍선(maplibregl-popup — 지도 안에 들어오게 방향을 스스로 고름) 안의 작은 상자. 상자 전체가 닫기 단추(누르는 높이 48 이상).
+   풍선의 기본 흰 바탕·여백은 지우고 이 상자가 모양을 가진다. 숨김이면 아무 자리도 차지하지 않는다. */
+/* 지도 위에 겹친 검색 칸(.ev-slot-navi, z-index 3)보다 위 — 누른 사람이 방금 부른 것이라 가려지지 않게. 지도 칸 밖으로는 지도 라이브러리가 잘라 숨긴다 */
+.ev-tap-pop { z-index: 4; }
+.ev-tap-pop .maplibregl-popup-content { padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
+.ev-tap-pop .maplibregl-popup-tip { border-top-color: #111827; border-bottom-color: #111827; }
+.ev-tap { display: flex; align-items: center; gap: 8px; min-height: 48px; min-width: 48px; max-width: 220px; box-sizing: border-box; padding: 6px 10px; border-radius: 8px; background: #111827; color: #f9fafb; border: 2px solid #fbbf24; box-shadow: 0 1px 4px rgba(0, 0, 0, .5); cursor: pointer; font: 700 14px/1.25 system-ui, sans-serif; }
+.ev-tap[hidden] { display: none; }
+.ev-tap-lines { display: flex; flex-direction: column; min-width: 0; }
+.ev-tap-straight, .ev-tap-along { white-space: nowrap; }
+.ev-tap-along { font-weight: 600; color: #fde68a; }
+.ev-tap-along[hidden] { display: none; }
+.ev-tap-close { font-size: 18px; line-height: 1; color: #9ca3af; }

@@ -5,6 +5,17 @@
   "cam_piece": "map.cam",
   "select_piece": "station.select.map",
   "pick": {"mark": "mark", "dot": "dot"},
+  "tap": {
+    "note": "(A8) 빈 곳 누름 → piece(map.tap) 요청. skip_selector = 이것 안을 누른 것은 빈 곳 누름이 아님(번호 표시·풍선). pin_piece(map.pin) 을 들어 그 화면 조각을 지도 풍선(popup — 지도 안에 들어오게 방향을 스스로 고름)에 꽂음",
+    "piece": "map.tap",
+    "pin_piece": "map.pin",
+    "skip_selector": ".maplibregl-marker, .maplibregl-popup",
+    "popup": {"closeButton": false, "closeOnClick": false, "closeOnMove": false, "focusAfterOpen": false, "maxWidth": "none", "offset": 8, "className": "ev-tap-pop"},
+    "word": "map_tap",
+    "word_pin": "map_pin",
+    "act": "tap",
+    "act_pin": "pin"
+  },
   "fix_piece": "fix",
   "ahead_piece": "ahead",
   "stations_piece": "stations",
