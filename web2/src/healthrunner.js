@@ -12,7 +12,8 @@ export function createHealthRunner(deps) {
   const r = cfg.section('config_health');
   const c = cfg.section('config_healthrunner');
   const featNames = Object.keys(r.features).map((f) => c.feature_prefix + f);
-  const pub = state.claim(c.owner, [c.app_piece, c.src_piece, ...featNames]);
+  const pub = state.claim(c.owner, [c.app_piece, c.src_piece, c.off_piece, ...featNames]);
+  let offs = null;
   const start = {};
   const conn = {};
   let startedAt = null;
@@ -52,6 +53,13 @@ export function createHealthRunner(deps) {
         }
       }
       feats = nextFeat;
+      // (정비 가 ⑤) 설정이 틀려 꺼 둔 기능 — 상태 자리 한 줄씩('○○ 설정이 이상해 꺼 둠')
+      const nextOff = health.judgeConfigOff({ problems: cfg.problems() }, r);
+      if (!health.same(nextOff, offs)) {
+        offs = nextOff;
+        if (offs.length) log.warn(c.where, c.word_off, { features: offs });
+        pub(c.off_piece, offs);
+      }
     } catch (e) {
       log.error(e, { where: c.where, params: { startedAt, conn, start } });
     }

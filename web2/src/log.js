@@ -28,6 +28,9 @@ export function createLogger(deps) {
   let chain = Promise.resolve();
   let count = null;
   let state = { ok: true, why: '' };
+  // (정비 가 ⑧) 쓰기와 읽기를 따로 든다 — 읽기 실패는 다음 쓰기가 잘 되어도 지워지지 않고, 다음 읽기가 될 때 풀린다
+  let writeOk = true;
+  let readOk = true;
 
   function maskText(s) {
     let out = s;
@@ -57,7 +60,12 @@ export function createLogger(deps) {
     return s.length > c.max_value_chars ? s.slice(0, c.max_value_chars) + c.cut_mark : s;
   }
 
-  function setState(next) {
+  function setState(part) {
+    if (part.write !== undefined) writeOk = part.write;
+    if (part.read !== undefined) readOk = part.read;
+    let next = { ok: true, why: '' };
+    if (!writeOk) next = { ok: false, why: c.fail_code };
+    else if (!readOk) next = { ok: false, why: c.read_fail_code };
     if (next.ok === state.ok && next.why === state.why) return;
     state = next;
     for (const fn of watchers) {
@@ -94,11 +102,26 @@ export function createLogger(deps) {
     memory.push(line);
     if (memory.length > c.memory_lines) memory.splice(0, memory.length - c.memory_lines);
     chain = chain.then(() => writeLine(line)).then(
-      () => setState({ ok: true, why: '' }),
+      () => setState({ write: true }),
       (e) => {
         con.error(c.console_prefix + line);
         con.error(e);
-        setState({ ok: false, why: c.fail_code });
+        setState({ write: false });
+      },
+    );
+  }
+
+  // 기록장 파일 전체. 못 읽으면 조용히 바꾸지 않는다(설계 원칙 '오류를 삼키지 않는다'): 콘솔·경고 로그 한 줄 + watch 로 알림
+  // (상태 자리 '기록장 — 읽지 못함'은 HealthRunner 가 올린다) 뒤 메모리에 든 줄을 돌려준다
+  function readAll() {
+    return chain.then(() => disk.read(c.dir, c.file)).then(
+      (text) => { setState({ read: true }); return text; },
+      (e) => {
+        const mem = memory.join('\n') + '\n';
+        con.error(c.console_read_prefix + String(e && e.message));
+        write('warn', c.self_where, c.read_fail_word, { error: e instanceof Error ? { name: e.name, message: e.message } : e, memory_lines: memory.length });
+        setState({ read: false });
+        return mem;
       },
     );
   }
@@ -111,8 +134,8 @@ export function createLogger(deps) {
     error: (err, ctx) => write('error', (ctx && ctx.where) || c.self_where, (ctx && ctx.what) || c.error_word,
       { error: err instanceof Error ? { name: err.name, message: err.message } : err, params: ctx && ctx.params }),
     lines: () => memory.slice(),
-    // 기록장 파일 전체(못 읽으면 메모리에 든 줄)
-    readAll: () => chain.then(() => disk.read(c.dir, c.file)).catch(() => memory.join('\n') + '\n'),
+    // 기록장 파일 전체(못 읽으면 경고 + 메모리에 든 줄 — 위 readAll)
+    readAll,
     flush: () => chain,
     status: () => ({ ...state }),
     watch(fn) { watchers.push(fn); },

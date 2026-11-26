@@ -470,7 +470,8 @@ async function partS12() {
     const rules = {};
     for (const r of SC.table) for (const n of [r.rule, ...(r.uses || [])]) rules[n] = cfgOf(n);
     const parts = { ...lib.parts, limitmatch: await srcOf('limitmatch'), speed: await srcOf('speed'), naviroute: await srcOf('naviroute'), navi: await srcOf('navi') };
-    const CR = cfgOf('config_calcrunner');
+    // (정비 가 ⑦) 계산기 입력은 계산 표에서 뽑는다(config_calcrunner 에 더는 적지 않음)
+    const CR = statecalc.ioOf(SC.table);
     // 한 틱 처리 시간: 그때의 입력 조각 전부로 표 전체(위치·제한·속도·경로·앞의 충전소·목록)를 셈한 시간(S.reps 번의 가운데 값)
     function tickMs() {
       const inputs = {};

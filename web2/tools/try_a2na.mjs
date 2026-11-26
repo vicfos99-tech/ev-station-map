@@ -380,7 +380,10 @@ async function main2() {
     }
   } finally {
     log.write('다리 끝 기다림', {});
-    const code = await Promise.race([bridge.waitExit(), sleep(T.run_seconds * tc.view_s1.ms_per_s + T.exit_grace_ms).then(() => 'timeout')]);
+    // (정비 가) 한도 타이머는 다리가 끝나면 지운다 — 남겨 두면 시험이 끝난 뒤에도 그 시간만큼 프로세스가 안 끝남
+    let guard = null;
+    const code = await Promise.race([bridge.waitExit(), new Promise((res) => { guard = setTimeout(() => res('timeout'), T.run_seconds * tc.view_s1.ms_per_s + T.exit_grace_ms); })]);
+    clearTimeout(guard);
     if (code === 'timeout') bridge.proc.kill();
     row('끝', '다리가 시험 모드 시간 뒤 스스로 끝남', '종료 코드 0', String(code), code === 0);
     fs.rmSync(sec.dir, { recursive: true, force: true });

@@ -21,7 +21,10 @@
   "error_word": "error",
   "trimmed_word": "trimmed",
   "fail_code": "log_write",
+  "read_fail_code": "log_read",
+  "read_fail_word": "read_fail",
   "console_prefix": "[기록장 못 씀] ",
+  "console_read_prefix": "[기록장 못 읽음 — 메모리에 든 줄만] ",
   "download_name": "충전길잡이_기록_{time}.txt",
   "download_time_mark": "{time}",
   "download_time_pattern": "YYYYMMDD_hhmmss",
@@ -66,6 +69,9 @@
     "map_me": "내 위치 단추",
     "map_only3": "세 곳만 보기",
     "map_save_failed": "지도 상태 저장 못 함",
-    "map_load_failed": "지도 상태 읽기 못 함"
+    "map_load_failed": "지도 상태 읽기 못 함",
+    "read_fail": "기록장 파일을 못 읽음 — 메모리에 든 줄만 내보냄",
+    "row_off": "계산 줄 꺼 둠(설정 이상)",
+    "feature_off": "기능 꺼 둠(설정 이상)"
   }
 }

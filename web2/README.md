@@ -44,6 +44,18 @@
 - 빌드가 KIND 선언으로 판을 주워 목록을 만들고, 조립은 그 목록을 그대로 판 틀(`ui_boards`)에 넘긴다. **판을 더하거나 빼도 조립·`ui_drive`·`ui_boards`·도구 설정을 고치지 않는다**(기계 검사의 층도 KIND 로 정함).
 - `needs()` = `{topics: [State 조각…], interval_ms, slot: 'left'|'right'}` · `show(data)` = 받은 조각을 자기 칸에. 판은 받기·계산·구독을 하지 않는다.
 
+## 시험 고르기 · 전체 시험 (정비 가)
+```
+node web2/tools/try_pick.mjs [--why] [고친 파일 …]   # 고친 파일(없으면 git 작업 트리+스테이지+새 파일)에 닿는 try_* 시험 이름
+node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_* 전부 차례로 → tools/logs/try_all_last.md
+```
+- 걸음 세션은 **자기 걸음 시험 + 고르개가 고른 시험만** 돌린다. 전체 시험은 커밋 뒤 `try_all.mjs` 가 따로 돌려 숫자(맨 위 한 줄 합계)만 낸다. 자세히 `tools/README.md`.
+
+## 기능 격리 (정비 가)
+- 시작에 꼭 필요한 설정(`config_health.grades` 가 `app`)이 틀리면 지금처럼 '앱 점검 중'. 그 밖의 설정이 틀리면 **그 기능만 꺼지고** 상태 자리에 '○○ 설정이 이상해 꺼 둠' 한 줄(`health.off`), 기본 기능은 돈다. 계산기는 그 설정을 쓰는 계산 줄만 끈다.
+- 새 기능의 설정 파일은 `config_health` 의 `grades`(등급)와 `features`(기능 묶음), `config_ui_status.texts.feature_names`(이름)에 적는다 — 빠지면 `try_ga.mjs pure` ⑤ 가 잡는다(등급 표에 없으면 unknown_grade = app 이라 앱 전체가 점검 중).
+- 계산기가 구독할 입력·낼 조각은 계산 표(`config_statecalc.table`)에서 뽑는다 — `config_calcrunner` 에 따로 적지 않는다.
+
 ## 폴더
 | 자리 | 무엇 |
 |---|---|

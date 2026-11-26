@@ -1,5 +1,5 @@
 // StatusBar(상태 자리 — 화면). 앱의 모든 상태를 보이는 한 자리(설계 5-1-나 · F6·F7).
-// health.app '시작 중' → 여는 중 / '점검 중' → '앱 점검 중' + 까닭 한 줄 / '좋음' → health.src 의 끊긴 출처만 한 줄씩.
+// health.app '시작 중' → 여는 중 / '점검 중' → '앱 점검 중' + 까닭 한 줄 / '좋음' → 설정이 틀려 꺼 둔 기능(health.off)과 health.src 의 끊긴 출처만 한 줄씩.
 // 판정하지 않는다 — 표시만. 누름·종료·알림창·화면을 덮는 겹은 없다. 글은 config_ui_status.
 // 자리(요소)는 빌드가 뼈대에 처음부터 넣어 두고, 뼈대의 작은 글이 시작 시간 한도 뒤 '시작하지 못함'을 스스로 띄운다.
 export const NEEDS = ['cfg', 'log', 'state', 'doc', 'clock', 'timefmt'];
@@ -14,6 +14,7 @@ export function createStatusBar(deps) {
   const x = c.texts;
   let app = null;
   let src = {};
+  let offs = [];
 
   function fill(tpl, vals) {
     return tpl.replace(new RegExp(c.slot_re, 'g'), (m, k) => (vals[k] === undefined || vals[k] === null ? '' : String(vals[k])));
@@ -30,7 +31,8 @@ export function createStatusBar(deps) {
   function lines() {
     if (!app || app.stage === r.stages.starting) return [x.starting];
     if (app.stage === r.stages.broken) return [x.broken, reasonLine(app.why)].filter(Boolean);
-    const out = [];
+    // (정비 가 ⑤) 설정이 틀려 꺼 둔 기능 — 한 줄씩
+    const out = offs.map((f) => fill(x.off_line, { feat: x.feature_names[f] || f }));
     for (const [s, v] of Object.entries(src)) {
       if (v.ok) continue;
       out.push(fill(x.src_line, {
@@ -61,5 +63,6 @@ export function createStatusBar(deps) {
     render();
   });
   deps.state.subscribe(c.src_piece, (v) => { src = v || {}; render(); });
+  deps.state.subscribe(c.off_piece, (v) => { offs = Array.isArray(v) ? v : []; render(); });
   return { text: () => (el ? el.textContent : '') };
 }

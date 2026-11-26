@@ -124,6 +124,34 @@ node web2/tools/try_a7.mjs shots     # 옛·새 화면 나란히 그림(약 2분
 - ④ 진짜 크롬 네 창: 목록 칸·내 차 칸을 열어 가운데 칸 안 · 양옆 판·아래 띠·지도 단추·저작권과 겹침 0 · 가림 0 · 잘림 0 · 48px. ⑤ 크롬 원격 길(DevTools)로 옛 앱(`web/index.html` 파일 그대로, 폰 저장에 노선·자리·배터리)과 새 앱(S1 목록 칸)을 그림으로 받아 나란히 한 장(`try_a7.shots.out_dir`).
 - 표 사본 `tools/logs/try_a7_last_<부분>.md`, 잰 값 `try_a7_chrome.json`.
 
+## 시험 고르개 — `try_pick.mjs` (정비 가 ①)
+```
+node web2/tools/try_pick.mjs                      # 고친 파일 = git 작업 트리 + 스테이지 + 아직 git 이 모르는 새 파일
+node web2/tools/try_pick.mjs src/ahead.js …       # 고친 파일을 인자로(web2 기준 또는 저장소 기준 경로)
+node web2/tools/try_pick.mjs --why                # 시험마다 고른 까닭(닿은 모듈 · 맞은 낱말)도
+```
+- 고친 파일 → 그 파일과 **그 파일에 기대는 모듈**(import · NEEDS 의 받는 것 · 계산 표 줄의 셈 모듈을 거꾸로 따라감 — 조립 `app` 은 빼고 '앱을 띄우는 시험'으로)을 **쓰는** try_* 시험 이름을 한 줄씩.
+- '쓴다' = 시험 파일(주석 뺀 코드·글) + 그 시험이 읽는 `config_tools.json` 묶음 + 그 시험만의 `config_<시험>.json` 에 모듈 낱말(모듈 이름 · 그 모듈 설정 이름 · 화면 조각 id · 모양 조각의 `ev-` 이름)이 나옴. 손으로 적은 지도 없음 — 코드에서 못 뽑는 것(조립·뼈대·빌드·옛 앱·테스트 베드)만 `config_try_pick.json` 에 까닭과 함께.
+- 화면 조각(html)·설정(json)이 바뀌면 그것을 쓰는 모듈의 시험을, 모양 조각(css)만 바뀌면 그 화면 낱말이 나오는 **크롬 시험만**(가상 창에는 모양이 없음). `config_tools.json` 은 커밋 전과 달라진 묶음을 읽는 시험만. 설명서 등은 고르지 않음.
+- 넉넉하게 고른다(덜 고르는 것보다 더 고르는 쪽) — 'ahead' 같은 낱말이 표시·설정에 나오는 시험은 모두 고름.
+
+## 전체 시험 — `try_all.mjs` (정비 가 ②)
+```
+node web2/tools/try_all.mjs                                # 전부(약 85분 — 다리를 쓰는 시험이 차례로)
+node web2/tools/try_all.mjs --only try_a1,try_a5:chrome:ok # 일부(시험 이름 = 그 부분 전부, 이름:부분 = 그 부분만)
+node web2/tools/try_all.mjs --only try_a6 --append         # 앞 결과에 이어 붙임(나눠 돌리기 — 세션 한 명령 10분 한도)
+node web2/tools/try_all.mjs --list                         # 돌릴 차례와 한도
+```
+- 차례·부분 인자·시험마다 시간 한도는 `config_try_all.json` 의 `runs`(거기 없는 새 `try_*.mjs` 는 인자 없이 `default_limit_s` 로 끝에). S12 긴 주행은 `s12` 로 켜고 끔.
+- 한 시험이 한도를 넘기면 그 시험과 딸린 다리·크롬을 끊고(`taskkill /T`) 다음으로. 결과 `tools/logs/try_all_last.md` — 맨 위 한 줄 합계 + 표(시험 · 통과/전체 · 걸린 초 · 종료 · 실패 줄), 시험마다 찍은 글 `tools/logs/try_all_out/`. 실패가 있으면 종료 코드 1.
+- 통과/전체는 시험이 찍은 표의 `| 통과 |`·`| 실패 |` 줄을 센다(시험이 표를 안 찍고 죽으면 '표 없음' 실패).
+
+## 정비 가 스스로 시험 — `try_ga.mjs`
+```
+node web2/tools/try_ga.mjs pure   # 고르개 예시 · 계산기 입출력 = 커밋 전 · 기록장 못 읽음 · 격리 판정 · 등급 표 빠짐(몇 초)
+node web2/tools/try_ga.mjs app    # 설정 하나씩 깨기(그 기능만 꺼짐 · 기본 기능 돎) · 옛·새 계산기에 같은 입력 → 같은 조각 · 상태 자리(다리 240초)
+```
+
 ## 크롬으로 보기 — `view_s1.mjs`
 ```
 node web2/tools/view_s1.mjs [초] [장면] [틱]

@@ -2,6 +2,8 @@
   "owner": "healthrunner",
   "app_piece": "health.app",
   "src_piece": "health.src",
+  "off_piece": "health.off",
+  "word_off": "feature_off",
   "feature_prefix": "health.",
   "start_event": "app.start",
   "conn_prefix": "conn.",

@@ -2,6 +2,8 @@
   "owner": {"t": "str", "min": 1, "max": 40},
   "app_piece": {"t": "str", "min": 1, "max": 40},
   "src_piece": {"t": "str", "min": 1, "max": 40},
+  "off_piece": {"t": "str", "min": 1, "max": 40},
+  "word_off": {"t": "str", "min": 1, "max": 40},
   "feature_prefix": {"t": "str", "min": 1, "max": 40},
   "start_event": {"t": "str", "min": 1, "max": 40},
   "conn_prefix": {"t": "str", "min": 1, "max": 40},

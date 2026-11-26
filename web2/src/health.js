@@ -70,6 +70,13 @@ export function judgeFeatures(input, r) {
   return out;
 }
 
+// ④ (정비 가 ⑤ 격리) 설정이 틀려 꺼 둔 기능 이름들(차례 = 규칙 표 차례). 시작에 꼭 필요한 설정(등급 app)은 ① 이 '앱 점검 중'으로 다룬다
+export function judgeConfigOff(input, r) {
+  if (!Array.isArray(input.problems)) throw new TypeError('problems');
+  const badFiles = new Set(input.problems.map((p) => p.file));
+  return Object.entries(r.features).filter(([, rule]) => rule.configs.some((f) => badFiles.has(f))).map(([feat]) => feat);
+}
+
 export function same(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
 }

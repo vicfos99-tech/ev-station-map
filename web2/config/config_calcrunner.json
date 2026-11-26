@@ -1,27 +1,7 @@
 {
-  "note": "구독할 입력과 발행할 조각(설계 5-1-나 알림 표). 셈하는 법은 config_statecalc 의 표",
+  "note": "계산기(CalcRunner) 값. 구독할 입력과 발행할 조각은 여기 적지 않는다 — 계산 표(config_statecalc.table)의 줄에서 뽑는다(정비 가 ⑦, 중복 빼기). word_row_off = 설정이 틀린 줄을 꺼 둘 때 로그 낱말(정비 가 ⑤)",
   "owner": "calcrunner",
-  "inputs": [
-    "fix",
-    "stations",
-    "limit.data",
-    "route.answer",
-    "route.clear",
-    "relay",
-    "my",
-    "plan.request",
-    "map.tap",
-    "tap.close"
-  ],
-  "outputs": [
-    "pos",
-    "limit",
-    "speed",
-    "route",
-    "ahead",
-    "plan",
-    "tap"
-  ],
   "batch_ms": 100,
-  "where": "calcrunner"
+  "where": "calcrunner",
+  "word_row_off": "row_off"
 }

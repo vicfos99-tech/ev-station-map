@@ -5,6 +5,18 @@
 // 한 줄이 던져도 나머지 줄은 셈한다 — 던진 줄은 failed 에 담아 돌려준다(로그는 부른 CalcRunner 가). 로그 없음.
 export const NEEDS = [];
 
+// (정비 가 ⑦) 표에서 구독할 입력과 낼 조각을 뽑는다 — 한 곳(표)에만 적는다. 입력은 줄 차례대로 처음 나온 차례, 조각은 줄 차례
+export function ioOf(table) {
+  if (!Array.isArray(table)) throw new TypeError('table');
+  const inputs = [];
+  const outputs = [];
+  for (const row of table) {
+    for (const name of row.inputs) if (!inputs.includes(name)) inputs.push(name);
+    if (!outputs.includes(row.piece)) outputs.push(row.piece);
+  }
+  return { inputs, outputs };
+}
+
 export function calc(inputs, changed, prev, table, parts, rules) {
   if (!Array.isArray(table)) throw new TypeError('table');
   const out = {};
