@@ -68,6 +68,10 @@
     "map_only3": "세 곳만 보기",
     "map_save_failed": "지도 상태 저장 못 함",
     "map_load_failed": "지도 상태 읽기 못 함",
+    "map_base": "지도 바탕 고름",
+    "map_vector_bad": "벡터 지도 못 받음",
+    "map_fallback": "그림 지도로 돌아감",
+    "map_restore": "벡터 지도로 돌아옴",
     "read_fail": "기록장 파일을 못 읽음 — 메모리에 든 줄만 내보냄",
     "row_off": "계산 줄 꺼 둠(설정 이상)",
     "feature_off": "기능 꺼 둠(설정 이상)"

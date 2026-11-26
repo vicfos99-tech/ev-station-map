@@ -1,5 +1,5 @@
 {
-  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선). features.ahead 의 sources 가 빈 까닭: 위치가 끊겨도 마지막 위치로 세 곳을 그대로 보인다(설계 5-7 (4) (나)). (A4) conn.relay(충전소 목록)·conn.relay.status(충전기 상태)는 둘 다 다리 자료 길(data) — 하나라도 실패면 '충전소 자료 — 끊김'. features.station 의 sources 가 빈 까닭: 끊겨도 정보 칸은 들고 있는 상태를 받은 때와 함께 보이고 '다시 받기'를 늘 누를 수 있어야 한다. (A5) conn.relay.limit(제한 속도 자료)도 다리 자료 길(data). features.limit 의 sources 가 빈 까닭: 끊겨도 들고 있는 제한 속도 자료로 그대로 찾는다(설계 5-7 (4)) — 못 받은 칸의 길만 속도판 제한 칸이 빈다. (A6) conn.route(RouteClient — 집 PC 길: 끊김·잠금·시간 넘음)는 home, conn.route.kakao(오늘 한도·카카오 실패)는 kakao — 길찾기(navi)·기록 올리기(upload)는 home 이 끊길 때만 나쁨(카카오 쪽만 안 되면 쌓인 주소는 계속 찾아지므로 단추를 흐리게 하지 않고 상태 자리 한 줄만) (A7) plan(목록·추천)·my(내 차·할인): plan 의 sources 가 빈 까닭 — 상태 받기가 끊겨도 들고 있는 상태로 목록을 셈하고 '상태 모름'을 보인다. (정비 가 ⑤ 격리) grades 가 app 인 설정 = 시작에 꼭 필요한 설정(틀리면 '앱 점검 중'). 그 밖은 그 기능만 꺼지고 상태 자리에 '○○ 설정이 이상해 꺼 둠' — 계산기도 그 설정을 쓰는 계산 줄만 끈다. grades 에 없는 설정은 unknown_grade(app)라 새 기능 설정 파일은 꼭 grades·features 에 적는다(정비 가 시험이 빠진 것을 잡음). config_tap(A8 누른 지점 거리)이 빠져 있어 깨지면 앱 전체가 점검 중이 되던 것을 더함",
+  "note": "사용 가능 판정 규칙 표(설계 5-1-나 Health · F6). grades: 설정 파일 → 등급(app 이면 틀릴 때 앱이 시작하지 않음, 그 밖은 그 기능만). start_needs: 켤 때 꼭 받아야 하는 것(A2: 다리 상태 + 충전소 목록 + 고속도로 선). features.ahead 의 sources 가 빈 까닭: 위치가 끊겨도 마지막 위치로 세 곳을 그대로 보인다(설계 5-7 (4) (나)). (A4) conn.relay(충전소 목록)·conn.relay.status(충전기 상태)는 둘 다 다리 자료 길(data) — 하나라도 실패면 '충전소 자료 — 끊김'. features.station 의 sources 가 빈 까닭: 끊겨도 정보 칸은 들고 있는 상태를 받은 때와 함께 보이고 '다시 받기'를 늘 누를 수 있어야 한다. (A5) conn.relay.limit(제한 속도 자료)도 다리 자료 길(data). features.limit 의 sources 가 빈 까닭: 끊겨도 들고 있는 제한 속도 자료로 그대로 찾는다(설계 5-7 (4)) — 못 받은 칸의 길만 속도판 제한 칸이 빈다. (A6) conn.route(RouteClient — 집 PC 길: 끊김·잠금·시간 넘음)는 home, conn.route.kakao(오늘 한도·카카오 실패)는 kakao — 길찾기(navi)·기록 올리기(upload)는 home 이 끊길 때만 나쁨(카카오 쪽만 안 되면 쌓인 주소는 계속 찾아지므로 단추를 흐리게 하지 않고 상태 자리 한 줄만) (A7) plan(목록·추천)·my(내 차·할인): plan 의 sources 가 빈 까닭 — 상태 받기가 끊겨도 들고 있는 상태로 목록을 셈하고 '상태 모름'을 보인다. (정비 가 ⑤ 격리) grades 가 app 인 설정 = 시작에 꼭 필요한 설정(틀리면 '앱 점검 중'). 그 밖은 그 기능만 꺼지고 상태 자리에 '○○ 설정이 이상해 꺼 둠' — 계산기도 그 설정을 쓰는 계산 줄만 끈다. grades 에 없는 설정은 unknown_grade(app)라 새 기능 설정 파일은 꼭 grades·features 에 적는다(정비 가 시험이 빠진 것을 잡음). config_tap(A8 누른 지점 거리)이 빠져 있어 깨지면 앱 전체가 점검 중이 되던 것을 더함. (추가2) conn.tiles.vector(벡터 지도 못 받아 그림 타일로 돌아감)는 vtiles — features.map 의 sources 에 넣지 않은 까닭: 그림 타일로 지도는 그대로 돈다(상태 자리 한 줄만)",
   "stages": {
     "starting": "starting",
     "good": "good",
@@ -27,6 +27,7 @@
     "config_loc_watch": "loc",
     "config_ui_map": "map",
     "config_mapcam": "map",
+    "config_mapstyle_night": "map",
     "config_ui_log": "log",
     "config_relay_base": "app",
     "config_relay_parse": "app",
@@ -79,6 +80,7 @@
   "conn_source": {
     "conn.loc": "loc",
     "conn.tiles": "tiles",
+    "conn.tiles.vector": "vtiles",
     "conn.relay": "data",
     "conn.relay.status": "data",
     "conn.relay.limit": "data",
@@ -103,7 +105,8 @@
     "map": {
       "configs": [
         "config_ui_map",
-        "config_mapcam"
+        "config_mapcam",
+        "config_mapstyle_night"
       ],
       "sources": [
         "tiles"

@@ -1,0 +1,12 @@
+{"keys": {
+  "hosts": {"t": "arr", "min": 1, "max": 5, "of": {"t": "str", "min": 3, "max": 80}},
+  "style": {"t": "obj"},
+  "style.version": {"t": "num", "int": true, "min": 8, "max": 8},
+  "style.glyphs": {"t": "url", "max": 200, "hosts_key": "hosts", "schemes": ["https:"]},
+  "style.sources": {"t": "map", "of": {"t": "obj"}},
+  "style.sources.base": {"t": "obj"},
+  "style.sources.base.type": {"t": "str", "one_of": ["vector"]},
+  "style.sources.base.url": {"t": "url", "max": 200, "hosts_key": "hosts", "schemes": ["https:"]},
+  "style.sources.base.attribution": {"t": "str", "min": 1, "max": 200},
+  "style.layers": {"t": "arr", "min": 1, "max": 80, "of": {"t": "obj"}}
+}}

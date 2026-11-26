@@ -1,5 +1,5 @@
 {
-  "note": "지도(ui_map + mapview). 바탕 그림(타일) 주소는 이 파일에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). 카메라 규칙 값은 config_mapcam. attribution.compact false = 좁은 지도에서도 저작권 글을 접지 않음(고칠 것 ③). others = 다른 충전소 점 층('세 곳만'이면 숨김 — 점 속성 id_prop = 충전소 id, 누르면 정보 칸 A4), marks = 1·2·3번 표시(HTML 표시 — 글꼴 파일 없이, 다른 점보다 크고 위에; kinds 는 앞의 충전소·주변 모양). events.user_starts = 손으로 만진 시작 알림 → 종류(originalEvent 가 있는 것만), move_end 에 한 번 알림. store_key = 카메라 상태를 저장하는 데이터 폴더 키(config_store.keys). select_piece = 번호·점을 누르면 내는 요청(정보 칸이 들음, pick = 누른 것의 종류 이름). (A6) route = 경로 선 층(다른 충전소 점·내 위치 점 아래) — route_piece(CalcRunner 의 노선 꼴)를 그대로 그림, 카메라는 그대로",
+  "note": "지도(ui_map + mapview). 바탕 그림(타일) 주소는 이 파일(그림 타일)과 벡터 지도 스타일 설정(vector.style_config)에만 — 지도 라이브러리가 직접 받는다(설계 '바깥 주소는 하나'의 예외). 카메라 규칙 값은 config_mapcam. attribution.compact false = 좁은 지도에서도 저작권 글을 접지 않음(고칠 것 ③). others = 다른 충전소 점 층('세 곳만'이면 숨김 — 점 속성 id_prop = 충전소 id, 누르면 정보 칸 A4), marks = 1·2·3번 표시(HTML 표시 — 글꼴 파일 없이, 다른 점보다 크고 위에; kinds 는 앞의 충전소·주변 모양). events.user_starts = 손으로 만진 시작 알림 → 종류(originalEvent 가 있는 것만), move_end 에 한 번 알림. store_key = 카메라 상태를 저장하는 데이터 폴더 키(config_store.keys). select_piece = 번호·점을 누르면 내는 요청(정보 칸이 들음, pick = 누른 것의 종류 이름). (A6) route = 경로 선 층(다른 충전소 점·내 위치 점 아래) — route_piece(CalcRunner 의 노선 꼴)를 그대로 그림, 카메라는 그대로",
   "owner": "ui_map",
   "tiles_piece": "conn.tiles",
   "cam_piece": "map.cam",
@@ -51,7 +51,7 @@
   "style": {
     "version": 8,
     "sources": {
-      "osm": {
+      "base": {
         "type": "raster",
         "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
         "tileSize": 256,
@@ -59,9 +59,28 @@
         "attribution": "© OpenStreetMap contributors"
       }
     },
-    "layers": [{"id": "osm", "type": "raster", "source": "osm"}]
+    "layers": [{"id": "base_raster", "type": "raster", "source": "base"}]
   },
-  "tile_source_id": "osm",
+  "tile_source_id": "base",
+  "base": "vector",
+  "map_options": {"localIdeographFontFamily": "'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif"},
+  "vector": {
+    "note": "(추가2) 바탕 = base 한 줄: vector(벡터 지도 — 글자가 지도를 돌려도 바로 섬, 꼴은 style_config 의 우리 밤 운전 스타일) 또는 raster(위 style — 그림 타일, 돌리면 글자도 같이 돎). 벡터 지도와 그림 타일의 출처 id 는 같은 tile_source_id. 벡터 지도를 첫 조각 전에 못 받거나 wait_ms 안에 안 오면: fallback 참 = 위 그림 타일을 우리 층(경로 선·점) 아래에 깔고(출처 id fallback_source_id) 상태 자리에 piece 한 줄(code_fallback), 거짓 = 지도 그림 끊김 한 줄(code_down). 돌아간 뒤 벡터 지도 조각이 늦게라도 오면 그림 타일을 걷고 벡터 지도로 돌아옴(한 번만 — 오락가락 없음)",
+    "base_word": "vector",
+    "style_config": "config_mapstyle_night",
+    "fallback": true,
+    "fallback_source_id": "base_fb",
+    "wait_ms": 10000,
+    "wait_code": "vtiles_wait",
+    "piece": "conn.tiles.vector",
+    "code_fallback": "vtiles_fb",
+    "code_down": "vtiles",
+    "word_base": "map_base",
+    "word_bad": "map_vector_bad",
+    "word_fallback": "map_fallback",
+    "word_restore": "map_restore",
+    "act_fallback": "fallback"
+  },
   "start_center": [127.1, 37.27],
   "attribution": {"compact": false},
   "geo": {"feature": "Feature", "point": "Point", "collection": "FeatureCollection"},

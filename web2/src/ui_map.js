@@ -7,7 +7,9 @@
 //   · (A4) 번호·충전소 점을 누르면 station.select.map 으로 요청만(정보 칸이 듣는다 — 카메라는 그대로)
 //   · (A8) 빈 곳을 누르면 map.tap 으로 요청만(누른 지점 거리 — CalcRunner·ui_tap). map.pin 을 듣고 그 화면 조각을 그 좌표의 지도 풍선에 꽂음(카메라는 그대로)
 //   · 카메라 상태(따라가기·굳음·확대·방향·'세 곳만')는 폰 데이터 폴더에 저장(손·단추로 바뀔 때만)하고 다시 열면 읽는다. map.cam 으로 알린다('이상해' 기록에 담김)
-// 바탕 그림(타일) 주소는 config_ui_map 에만 있고 지도 라이브러리가 직접 받는다(설계 원칙 '바깥 주소는 하나'의 예외). 바탕 그림 성공·실패는 conn.tiles 로(바뀔 때만).
+// 바탕 그림(타일) 주소는 config_ui_map(그림 타일)·벡터 지도 스타일 설정(config_mapstyle_*)에만 있고 지도 라이브러리가 직접 받는다(설계 원칙 '바깥 주소는 하나'의 예외). 바탕 그림 성공·실패는 conn.tiles 로(바뀔 때만).
+//   · (추가2) 바탕은 설정 한 줄(c.base)로 벡터 지도 ↔ 그림 타일. 벡터 지도는 글자가 지도를 돌려도 바로 선다. 못 받으면(첫 조각 전 오류·기다림 넘김)
+//     설정(c.vector.fallback)에 따라 그림 타일을 깔고 conn.tiles.vector 한 줄, 또는 conn.tiles 를 '벡터 지도 못 받음'으로
 import { createMapView } from './mapview.js';
 
 //   · (추가1) 지도가 화면 전체를 깔고 판이 그 위에 있으므로 지도의 보이는 가운데를 '비어 보이는 지도 자리'(c.over.open_id)로 옮긴다(mapview.setPadding):
@@ -23,7 +25,7 @@ export function createMapScreen(deps) {
   const log = deps.log;
   const doc = deps.doc;
   const clock = deps.clock;
-  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, c.select_piece, c.tap.piece]);
+  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, c.select_piece, c.tap.piece, c.vector.piece]);
   let taps = 0;
   let lastPin = null;
   let view = null;
@@ -43,11 +45,56 @@ export function createMapScreen(deps) {
     return el;
   };
 
-  function tiles(ok, why) {
+  function tiles(ok, why, code) {
     if (tilesOk === ok) return;
     tilesOk = ok;
-    pub(c.tiles_piece, { ok, code: ok ? null : c.tiles_code });
-    if (!ok) log.warn(c.where, c.word_tiles_bad, { why });
+    pub(c.tiles_piece, { ok, code: ok ? null : code || c.tiles_code });
+    if (!ok) log.warn(c.where, c.word_tiles_bad, { why, code: code || c.tiles_code });
+  }
+
+  // (추가2) 바탕 = 벡터 지도(c.base 가 c.vector.base_word) 또는 그림 타일. 벡터 지도 꼴은 우리 스타일 설정(c.vector.style_config)
+  const V = c.vector;
+  const isVec = c.base === V.base_word;
+  let vecSeen = false;
+  let vecOk = null;
+  function vec(ok, why) {
+    if (vecOk === ok) return;
+    vecOk = ok;
+    pub(V.piece, { ok, code: ok ? null : V.code_fallback });
+    if (!ok) log.warn(c.where, V.word_bad, { why, fallback: true });
+  }
+  // 벡터 지도를 못 받음(첫 조각 전 오류·기다림 넘김): 설정이 돌아가기면 그림 타일을 깔고 상태 자리 한 줄(벡터 지도), 아니면 지도 그림 끊김 한 줄
+  function vectorDown(why) {
+    try {
+      if (!view || view.fellBack()) return;
+      if (V.fallback && view.fallback()) {
+        vec(false, why);
+        log.info(c.where, V.word_fallback, { why, to: V.fallback_source_id });
+      } else tiles(false, why, V.code_down);
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: V.act_fallback, why } });
+    }
+  }
+  function baseStyle() {
+    if (!isVec) return { style: c.style, fallback: null };
+    const fb = V.fallback ? { source_id: V.fallback_source_id, source: c.style.sources[c.tile_source_id], layers: c.style.layers } : null;
+    return { style: JSON.parse(JSON.stringify(deps.cfg.section(V.style_config).style)), fallback: fb };
+  }
+  function tileOk(src) {
+    if (isVec && src === c.tile_source_id) {
+      vecSeen = true;
+      // 늦게라도 벡터 지도 조각이 오면 깔았던 그림 타일을 걷고 벡터 지도로(상태 자리 줄도 걷힘)
+      if (view.fellBack() && view.restore()) log.info(c.where, V.word_restore, { to: c.base });
+      if (!view.fellBack()) vec(true, null);
+    }
+    tiles(true, null);
+  }
+  function tileBad(why, src) {
+    if (isVec && src === c.tile_source_id) {
+      if (view.fellBack()) return;
+      if (!vecSeen) { vectorDown(why); return; }
+    }
+    tiles(false, why);
   }
 
   function announce() {
@@ -171,17 +218,21 @@ export function createMapScreen(deps) {
     try {
       const slot = doc.getElementById(c.slot_id);
       if (!slot) throw new Error(c.slot_id);
+      const b = baseStyle();
       view = createMapView({ maplibre: deps.maplibre, doc }, {
-        container: slot, style: c.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
+        container: slot, style: b.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
         geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events, route: c.route,
         tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick, tap: c.tap,
         attrib: { host: doc.getElementById(c.over.attrib_id), part_selector: c.over.attrib_part },
+        map_options: c.map_options, fallback: b.fallback,
       });
+      log.info(c.where, V.word_base, { base: c.base, fallback: isVec ? V.fallback : null });
       pad(c.over.why_open);
       watchSize();
       view.onPick(pick);
       view.onTap(tap);
-      view.watchTiles(() => tiles(true, null), (why) => tiles(false, why));
+      view.watchTiles(tileOk, tileBad);
+      if (isVec) clock.setTimeout(() => { if (!vecSeen) vectorDown(V.wait_code); }, V.wait_ms);
       view.onUser((ev) => {
         try {
           s = cam.onUser(s, ev, m);

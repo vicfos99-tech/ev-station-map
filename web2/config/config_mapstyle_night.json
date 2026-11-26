@@ -1,0 +1,34 @@
+{
+  "note": "(추가2) 우리 벡터 지도 스타일 — 밤 운전용 어두운 바탕. 길은 등급이 높을수록 밝은 회색(고속도로가 가장 밝고 굵게), 나머지(물·땅·건물·경계)는 어두운 회색 — 색은 앱의 메인(파랑 = 경로 선·내 위치)·보조(노랑 = 1·2·3번)·상태색과 겹치지 않게 회색만. 글자: 이름은 한국어 이름(name:ko) 먼저, 없으면 name. 점 글자(지명·물 이름·고속도로 번호)는 text-rotation-alignment viewport — 지도를 돌려도 화면에 바로 섬. 길 이름은 길을 따라(map) 놓되 text-keep-upright 참 — 거꾸로 서지 않게 뒤집힘. 한글은 지도 라이브러리가 기기 글꼴로 그림(config_ui_map.map_options), 숫자·로마자만 glyphs 주소의 글꼴. 타일 출처는 OpenFreeMap(가입·키·돈 없음 — OpenMapTiles 꼴, 자료 OpenStreetMap ODbL) — 묘성 확인 전까지 시험·보기용(추가2 보고 '정할 것'). hosts = style 안 주소가 가리켜도 되는 곳(꼴 검사)",
+  "hosts": ["tiles.openfreemap.org"],
+  "style": {
+    "version": 8,
+    "name": "ev-night",
+    "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+    "sources": {
+      "base": {
+        "type": "vector",
+        "url": "https://tiles.openfreemap.org/planet",
+        "attribution": "© OpenFreeMap · © OpenMapTiles · 자료 © OpenStreetMap 기여자"
+      }
+    },
+    "layers": [
+      {"id": "v-background", "type": "background", "paint": {"background-color": "#121416"}},
+      {"id": "v-landcover", "type": "fill", "source": "base", "source-layer": "landcover", "paint": {"fill-color": "#16191c", "fill-opacity": 0.8}},
+      {"id": "v-park", "type": "fill", "source": "base", "source-layer": "park", "paint": {"fill-color": "#171a1d", "fill-opacity": 0.8}},
+      {"id": "v-water", "type": "fill", "source": "base", "source-layer": "water", "paint": {"fill-color": "#22272c"}},
+      {"id": "v-building", "type": "fill", "source": "base", "source-layer": "building", "minzoom": 14, "paint": {"fill-color": "#1d2023"}},
+      {"id": "v-boundary", "type": "line", "source": "base", "source-layer": "boundary", "filter": ["all", ["<=", ["get", "admin_level"], 4], ["!=", ["get", "maritime"], 1]], "paint": {"line-color": "#3a3f45", "line-width": 1, "line-dasharray": [3, 2]}},
+      {"id": "v-road-minor", "type": "line", "source": "base", "source-layer": "transportation", "filter": ["match", ["get", "class"], ["minor", "service", "track"], true, false], "layout": {"line-join": "round", "line-cap": "round"}, "paint": {"line-color": "#2e3236", "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4]}},
+      {"id": "v-road-mid", "type": "line", "source": "base", "source-layer": "transportation", "filter": ["match", ["get", "class"], ["secondary", "tertiary"], true, false], "layout": {"line-join": "round", "line-cap": "round"}, "paint": {"line-color": "#4a4f55", "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 12, 1.5, 16, 6]}},
+      {"id": "v-road-main", "type": "line", "source": "base", "source-layer": "transportation", "filter": ["match", ["get", "class"], ["primary", "trunk"], true, false], "layout": {"line-join": "round", "line-cap": "round"}, "paint": {"line-color": "#6f757c", "line-width": ["interpolate", ["linear"], ["zoom"], 7, 0.6, 10, 1.5, 13, 3, 16, 8]}},
+      {"id": "v-road-motorway", "type": "line", "source": "base", "source-layer": "transportation", "filter": ["==", ["get", "class"], "motorway"], "layout": {"line-join": "round", "line-cap": "round"}, "paint": {"line-color": "#b4b9bf", "line-width": ["interpolate", ["linear"], ["zoom"], 5, 0.8, 8, 1.6, 10, 2.6, 13, 4.5, 16, 10]}},
+      {"id": "v-water-name", "type": "symbol", "source": "base", "source-layer": "water_name", "layout": {"text-field": ["coalesce", ["get", "name:ko"], ["get", "name"]], "text-font": ["Noto Sans Regular"], "text-size": 12, "text-rotation-alignment": "viewport", "text-pitch-alignment": "viewport"}, "paint": {"text-color": "#7d848c", "text-halo-color": "#121416", "text-halo-width": 1.5}},
+      {"id": "v-road-name", "type": "symbol", "source": "base", "source-layer": "transportation_name", "minzoom": 12, "layout": {"symbol-placement": "line", "text-field": ["coalesce", ["get", "name:ko"], ["get", "name"]], "text-font": ["Noto Sans Regular"], "text-size": ["interpolate", ["linear"], ["zoom"], 12, 11, 16, 14], "text-rotation-alignment": "map", "text-keep-upright": true, "text-pitch-alignment": "viewport", "text-max-angle": 30}, "paint": {"text-color": "#c9ced4", "text-halo-color": "#121416", "text-halo-width": 1.6}},
+      {"id": "v-motorway-ref", "type": "symbol", "source": "base", "source-layer": "transportation_name", "minzoom": 7, "filter": ["all", ["==", ["get", "class"], "motorway"], ["has", "ref"]], "layout": {"symbol-placement": "line", "symbol-spacing": 400, "text-field": ["get", "ref"], "text-font": ["Noto Sans Bold"], "text-size": 12, "text-rotation-alignment": "viewport", "text-keep-upright": true, "text-pitch-alignment": "viewport"}, "paint": {"text-color": "#121416", "text-halo-color": "#b4b9bf", "text-halo-width": 3}},
+      {"id": "v-place-small", "type": "symbol", "source": "base", "source-layer": "place", "minzoom": 10, "filter": ["match", ["get", "class"], ["village", "suburb", "neighbourhood", "quarter", "hamlet"], true, false], "layout": {"text-field": ["coalesce", ["get", "name:ko"], ["get", "name"]], "text-font": ["Noto Sans Regular"], "text-size": 12, "text-rotation-alignment": "viewport", "text-pitch-alignment": "viewport"}, "paint": {"text-color": "#9aa1a8", "text-halo-color": "#121416", "text-halo-width": 1.6}},
+      {"id": "v-place-town", "type": "symbol", "source": "base", "source-layer": "place", "filter": ["==", ["get", "class"], "town"], "layout": {"text-field": ["coalesce", ["get", "name:ko"], ["get", "name"]], "text-font": ["Noto Sans Regular"], "text-size": 14, "text-rotation-alignment": "viewport", "text-pitch-alignment": "viewport"}, "paint": {"text-color": "#d7dbe0", "text-halo-color": "#121416", "text-halo-width": 1.8}},
+      {"id": "v-place-city", "type": "symbol", "source": "base", "source-layer": "place", "filter": ["==", ["get", "class"], "city"], "layout": {"text-field": ["coalesce", ["get", "name:ko"], ["get", "name"]], "text-font": ["Noto Sans Bold"], "text-size": 17, "text-rotation-alignment": "viewport", "text-pitch-alignment": "viewport"}, "paint": {"text-color": "#eef0f2", "text-halo-color": "#121416", "text-halo-width": 2}}
+    ]
+  }
+}

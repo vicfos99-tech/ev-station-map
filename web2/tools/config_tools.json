@@ -94,7 +94,7 @@
         "hours\\s*=\\s*9"
       ],
       "http_word": "http",
-      "http_ok_config_files": ["config_gateway.json", "config_ui_map.json"],
+      "http_ok_config_files": ["config_gateway.json", "config_ui_map.json", "config_mapstyle_night.json"],
       "secret_file": "config_app_secret.json"
     },
     "import_line": "^\\s*import\\b",

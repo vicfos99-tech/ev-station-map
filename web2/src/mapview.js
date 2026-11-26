@@ -2,7 +2,8 @@
 // 값(바탕 그림 꼴·처음 자리·점 모양·층·이벤트 이름·번호 표시 모양)은 모두 부르는 쪽(ui_map)이 설정에서 넘긴다. 로그는 쓰지 않고 알림 함수로 돌려준다.
 // 하는 일: 내 위치 점 · 카메라 명령 옮기기(효과 없이 — L068) · 손으로 한 일 알리기 · 1·2·3번 표시 · 다른 충전소 층과 그 켬·끔 ·
 // (A4) 번호·충전소 점을 누름 알리기(onPick — 카메라는 건드리지 않는다) · (A6) 경로 선(setRoute — 카메라는 건드리지 않는다) ·
-// (A8) 빈 곳 누름 좌표 알리기(onTap) · 화면 조각 하나를 그 좌표의 지도 풍선에 꽂기(setPin — 카메라는 건드리지 않는다).
+// (A8) 빈 곳 누름 좌표 알리기(onTap) · 화면 조각 하나를 그 좌표의 지도 풍선에 꽂기(setPin — 카메라는 건드리지 않는다) ·
+// (추가2) 바탕이 벡터 지도면 못 받을 때 그림 타일을 우리 층 아래에 까는 길(fallback — 바탕 꼴·출처는 부르는 쪽이 넘김).
 // 카메라 규칙은 여기 없다(MapCam). 손으로 만지는 동안에는 카메라 명령을 옮기지 않는다(손이 먼저 — 설계 5-8 다).
 export const NEEDS = ['maplibre', 'doc'];
 
@@ -10,8 +11,11 @@ export function createMapView(deps, o) {
   const lib = deps.maplibre;
   const doc = deps.doc;
   if (!lib || typeof lib.Map !== 'function') throw new Error(o.no_lib_code);
-  const map = new lib.Map({ container: o.container, style: o.style, center: o.center, zoom: o.zoom, bearing: o.bearing, attributionControl: o.attribution });
+  // (추가2) o.map_options = 지도 라이브러리에 그대로 넘길 값(한글을 기기 글꼴로 그리는 글꼴 이름 등 — 설정)
+  const map = new lib.Map({ ...(o.map_options || {}), container: o.container, style: o.style, center: o.center, zoom: o.zoom, bearing: o.bearing, attributionControl: o.attribution });
   let ready = false;
+  let fellBack = false;
+  let restored = false;
   let pendingDot = null;
   let pendingCam = null;
   let pendingStations = null;
@@ -226,11 +230,36 @@ export function createMapView(deps, o) {
       othersShown = !!on;
       if (ready) map.setLayoutProperty(o.others.layer_id, o.others.visibility_key, othersShown ? o.others.shown_word : o.others.hidden_word);
     },
-    // 바탕 그림: 첫 조각이 오면 ok(), 못 받으면 bad(까닭)
+    // 바탕 그림: 조각이 오면 ok(출처 id), 못 받으면 bad(까닭, 출처 id). (추가2) 벡터 지도일 때는 돌아갈 그림 타일 출처(o.fallback.source_id)도 본다
     watchTiles(ok, bad) {
-      map.on(o.events.data, (e) => { if (e && e.tile && e.sourceId === o.tile_source_id) ok(); });
-      map.on(o.events.error, (e) => { if (e && (e.tile || e.sourceId === o.tile_source_id)) bad(e.error && e.error.message); });
+      const ids = [o.tile_source_id, o.fallback ? o.fallback.source_id : null].filter(Boolean);
+      map.on(o.events.data, (e) => { if (e && e.tile && ids.includes(e.sourceId)) ok(e.sourceId); });
+      map.on(o.events.error, (e) => { if (e && (e.tile || ids.includes(e.sourceId))) bad(e.error && e.error.message, e.sourceId || null); });
     },
+    // (추가2) 벡터 지도를 못 받을 때 그림 타일로: 그림 타일 출처·층을 바탕 층들 위, 우리 층(경로 선·충전소 점·내 위치 점) 아래에 깐다.
+    // 지도 꼴을 통째로 바꾸지 않아 우리 층·번호 표시·풍선은 그대로. 한 번만. 돌려줌 = 이번에 깔았나
+    fallback() {
+      if (fellBack || restored || !o.fallback) return false;
+      fellBack = true;
+      const f = o.fallback;
+      const put = () => {
+        map.addSource(f.source_id, f.source);
+        for (const l of f.layers) map.addLayer({ ...l, source: f.source_id }, o.route.layer_id);
+      };
+      if (ready) put(); else map.on(o.events.load, put);
+      return true;
+    },
+    // (추가2) 돌아간 뒤 벡터 지도 조각이 늦게라도 오면 깔았던 그림 타일 층·출처를 걷는다(한 번만). 돌려줌 = 이번에 걷었나
+    restore() {
+      if (!fellBack || !ready || !o.fallback) return false;
+      const f = o.fallback;
+      for (const l of f.layers) if (map.getLayer(l.id)) map.removeLayer(l.id);
+      if (map.getSource(f.source_id)) map.removeSource(f.source_id);
+      fellBack = false;
+      restored = true;
+      return true;
+    },
+    fellBack: () => fellBack,
     remove: () => map.remove(),
   };
 }

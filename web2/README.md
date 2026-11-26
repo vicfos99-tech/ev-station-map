@@ -17,6 +17,12 @@
 - 앞의 충전소 셈은 `ahead.js`(순수 — `statecalc` 표 한 줄, 설정 `config_ahead.json`). 휴게소 방향은 지금 충전소 **이름의 방향 낱말**(`line_dir_words`)로 가른다 — 중계 R0 목록에 방향 칸이 생기면 그것으로 바꾼다.
 - '이상해' 기록은 데이터 폴더 `data/odd_<시각><밀리초 끝 세 자리>_<켠 뒤 차례>.json` + 목록 `data/odd_index.json`(보관 개수 `config_store.records.odd.keep`). 올리기는 A6.
 
+## 지도 바탕 — 벡터 지도 ↔ 그림 타일 (추가2, 2026-11-27)
+- `config_ui_map.base` 한 줄: `vector`(처음 값 — 글자가 지도를 돌려도 바로 섬, 한국어 이름 먼저) 또는 `raster`(그림 타일 — 돌리면 글자도 같이 돎).
+- 벡터 지도 꼴은 우리 밤 운전 스타일 `config/config_mapstyle_night.json`(길은 밝은 회색, 고속도로가 가장 밝고 굵게, 나머지 어두운 회색). 타일 출처 OpenFreeMap(가입·키·돈 없음) — **묘성 확인 전까지 시험·보기용**.
+- 못 받으면(첫 조각 전 오류·`vector.wait_ms` 넘김): `vector.fallback` 참 = 그림 타일을 경로 선·점 아래에 깔고 상태 자리 '벡터 지도 — 끊김(못 받음 — 그림 지도로 봄)', 늦게라도 벡터 조각이 오면 걷고 벡터로(한 번만). 거짓 = '지도 그림 — 끊김(벡터 지도 못 받음)' 한 줄만.
+- 시험 `node web2/tools/try_add2.mjs [frames|turn|switch] [다리 초]` — 결과 `tools/logs/try_add2_*.md`, 그림 `<작업 폴더>/90_임시/add2_shots/`.
+
 ## 크롬으로 장면 보기 (집 PC)
 명령은 저장소 맨 위(`C:\Claude_work\10_프로젝트\ev-charge-planner`)에서 하나씩.
 1. `node web2/tools/view_s1.mjs [초] [장면] [틱]` — 없으면 600초 · S1 · 틱 0
