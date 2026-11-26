@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "note": "테스트 베드 실자료(4-2): 실제 도로 모양 선. tools/osm_fetch.py 가 오픈스트리트맵(Overpass 공개 질의 — 가입·키 없음)에서 받아 원본을 raw_dir 에 두고, tools/osm_line.py 가 원본을 시험 선 꼴(scenes/lines/<이름>.json)로 바꾸고 옛 직선과 견준다. tools/real_scene.py 가 옛 장면을 새 선 위로 옮긴 새 장면 파일을 만든다. 경로는 이 파일 폴더 기준 상대 경로, 작업 폴더는 work.env 의 work_env_key 로만. 원본 자료는 중계 R0 도 같은 곳(raw_dir)을 다시 쓴다(중복 금지)",
+  "testbed_config": "testbed.json",
+  "work_env": "../../../../work.env",
+  "work_env_key": "CLAUDE_WORK_ROOT",
+  "work_env_mark": "${CLAUDE_WORK_ROOT}",
+  "raw_dir": "${CLAUDE_WORK_ROOT}/30_자료/도로선",
+  "raw_place_text": "30_자료/도로선",
+  "tools_text": "testbed/tools/osm_fetch.py · testbed/tools/osm_line.py",
+  "raw_suffix": ".osm.json",
+  "meta_suffix": ".meta.json",
+  "query_suffix": ".overpassql",
+  "stamp_format": "%Y-%m-%d_%H%M",
+  "taken_format": "%Y-%m-%d %H:%M",
+  "overpass": {
+    "note": "공개 Overpass 서버(앞에서부터 시도). 이용 규칙: 하루 1만 번·1GB 아래, 같은 질의를 되풀이하지 않음. user_agent 에 하는 일을 적는다(연락처는 넣지 않음)",
+    "endpoints": [
+      "https://overpass-api.de/api/interpreter",
+      "https://lz4.overpass-api.de/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter"
+    ],
+    "http_timeout_s": 240,
+    "query_timeout_s": 200,
+    "user_agent": "ev-charge-planner-testbed/0.1 (test road shapes, one-off)",
+    "form_key": "data",
+    "content_type": "application/x-www-form-urlencoded; charset=utf-8"
+  },
+  "license": {
+    "source": "OpenStreetMap (Overpass API)",
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL 1.0 (Open Database License)",
+    "license_url": "https://www.openstreetmap.org/copyright",
+    "terms": "무료·가입 없음·키 없음. 쓰는 곳(지도·앱 화면)에 '© OpenStreetMap contributors' 표시. 이 자료로 만든 자료(선 파일)를 바깥에 공개해 나누면 그 자료도 ODbL 로 나눠야 함(같은 조건 공유). 시험 베드 안에서만 쓰면 공개 아님"
+  },
+  "lines": {
+    "gyeongbu_down_osm": {
+      "note": "경부고속도로 부산 방향(하행) 차로. 옛 직선 선(gyeongbu_down) km 범위를 덮는 만큼 받는다 — 장면이 쓰는 km 는 28~138",
+      "base_line": "gyeongbu_down",
+      "highway": "경부고속도로",
+      "direction": "부산 방향",
+      "base_from_km": 0.0,
+      "base_to_km": 160.0,
+      "bbox_margin_deg": 0.03,
+      "way_filters": [
+        "[\"highway\"=\"motorway\"][\"ref\"=\"1\"]",
+        "[\"highway\"=\"motorway\"][\"name\"=\"경부고속도로\"]",
+        "[\"highway\"=\"trunk\"][\"name\"=\"경부고속도로\"]"
+      ],
+      "filters_note": "첫 받기(2026-11-26_2138)는 motorway 만 — 오픈스트리트맵은 한남~양재(약 7 km)를 motorway 가 아닌 trunk 로 두어 빠짐. 둘째(_2140)는 trunk 를 ref=1 로도 받아 국도 1호선(세종로 등)까지 섞임 → trunk 는 이름(경부고속도로)으로만 받음(셋째)",
+      "oneway_forward": ["yes", "true", "1"],
+      "oneway_backward": ["-1", "reverse"],
+      "snap_m": 1500,
+      "coord_decimals": 6
+    }
+  },
+  "compare": {
+    "note": "옛 직선 vs 새 선 견주기: 중계 사본 routes.json 의 휴게소(노선 route_keys)를 두 선에 내려 km 차이, 새 선을 sample_km 마다 찍어 옛 선과 가장 먼 어긋남(m). 범위는 장면이 쓰는 옛 km(scene_from_km~scene_to_km)",
+    "relay_copy": "${CLAUDE_WORK_ROOT}/90_임시/중계자료_사본_2026-11-25",
+    "routes_file": "routes.json",
+    "route_keys": {"gyeongbu_down_osm": ["live-gb-down", "live-gb-up"]},
+    "scene_from_km": 28.0,
+    "scene_to_km": 138.0,
+    "sample_km": 0.1,
+    "far_m": 300,
+    "report_file": "realline_compare.md"
+  },
+  "scenes": {
+    "note": "real_scene.py 가 만드는 실자료 장면: base(옛 장면)의 선 조각·속도·제한·멈춤 km 를 새 선 km 로 옮기고(옛 선의 그 km 자리를 새 선에 내림 — 같은 경계는 같은 값), 충전소 km 는 휴게소 실제 좌표를 새 선에 내려 다시 셈. km_decimals = 옮긴 km 자릿수. 옛 장면 파일은 읽기만",
+    "km_decimals": 2,
+    "leg_note_add": " (이 글의 km 는 옛 직선 km — 새 선 km 는 from_km·to_km)",
+    "data_source_from": "선: scenes/lines/gyeongbu_down_osm.json(오픈스트리트맵 실제 도로 모양 — © OpenStreetMap contributors, ODbL). 휴게소·충전소: 옛 장면과 같음 — ",
+    "data_source_note_add": " [실자료판] 길(선)은 실제 도로 모양이고, 선 조각·속도·제한 구간의 km 는 옛 직선 km 자리를 새 선에 내려 옮긴 값, 휴게소 km 는 휴게소 좌표를 새 선에 내려 다시 셈한 값이다.",
+    "make": [
+      {
+        "base": "S1_고속도로",
+        "name": "S13_고속도로_실선",
+        "title": "고속도로 평범 주행(실제 도로 모양)",
+        "from_line": "gyeongbu_down",
+        "to_line": "gyeongbu_down_osm",
+        "description_add": " — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 동탄(고칠 것 일곱 ⑥, 옛 직선 km 40.8 = 위도 37.174·경도 127.116 이 동탄 단지 안)을 지난다. 옛 S1 의 km 는 새 선 km 로 옮김"
+      }
+    ]
+  },
+  "try": {
+    "note": "try_realline.py(테스트 베드 쪽 단위 시험). on_line_m = 장면 흐름 자리가 새 선에서 이 안이어야(선 위). dongtan = 고칠 것 일곱 ⑥에서 묘성이 본 자리(옛 직선 위, 실제로는 동탄 단지 안) — 새 선에서 around_m 넘게 떨어져야. old_on_m = 그 자리가 옛 직선에서는 이 안(옛 문제의 재현). rail_check_ticks = 흐름에서 몇 틱마다 볼지",
+    "scene": "S13_고속도로_실선",
+    "line": "gyeongbu_down_osm",
+    "old_line": "gyeongbu_down",
+    "on_line_m": 5,
+    "dongtan": [37.174, 127.116],
+    "around_m": 300,
+    "old_on_m": 60,
+    "old_on_note": "동탄 자리는 고침7 보고에 소수 셋째 자리(±55 m)로 적힌 값이라 옛 직선에서 0 이 아니라 수 m — 60 m 안이면 '옛 직선 위'",
+    "rail_check_ticks": 1,
+    "min_points_per_km": 5,
+    "max_gap_m": 2000,
+    "max_gap_note": "끊긴 길을 잡으려는 한도. 오픈스트리트맵은 곧은 구간에 점을 드물게 둔다(첫 받기에서 가장 긴 사이 1,746 m). 잇기는 받은 길만 따라가므로 길이 끊기면 아예 못 이음(②에서 잡힘)"
+  }
+}

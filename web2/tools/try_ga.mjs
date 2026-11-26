@@ -9,7 +9,7 @@ import { loadToolsConfig, appDir, toolLog, kstText, TOOLS_DIR } from './lib_tool
 import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, fetchWithLines } from './lib_testbed.mjs';
 import { loadBoards, startApp as runApp, waitFor, memDisk, sleep } from './lib_apprun.mjs';
 import { loadAppConfig, topicRowsOf } from './lib_appfiles.mjs';
-import { pick, testMap } from './try_pick.mjs';
+import { pick, testMap, changedFiles } from './try_pick.mjs';
 
 const tc = loadToolsConfig();
 const T = JSON.parse(fs.readFileSync(path.join(TOOLS_DIR, 'config_try_ga.json'), 'utf8'));
@@ -55,9 +55,17 @@ async function partPure() {
       '고름 ' + (res.tests.join('·') || '없음') + (missing.length ? ' · 빠짐 ' + missing.join('·') : '') + (extra.length ? ' · 더 고름 ' + extra.join('·') : '') + (notChrome.length ? ' · 크롬 아님 ' + notChrome.join('·') : ''),
       !missing.length && !extra.length && !notChrome.length && noneOk);
   });
-  // ①-git: 인자 없이(작업 트리) 돌아감
+  // ①-git: 인자 없이(작업 트리) 돌아감. (4-2) 작업 트리가 깨끗하면 고를 게 없어 '한 줄 이상'이 늘 틀렸다(전체 시험 bc1ad30 376/377) —
+  // 작업 트리 상태에 기대지 않게: 같은 작업 트리에서 git 으로 뽑은 고친 파일(changedFiles)을 같은 고르기(pick)에 넣은 시험 수와 줄 수가 같은지 본다
+  // (깨끗하면 0 줄 · 0 개, 고친 게 있으면 그 수). git 길(changedFiles)이 실패하면 던져 예외 줄로 실패한다.
   const r = spawnSync(process.execPath, [path.join(TOOLS_DIR, 'try_pick.mjs')], { encoding: 'utf8' });
-  row('①-git', '고르개를 인자 없이(작업 트리 + 스테이지 + 새 파일) 돌림', '종료 0 · 시험 이름 한 줄 이상', '종료 ' + r.status + ' · ' + r.stdout.trim().split(/\r?\n/).filter(Boolean).length + '줄', r.status === tc.exit.ok && r.stdout.trim().length > 0);
+  const changed = changedFiles();
+  const want = pick(changed).tests;
+  const got = r.stdout.trim().split(/\r?\n/).filter(Boolean);
+  row('①-git', '고르개를 인자 없이(작업 트리 + 스테이지 + 새 파일) 돌림 — 작업 트리 상태와 상관없이',
+    '종료 0 · 줄 = 같은 작업 트리로 고른 시험(고친 파일 ' + changed.length + ' → ' + want.length + '개)',
+    '종료 ' + r.status + ' · ' + got.length + '줄' + (got.join(',') === want.join(',') ? ' · 같음' : ' · 다름: ' + got.join(',')),
+    r.status === tc.exit.ok && got.join(',') === want.join(','));
 
   // ② ⑦ 입출력 = 커밋 전 config_calcrunner
   const statecalc = await srcOf('statecalc');

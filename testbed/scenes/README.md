@@ -103,3 +103,22 @@
   `py tools/pick_stations.py config/testbed.json <사본 폴더> <장면 이름> gyeongbu_down rest:<노선 key>:<휴게소 id>… around:<충전소 id>… --write`
   휴게소는 이름·자리·방향·처음 상태를 `routes.json` 에서, 충전기 id 는 `stations/` 에서(차례·종류·출력이 다 같을 때만), 선 위 km 는 휴게소 자리를 선에 내려 셈(상행 휴게소도 같은 하행 선의 km). 주변 충전소의 처음 상태는 `status/` 의 stat 코드를 낱말로.
 - 시험(배속): `py tools/try_t4.py config/testbed.json [장면 이름 …]`.
+
+## 4-2 에서 더한 것 — 실제 도로 모양 선과 실자료 장면 (2026-11-26)
+
+옛 선(`lines/gyeongbu_down.json`)은 휴게소 좌표를 곧게 이은 선이라 실제 도로와 최대 3.3 km 어긋난다(동탄 근처). 옛 선·옛 장면은 **그대로 두고**(A1~A8 시험 기대 값이 안 흔들리게) 새 선과 새 장면을 더했다.
+
+| 파일 | 무엇 | 실제 자료 |
+|---|---|---|
+| `lines/gyeongbu_down_osm.json` | 경부고속도로 부산 방향 차로의 실제 도로 모양 — 오픈스트리트맵(© OpenStreetMap contributors, ODbL). 점 1,347 · 168.3 km(옛 선 km 0~160 을 덮음). 한쪽 길(oneway)만 이어 상행 차로는 없다 | 예 |
+| `S13_고속도로_실선.json` | S1 실자료판 — 같은 휴게소·충전소, 길만 새 선 위(새 km 28.22→84.44, 56.2 km, 2,126틱). 동탄(고칠 것 일곱 ⑥ 자리)을 지난다 | 예 |
+
+- 설정: `config/realline.json`(받을 서버·질의 필터·범위·원본 자리·시험 값). 원본 자리는 work.env 의 작업 폴더 아래 `30_자료/도로선/` — 중계 R0 도 이 원본을 다시 쓴다(같은 자료 한 곳).
+- 다시 만들기(차례대로):
+  1. `py tools/osm_fetch.py config/realline.json gyeongbu_down_osm` — Overpass 공개 서버에서 받아 원본·질의문·받은 때·저작권을 원본 자리에(가입·키 없음. 서버가 바쁘면 502·504 — 잠시 뒤 다시)
+  2. `py tools/osm_line.py config/realline.json gyeongbu_down_osm --write` — 가장 새 원본을 이어 선 파일로 + 옛 직선과 견주기 표(`logs/realline_compare.md`)
+  3. `py tools/real_scene.py config/realline.json --write` — 설정 `scenes.make` 의 장면을 새 선 위로 옮겨 만들고 장면 검사기로 봄(틀리면 되돌림)
+  4. `py tools/try_realline.py config/realline.json` — 단위 시험 6개
+- 새 장면 km: 선 조각·속도·제한 구간 km 는 '옛 직선의 그 km 자리를 새 선에 내린 km', 휴게소 km 는 휴게소 좌표를 새 선에 내린 km(예: 안성 부산 방향 58.7 → 60.72, 옥산 109.6 → 114.27).
+- 앱에 보이기: 앱은 R0 전이라 선을 `lines/gyeongbu_down.json` 이름으로만 묻는다. 보기 도구가 S13 을 고르면 새 선을 그 자리로 낸다(안의 name 은 `gyeongbu_down` — `web2/tools/lib_realline.mjs`, 값은 `web2/tools/config_try_realline.json`).
+  `node web2/tools/view_s1.mjs 600 S13_고속도로_실선` (동탄 앞 약 1.7 km 부터: 틱 `420` 을 끝에 더함 — 동탄 옆 새 km 41.0 은 약 485틱)

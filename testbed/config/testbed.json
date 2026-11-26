@@ -278,7 +278,12 @@
       "db_peek": ["tbconfig", "tblog", "tbdb"],
       "try_db": ["tbconfig", "tblog", "tbdb", "db_peek", "try_server", "recorder"],
       "pick_stations": ["geo", "match_ids", "tbconfig", "tblog"],
-      "try_t4": ["tbconfig", "tblog", "tbdb", "geo", "check_scenes", "try_server"]
+      "try_t4": ["tbconfig", "tblog", "tbdb", "geo", "check_scenes", "try_server"],
+      "realcfg": ["tbconfig"],
+      "osm_line": ["geo", "pick_stations", "realcfg", "tbconfig", "tblog"],
+      "osm_fetch": ["osm_line", "realcfg", "tbconfig", "tblog"],
+      "real_scene": ["check_scenes", "osm_line", "pick_stations", "realcfg", "tbconfig", "tblog"],
+      "try_realline": ["check_scenes", "geo", "osm_line", "pick_stations", "realcfg", "tbconfig", "tblog"]
     }
   }
 }

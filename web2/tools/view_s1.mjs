@@ -4,6 +4,7 @@
 //   예: node web2/tools/view_s1.mjs 600 S2_제한속도 460 · node web2/tools/view_s1.mjs 600 S7_출처끊김 165
 // (A2) R0 전이라 시험 다리가 고속도로 선 파일을 내주지 않는다 — 이 서버가 다리 앞에 서서 선 파일만 대신 답하고 나머지 다리 길(/v1/…)은
 // 그대로 다리로 넘긴다. 그래서 이 보기의 빌드만 다리 주소를 이 서버(같은 주소)로 바꿔 짓는다(--override — 저장소의 설정은 그대로).
+// (4-2) 실자료 장면(실제 도로 모양 선 — config_try_realline.json real_lines)을 고르면 그 선을 앱 선 파일 자리로 낸다: node web2/tools/view_s1.mjs 600 S13_고속도로_실선
 // 앱 비밀 값은 이번만 쓰는 값을 새로 만들어 저장소 밖 임시 파일과 다리 환경변수로만 넘긴다(화면·기록에 안 나옴).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -11,7 +12,8 @@ import path from 'node:path';
 import http from 'node:http';
 import { spawnSync } from 'node:child_process';
 import { loadToolsConfig, appDir, toolLog, TOOLS_DIR } from './lib_tools.mjs';
-import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim, strayGuard } from './lib_testbed.mjs';
+import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, strayGuard } from './lib_testbed.mjs';
+import { realLinesShim } from './lib_realline.mjs';
 
 const tc = loadToolsConfig();
 const V = tc.view_s1;
@@ -40,7 +42,7 @@ async function run() {
     if (r.status !== tc.exit.ok) throw new Error('빌드 실패: ' + (r.stderr || '').trim());
     const page = fs.readFileSync(path.join(out, tc.build.out_file));
     const info = testbedInfo(tc, APP);
-    const shim = linesShim(tc, info, secret);
+    const shim = realLinesShim(tc, info, secret); // (4-2) 실자료 장면(S13 등)이면 실제 도로 모양 선을 앱 선 자리로 — 옛 장면은 linesShim 그대로
     const guard = strayGuard(tc, info, secret, log); // (정비 나 0) 앞 보기의 남은 탭이 옛 비밀 값으로 물으면 다리에 안 넘김
     const bridge = await startBridge(tc, info, want, secret);
     await selectScene(info, scene, false);

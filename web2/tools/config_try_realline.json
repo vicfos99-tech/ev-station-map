@@ -1,0 +1,23 @@
+{
+  "note": "(4-2) 테스트 베드 실자료 — 실제 도로 모양 선(testbed/scenes/lines/gyeongbu_down_osm.json)을 쓰는 장면을 앱에 보이는 길(lib_realline.mjs)과 그 시험(try_realline.mjs)의 값",
+  "real_lines": {
+    "gyeongbu_down_osm": {"app_file": "lines/gyeongbu_down.json", "app_name": "gyeongbu_down"}
+  },
+  "real_lines_note": "중계 R0 전이라 앱은 고속도로 선을 앱 설정(config_relay_stations.line_files)의 파일 이름으로만 묻고, 방향 낱말 등은 선 이름(gyeongbu_down)으로 찾는다. 지금 장면이 이 표의 테스트 베드 선(왼쪽)을 쓰면 그 선을 app_file 자리로 내주고 안의 name 을 app_name 으로 바꾼다(같은 길의 실제 모양 — R0 가 낼 선과 같은 이름). 제한 속도 고속도로 표의 선 이름도 같이 바꾼다. 장면이 옛 선만 쓰면 아무것도 안 바꿈(옛 장면·옛 시험 그대로)",
+  "scene": "S13_고속도로_실선",
+  "old_scene": "S1_고속도로",
+  "dongtan": [37.174, 127.116],
+  "dongtan_note": "고칠 것 일곱 ⑥에서 묘성이 본 자리 — 옛 직선 km 40.8, 실제로는 동탄 단지 안(보고 2026-11-25_앱_고침7_A3.md)",
+  "approach_km": [-3, -2, -1, 0],
+  "return_km": 2,
+  "approach_note": "동탄 자리를 새 선에 내린 km 를 0 으로, 그 앞뒤 선 위 자리(새 선 위 점)를 차례로 넣는다: 앞 3·2·1·0 km(선 위) → 동탄 자리 → 2 km 뒤(선 위)",
+  "speed_kmh": 95,
+  "accuracy_m": 5,
+  "t_step_ms": 1000,
+  "bridge_seconds": 60,
+  "bridge_scale": 10,
+  "stream_ticks": 20,
+  "stream_wait_ms": 30000,
+  "on_line_m": 5,
+  "report_file": "try_realline_last.md"
+}
