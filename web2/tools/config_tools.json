@@ -1494,6 +1494,17 @@
     "script": "tools/hooks/pre-commit-web2.sh",
     "hook_name": "pre-commit",
     "line": "sh web2/tools/hooks/pre-commit-web2.sh || exit 1",
-    "shebang": "#!/bin/sh"
+    "shebang": "#!/bin/sh",
+    "extra": [
+      { "hook_name": "post-commit", "script": "tools/hooks/post-commit-web2.sh", "line": "sh web2/tools/hooks/post-commit-web2.sh" }
+    ]
+  },
+  "principles": {
+    "note": "원칙 점검(4-3). 점검 도구는 작업 폴더의 20_도구/원칙점검 — 이 앱은 설정 한 장(sheet)만 둔다. 걸쇠가 principles_run.mjs 로 부른다.",
+    "tool_dir": "${CLAUDE_WORK_ROOT}/20_도구/원칙점검",
+    "sheet": "tools/config_principles.json",
+    "scripts": { "check": "check.mjs", "judge": "judge.mjs" },
+    "node": "node",
+    "missing_tool_blocks": false
   }
 }

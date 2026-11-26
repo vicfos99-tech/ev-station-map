@@ -24,7 +24,19 @@ node web2/tools/install_hook.mjs
 ```
 - 저장소 `.git/hooks/pre-commit` 끝에 `sh web2/tools/hooks/pre-commit-web2.sh || exit 1` 한 줄을 더한다(있던 잠긴 테스트 확인 줄은 그대로). 이미 있으면 그대로 둔다.
 - 걸쇠는 이번 커밋에 `web2/` 아래 파일이 있을 때만 `check4.mjs` 를 돌리고, 실패면 커밋을 막는다(다른 폴더 커밋에는 끼지 않는다).
-- 확인: `git -C <저장소> commit` 때 `[web2 걸쇠] 기계 검사 네 가지를 돌립니다` 가 찍힌다.
+- 확인: `git -C <저장소> commit` 때 `[web2 걸쇠] 기계 검사 다섯 가지를 돌립니다` 가 찍힌다.
+- (4-3) 같은 설치가 커밋 뒤 걸쇠 `.git/hooks/post-commit` 끝에 `sh web2/tools/hooks/post-commit-web2.sh` 도 더한다(`config_tools.json` 의 `hook.extra`).
+
+## 원칙 점검 — `principles_run.mjs` · `config_principles.json` (4-3)
+점검 도구는 작업 폴더의 `20_도구/원칙점검`(다른 앱도 같이 씀 — 설명은 그 폴더 README). 이 앱은 **설정 한 장** `config_principles.json` 만 둔다.
+```
+node web2/tools/principles_run.mjs check --all            # 저장소 전체 + 기계 검사(check4) 결과 함께
+node web2/tools/principles_run.mjs check --files src/x.js # 고른 파일만
+node web2/tools/principles_run.mjs judge --files src/x.js --force   # 판단 점검 손으로 한 번(돈 듦)
+```
+- 커밋 전 걸쇠가 check4 다음에 `check --staged`(바뀐 파일만)를 돌린다. 막을지는 `block_on_fail`(지금 **거짓 — 알리기만**).
+- 커밋 뒤 걸쇠가 `judge --commit <커밋>` 을 뒤에서 띄운다. `judge.auto` 가 **거짓**(지금)이면 모델을 부르지 않고 끝난다 — 켜려면 그 한 줄을 `true` 로.
+- 문제가 있을 때만 `<작업 폴더>/90_임시/실행요청/원칙점검_알림.md` 에 한 줄. 기록장은 `tools/logs/원칙점검_*.log`.
 
 ## 빌드 — `build.mjs`
 ```

@@ -1,0 +1,39 @@
+{
+  "note": "충전 길잡이(web2)의 원칙 점검 설정 한 장. 기본값은 <작업 폴더>/20_도구/원칙점검/defaults.json — 여기는 이 앱만 다른 것. 박힌 값·순환 의존·직접 불러 쓰기·빌드는 check4.mjs 가 보므로 다시 만들지 않고 --all 때 함께 돌려 결과를 보인다(also_run).",
+  "app": { "name": "충전 길잡이 web2", "root": ".." },
+  "log": { "dir": "tools/logs" },
+  "scope": {
+    "include": ["src/*.js", "config/*.json", "config/shape/*.json"],
+    "exclude": ["config/config_app_secret.json"]
+  },
+  "block_on_fail": false,
+  "also_run": [
+    { "name": "기계 검사 다섯 가지(check4)", "cmd": ["node", "tools/check4.mjs"], "cwd": ".", "modes": ["all"] }
+  ],
+  "checks": {
+    "secret_like": {
+      "long_random": { "skip_files": ["src/*.js"] }
+    },
+    "config_dup": {
+      "files": ["config/*.json"],
+      "ref_values": ["^config_[a-z0-9_]+$"],
+      "note_values": ["^[a-z0-9_]+(\\.[a-z0-9_]+)+$"]
+    }
+  },
+  "judge": {
+    "auto": false,
+    "model": "claude-sonnet-5-5",
+    "upper": { "on": true, "model": "claude-opus-5-5", "max_runs": 3 },
+    "budget_usd": 0.5,
+    "include": ["src/*.js"],
+    "max_files": 6,
+    "max_chars_per_file": 12000,
+    "max_chars_total": 40000,
+    "design": [
+      { "path": "${CLAUDE_WORK_ROOT}/10_프로젝트/ev-charge-planner_설계/설계.md", "from": "## 설계 원칙", "to": "## 1. 한 줄 결론", "max_chars": 9000 }
+    ],
+    "state_file": "tools/logs/원칙점검_판단_상태.json",
+    "missed_file": "tools/logs/원칙점검_상위모델_놓침.jsonl",
+    "result_file": "tools/logs/원칙점검_판단_결과.jsonl"
+  }
+}
