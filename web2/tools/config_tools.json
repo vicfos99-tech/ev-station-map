@@ -603,7 +603,8 @@
       "station_ch": {
         "q": "#ev-station .ev-st-ch"
       },
-      "station_name": {
+      "mapwrap": {"q": "#ev-mapwrap"},
+        "station_name": {
         "q": "#ev-station-name"
       },
       "map_me": {

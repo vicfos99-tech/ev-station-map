@@ -1,9 +1,9 @@
 /* 검색 칸(ui_navi): 운전 화면 가운데 칸의 지도 묶음(.ev-mapwrap) 안, 지도 위쪽에 겹친 자리(.ev-slot-navi) —
    지도 묶음 밖(양옆 판·아래 띠·정보 칸)으로 나가지 않고, 아래 지도 저작권 표시(지도 칸 안 오른쪽 아래)는 높이 한도로 비켜 간다.
    결과는 구분선 목록(카드 아님). 간격 8 단위, 누르는 곳 48px 이상. 쓸 수 없으면(data-ok="no") 칸·단추를 흐리게 + '사용 불가' 한 줄 */
-/* 지도 묶음(.ev-mapwrap) 위쪽에 겹친다(설계 5-8 바 1 '지도 위에 겹친 검색 칸') — 지도 칸 크기는 그대로. 높이 한도 = 지도 묶음 - 아래 28px(지도 저작권 글 20px + 8 — 가리지 않게).
-   넘으면 칸 안에서 넘겨 봄 */
-.ev-slot-navi { position: absolute; top: 0; left: 0; right: 0; z-index: 3; max-height: calc(100% - 28px); overflow-y: auto; display: flex; flex-direction: column; }
+/* (추가1) 지도 위 겹의 가운데 기둥 맨 위 칸(설계 5-8 바 1 '지도 위에 겹친 검색 칸') — 지도는 화면 전체 그대로. 기둥 안 흐름이라 아래 지도 저작권 자리·정보 칸과 같은 자리를 쓰지 않는다.
+   목록이 길면 기둥 높이(저작권 자리를 뺀 만큼)까지 자라고 칸 안에서 넘겨 봄 */
+.ev-slot-navi { flex: 0 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; pointer-events: auto; }
 .ev-navi { flex: 0 0 auto; display: flex; flex-direction: column; box-sizing: border-box; padding: 8px; background: #111827; border-bottom: 2px solid #4b5563; color: #f9fafb; font-family: system-ui, sans-serif; }
 .ev-navi[hidden] { display: none; }
 .ev-navi-bar { display: flex; gap: 8px; align-items: center; min-width: 0; }

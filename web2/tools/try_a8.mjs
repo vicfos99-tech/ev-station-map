@@ -328,6 +328,8 @@ async function partChrome() {
       const mine = (h) => h.ok || h.by === C.own_wrap;
       const seen = tap ? (tap.hits || []).filter(mine).length : 0;
       if (act.expect === 'hidden') { if (tap) bad.push('안 사라짐'); }
+      // (추가1 — 기대 값 바꿈) 지도가 화면 전체라 정보 칸이 열려도 지도는 줄지 않고, 누른 땅이 칸·판 밑으로 들어가면 앱이 풍선을 숨긴다(옛 '지도 칸이 잘라 숨음'과 같은 뜻)
+      else if (!tap && act.expect === 'shown_station' && one('station').length) st.hiddenOut = true;
       else if (!tap) bad.push('표시 안 보임');
       else if (act.expect === 'shown_station' && center && !inside(tap.rect, center.rect, tol) && seen === 0) {
         // 정보 칸이 열려 지도가 줄면 누른 자리가 지도 밖 — 표시는 지도 칸이 잘라 통째로 안 보여야(반쯤 보이면 실패)

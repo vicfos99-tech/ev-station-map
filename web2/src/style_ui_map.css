@@ -1,8 +1,7 @@
-/* 지도는 운전 화면 가운데 칸을 꽉 채운다(칸은 view_ui_drive 의 ev-slot-center). 지도 단추 둘은 아래 띠 왼쪽 칸(격자 자리 tools).
+/* 지도는 운전 화면 전체를 깐다(추가1 — 칸은 view_ui_drive 의 ev-slot-center, 판·칸은 그 위 겹). 지도 단추 둘은 아래 띠 왼쪽 칸(격자 자리 tools — 지도 위, 단추는 불투명).
    1·2·3번 표시: 다른 충전소 점(작은 회색 — 지도 층)보다 크고 진한 동그라미에 번호, 지도 위 겹(다른 점보다 위). '주변'이면 색이 다르다(충전소판과 같은 색). */
 .ev-slot-center .maplibregl-canvas-container,
 .ev-slot-center canvas { outline: none; }
-.ev-slot-center { min-height: 240px; }
 .ev-map-bar { grid-area: tools; display: flex; gap: 8px; align-items: center; padding: 8px; }
 .ev-map-bar[hidden] { display: none; }
 .ev-map-me, .ev-map-only3 { min-height: 48px; min-width: 64px; padding: 0 12px; font-size: 15px; font-weight: 700; border: 1px solid #4b5563; border-radius: 8px; background: #1f2937; color: #f9fafb; }

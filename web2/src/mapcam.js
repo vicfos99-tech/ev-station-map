@@ -24,7 +24,8 @@ export function init(saved, r) {
   if (!saved || typeof saved !== 'object') return s;
   for (const k of r.saved_bools) if (typeof saved[k] === 'boolean') s[k] = saved[k];
   if (isNum(saved.bearing)) s.bearing = saved.bearing;
-  if (isNum(saved.zoom) && saved.zoom >= r.min_zoom && saved.zoom <= r.max_zoom) s.zoom = saved.zoom;
+  // (추가1) 확대는 손으로 굳힌 것만 다시 읽는다 — 안 굳은 확대는 따라가기가 정한 값일 뿐이라 처음 값(r.start_zoom — 기본 확대를 바꾸면 바로 따름)
+  if (s.zoom_locked && isNum(saved.zoom) && saved.zoom >= r.min_zoom && saved.zoom <= r.max_zoom) s.zoom = saved.zoom;
   return s;
 }
 

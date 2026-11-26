@@ -25,6 +25,14 @@ export function createMapView(deps, o) {
   let onTap = null;
   let pin = null;
 
+  // (추가1) 지도가 화면 전체를 까므로 지도 라이브러리의 저작권 조각(오른쪽 아래)은 지도 아래 끝(아래 띠 밑)에 깔린다 —
+  // 그 조각을 부르는 쪽이 정해 둔 자리(o.attrib.host)로 옮겨 꽂는다(조각은 라이브러리가 계속 고친다). 자리가 없으면 그대로
+  if (o.attrib && o.attrib.host && typeof map.getContainer === 'function') {
+    const box = map.getContainer();
+    const part = box && typeof box.querySelector === 'function' ? box.querySelector(o.attrib.part_selector) : null;
+    if (part) o.attrib.host.appendChild(part);
+  }
+
   // (A8) 빈 곳 누름 → 누른 좌표(번호·풍선 같은 지도 위 표시나 보이는 충전소 점을 누른 것은 빼고 — 그것은 onPick·제 단추가 받는다)
   map.on(o.events.click, (e) => {
     if (!onTap || !e || !e.lngLat) return;
@@ -34,6 +42,59 @@ export function createMapView(deps, o) {
     onTap({ lng: e.lngLat.lng, lat: e.lngLat.lat });
   });
 
+  // (추가1) 지도 위 겹의 칸(판·검색 칸·저작권·정보 칸·아래 띠 — o.tap.avoid)과 풍선이 겹치는 넓이. 그림이 없는 곳(가상 창)에서는 0
+  function rectOf(el) {
+    if (!el || typeof el.getBoundingClientRect !== 'function') return null;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 ? r : null;
+  }
+  function covered(pop) {
+    const me = rectOf(pop.getElement && pop.getElement());
+    if (!me || !o.tap.avoid || typeof doc.querySelectorAll !== 'function') return 0;
+    let area = 0;
+    for (const el of doc.querySelectorAll(o.tap.avoid)) {
+      const r = rectOf(el);
+      if (!r) continue;
+      const w = Math.min(me.right, r.right) - Math.max(me.left, r.left);
+      const h = Math.min(me.bottom, r.bottom) - Math.max(me.top, r.top);
+      if (w > 0 && h > 0) area += w * h;
+    }
+    const box = rectOf(map.getContainer && map.getContainer());
+    if (box) {
+      const w = Math.min(me.right, box.right) - Math.max(me.left, box.left);
+      const h = Math.min(me.bottom, box.bottom) - Math.max(me.top, box.top);
+      area += me.width * me.height - Math.max(0, w) * Math.max(0, h);
+    }
+    return area;
+  }
+  // (추가1) 풍선이 판 밑으로 들어가지 않게: 겹치면 방향(o.tap.anchors)을 차례로 바꿔 보고 겹침 0 인 첫 방향(없으면 가장 적게 겹친 방향)
+  function placePin(el, lnglat, home) {
+    let best = null;
+    for (const a of [null, ...(o.tap.anchors || [])]) {
+      const opt = a ? { ...o.tap.popup, anchor: a } : { ...o.tap.popup };
+      const pop = new lib.Popup(opt).setDOMContent(el).setLngLat(lnglat).addTo(map);
+      const area = covered(pop);
+      if (!best || area < best.area) {
+        if (best) best.pop.remove();
+        best = { pop, area, anchor: a };
+      } else pop.remove();
+      if (area === 0) break;
+    }
+    const box = best.pop.getElement && best.pop.getElement();
+    if (box && typeof box.contains === 'function' && !box.contains(el)) best.pop.setDOMContent(el);
+    // 어느 방향도 판·칸과 겹치면(누른 땅이 판 밑으로 들어감) 풍선을 숨긴다 — 다시 비면 보임
+    if (box && box.style) box.style.visibility = best.area > 0 ? o.tap.hide_value : '';
+    pin = { el, pop: best.pop, home, anchor: best.anchor, area: best.area };
+  }
+  // (추가1) 지도가 움직이면(정보 칸이 열려 보이는 가운데가 옮겨짐 등) 풍선이 판 밑으로 들어갔는지 다시 봄
+  function recheck() {
+    if (!pin) return;
+    const box = pin.pop.getElement && pin.pop.getElement();
+    if (box && box.style) box.style.visibility = '';
+    if (covered(pin.pop) > 0) { const p = pin; p.pop.remove(); placePin(p.el, p.pop.getLngLat(), p.home); }
+  }
+  map.on(o.events.move_end, recheck);
+
   // (A8) 화면 조각 하나(el)를 그 좌표의 지도 풍선에 꽂음 · null 이면 뺌(조각은 제자리로 돌려 둔다). 카메라는 건드리지 않는다
   function setPin(el, lnglat) {
     if (pin && (!el || pin.el !== el)) {
@@ -42,10 +103,13 @@ export function createMapView(deps, o) {
       pin = null;
     }
     if (!el || !lnglat) return;
-    if (pin) { pin.pop.setLngLat(lnglat); return; }
-    const home = el.parentNode || null;
-    const pop = new lib.Popup({ ...o.tap.popup }).setDOMContent(el).setLngLat(lnglat).addTo(map);
-    pin = { el, pop, home };
+    if (pin) {
+      pin.pop.setLngLat(lnglat);
+      // (추가1) 그사이 칸이 열려(정보 칸 등) 풍선이 칸 밑으로 들어갔으면 방향을 다시 고름
+      recheck();
+      return;
+    }
+    placePin(el, lnglat, el.parentNode || null);
   }
 
   function point(lnglat, props) {
@@ -119,6 +183,13 @@ export function createMapView(deps, o) {
       jump(cmd);
       return true;
     },
+    // (추가1) 지도의 보이는 가운데를 옮김(px — {top, bottom, left, right}). 판이 지도 위에 있어 내 위치 점이 판에 가리지 않게. 손으로 만지는 중이면 옮기지 않는다
+    setPadding(p) {
+      if (!p || typeof map.setPadding !== 'function' || touching) return false;
+      map.setPadding(p);
+      return true;
+    },
+    pinInfo: () => (pin ? { anchor: pin.anchor, area: pin.area } : null),
     onUser(fn) { onUser = fn; },
     onPick(fn) { onPick = fn; },
     onTap(fn) { onTap = fn; },

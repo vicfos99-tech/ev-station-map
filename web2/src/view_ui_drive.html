@@ -1,13 +1,19 @@
-<!-- 운전 화면: health.app 이 '좋음'일 때만 보인다(ui_drive.js). 왼편·오른편은 알림판 자리(A2). 가운데 칸(ev-center)은 지도 묶음(ev-mapwrap = 지도 ev-slot-center + 그 위에 겹친 검색 칸 자리 ev-slot-navi — A6 ui_navi 가 꽂음) + 그 아래 충전소 정보 칸 자리(A4 — ui_station 이 꽂음) -->
+<!-- 운전 화면: health.app 이 '좋음'일 때만 보인다(ui_drive.js). (추가1) 지도(ev-slot-center)가 상태 줄 아래부터 맨 아래(아래 띠 밑까지)를 다 깔고, 그 위 겹(ev-over — 자리를 정해 둔 격자)에 판·검색 칸·저작권·정보 칸을 놓는다 -->
+<!-- 겹 격자: 왼편 판 자리(ev-slot-left — A2) · 가운데 기둥(ev-center = 지도 묶음 ev-mapwrap[검색 칸 자리 ev-slot-navi — A6 · 비어 보이는 지도 자리 ev-map-open · 지도 저작권 자리 ev-attrib] + 그 아래 정보 칸·목록 칸·내 차 칸 — A4·A7 이 꽂음) · 오른편 판 자리(ev-slot-right) -->
+<!-- 칸마다 자리가 정해져 있어 서로 같은 자리를 쓰지 않는다. 아래 띠(지도 단추·이상해·더 보기·기록)는 겹 밖 몸 격자의 맨 아래 줄 — 지도 위지만 겹과 다른 줄 -->
 <div id="ev-drive" class="ev-drive" hidden>
-  <div id="ev-slot-left" class="ev-slot ev-slot-side"></div>
-  <div id="ev-center" class="ev-center">
-    <div id="ev-mapwrap" class="ev-mapwrap">
-      <div id="ev-slot-center" class="ev-slot ev-slot-center"></div>
-      <div id="ev-slot-navi" class="ev-slot-navi"></div>
+  <div id="ev-slot-center" class="ev-slot ev-slot-center"></div>
+  <div id="ev-over" class="ev-over">
+    <div id="ev-slot-left" class="ev-slot ev-slot-side"></div>
+    <div id="ev-center" class="ev-center">
+      <div id="ev-mapwrap" class="ev-mapwrap">
+        <div id="ev-slot-navi" class="ev-slot-navi"></div>
+        <div id="ev-map-open" class="ev-map-open"></div>
+        <div id="ev-attrib" class="ev-attrib"></div>
+      </div>
     </div>
+    <div id="ev-slot-right" class="ev-slot ev-slot-side"></div>
   </div>
-  <div id="ev-slot-right" class="ev-slot ev-slot-side"></div>
 </div>
-<!-- (A7) 아래 띠의 더 보기 자리(격자 자리 more): 목록(ui_route)·내 차(ui_my) 여는 단추를 저마다 여기 꽂는다(흐름 — 떠 있지 않음) -->
+<!-- (A7) 아래 띠의 더 보기 자리(격자 자리 more): 목록(ui_route)·내 차(ui_my) 여는 단추를 저마다 여기 꽂는다 -->
 <div id="ev-more" class="ev-more"></div>

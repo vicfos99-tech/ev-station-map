@@ -10,7 +10,10 @@
 // 바탕 그림(타일) 주소는 config_ui_map 에만 있고 지도 라이브러리가 직접 받는다(설계 원칙 '바깥 주소는 하나'의 예외). 바탕 그림 성공·실패는 conn.tiles 로(바뀔 때만).
 import { createMapView } from './mapview.js';
 
-export const NEEDS = ['cfg', 'log', 'state', 'store', 'doc', 'clock', 'maplibre', 'mapcam'];
+//   · (추가1) 지도가 화면 전체를 깔고 판이 그 위에 있으므로 지도의 보이는 가운데를 '비어 보이는 지도 자리'(c.over.open_id)로 옮긴다(mapview.setPadding):
+//     가로는 그 자리 가운데, 세로는 그 자리 위에서 c.over.dot_y_ratio(아래쪽 — 앞이 더 보이게). 자리 크기가 바뀔 때·위치가 올 때 다시 재고 바뀌면 로그 한 줄.
+//     지도 저작권 조각은 정해 둔 자리(c.over.attrib_id)로 옮겨 꽂는다(mapview)
+export const NEEDS = ['cfg', 'log', 'state', 'store', 'doc', 'win', 'clock', 'maplibre', 'mapcam'];
 
 export function createMapScreen(deps) {
   const c = deps.cfg.section('config_ui_map');
@@ -126,6 +129,44 @@ export function createMapScreen(deps) {
     view.setPin(ok ? doc.getElementById(p.id) : null, ok ? [p.lng, p.lat] : null);
   }
 
+  // (추가1) 보이는 가운데 = 비어 보이는 지도 자리 안(가로 가운데 · 세로 위에서 dot_y_ratio). 그림이 없으면(가상 창) 아무것도 안 함
+  let padSig = '';
+  function pad(why) {
+    if (!view) return;
+    try {
+      const o = c.over;
+      const slot = doc.getElementById(c.slot_id);
+      const spot = doc.getElementById(o.open_id);
+      if (!slot || !spot || typeof spot.getBoundingClientRect !== 'function') return;
+      const M = slot.getBoundingClientRect();
+      const O = spot.getBoundingClientRect();
+      if (!(M.width > 0 && M.height > 0)) return;
+      const tx = O.left - M.left + O.width * o.dot_x_ratio;
+      const ty = O.top - M.top + O.height * o.dot_y_ratio;
+      const hw = Math.max(0, Math.min(tx, M.width - tx));
+      const hh = Math.max(0, Math.min(ty, M.height - ty));
+      const p = { top: Math.round(ty - hh), bottom: Math.round(M.height - ty - hh), left: Math.round(tx - hw), right: Math.round(M.width - tx - hw) };
+      const sig = [p.top, p.bottom, p.left, p.right].join(o.sig_join);
+      if (sig === padSig) return;
+      if (view.setPadding(p)) {
+        padSig = sig;
+        log.info(c.where, o.word_pad, { ...p, why, map_w: Math.round(M.width), map_h: Math.round(M.height) });
+      }
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: c.over.act_pad } });
+    }
+  }
+
+  function watchSize() {
+    const RO = deps.win && deps.win.ResizeObserver;
+    if (typeof RO !== 'function') return;
+    const ro = new RO(() => pad(c.over.why_resize));
+    for (const id of [c.slot_id, c.over.open_id]) {
+      const el = doc.getElementById(id);
+      if (el) ro.observe(el);
+    }
+  }
+
   function open() {
     try {
       const slot = doc.getElementById(c.slot_id);
@@ -134,7 +175,10 @@ export function createMapScreen(deps) {
         container: slot, style: c.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
         geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events, route: c.route,
         tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick, tap: c.tap,
+        attrib: { host: doc.getElementById(c.over.attrib_id), part_selector: c.over.attrib_part },
       });
+      pad(c.over.why_open);
+      watchSize();
       view.onPick(pick);
       view.onTap(tap);
       view.watchTiles(() => tiles(true, null), (why) => tiles(false, why));
@@ -225,6 +269,7 @@ export function createMapScreen(deps) {
     fixes += 1;
     if (!view) return;
     try {
+      pad(c.over.why_fix);
       view.setDot(f.lng, f.lat);
       fix(f);
     } catch (e) {
@@ -253,5 +298,5 @@ export function createMapScreen(deps) {
       log.info(c.where, c.tap.word_pin, { id: lastPin ? lastPin.id : null, seq: lastPin ? lastPin.seq : null });
     } catch (e) { log.error(e, { where: c.where, params: { act: c.tap.act_pin } }); }
   });
-  return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3, pick, taps: () => taps, tap };
+  return { fixes: () => fixes, last: () => last, cam: () => cam.saved(s), moves: () => moves, marked: () => (view ? view.marked() : 0), pressMe, pressOnly3, pick, taps: () => taps, tap, padded: () => padSig, pinInfo: () => (view ? view.pinInfo() : null) };
 }

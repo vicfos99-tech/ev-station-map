@@ -191,8 +191,9 @@ function frameChecks(fr) {
   const sr = one('slot_right');
   const ar = one('ahead_root');
   const sp = one('speed_root');
-  const okLay = sl && sc && sr && ar && sp && sl.rect.x + sl.rect.w <= sc.rect.x + tol && sc.rect.x + sc.rect.w <= sr.rect.x + tol
-    && Math.abs(sl.rect.y - sc.rect.y) <= tol && Math.abs(sr.rect.y - sc.rect.y) <= tol && inside(ar.rect, sr.rect, tol) && inside(sp.rect, sl.rect, tol);
+  // (추가1 — 기대 값 바꿈) 지도가 화면 전체를 깔고 판이 그 위: 지도가 두 판을 품음 · 왼편 판은 지도 왼쪽 끝, 오른편 판은 오른쪽 끝 · 왼편 < 오른편 · 위 끝 같음
+  const okLay = sl && sc && sr && ar && sp && inside(sl.rect, sc.rect, tol) && inside(sr.rect, sc.rect, tol) && Math.abs(sl.rect.x - sc.rect.x) <= tol && Math.abs(sr.rect.x + sr.rect.w - sc.rect.x - sc.rect.w) <= tol
+    && sl.rect.x + sl.rect.w <= sr.rect.x + tol && Math.abs(sl.rect.y - sc.rect.y) <= tol && Math.abs(sr.rect.y - sc.rect.y) <= tol && inside(ar.rect, sr.rect, tol) && inside(sp.rect, sl.rect, tol);
   const wd = (e) => (e ? Math.round(e.rect.w) : '-');
   out.layout = { ok: !!okLay, text: '왼편 ' + wd(sl) + ' · 지도 ' + wd(sc) + ' · 오른편 ' + wd(sr) + 'px · 위 끝 ' + [sl, sc, sr].map((e) => (e ? Math.round(e.rect.y) : '-')).join('/') + ' · 충전소판 오른편 안 ' + (ar && sr && inside(ar.rect, sr.rect, tol) ? '예' : '아니오') + ' · 속도판 왼편 안 ' + (sp && sl && inside(sp.rect, sl.rect, tol) ? '예' : '아니오') + (fr.inner ? ' · 세로 ' + (fr.inner.portrait ? '예' : '아니오') : '') };
   // 글 잘림: 거리·속도 숫자가 상자 안에 다 들어감(넘치지 않음)
@@ -218,7 +219,7 @@ async function partChrome(buildApp) {
     const head = fr.name + (fr.ready ? '' : ' (준비 안 됨 ' + fr.wait_ms + 'ms)') + (fr.error ? ' 오류 ' + fr.error : '');
     row('①③⑤ ' + fr.name, head + " — 덮임 없음: 충전소판 줄·거리·속도 숫자·지도 저작권 글의 자리에 실제로 그것이 보임, '이상해'·메모 칸·'기록' 단추와 겹침 0", '가림 0 · 겹침 0 · 단추·칸 보임 ' + L.controls.length, k.cover.text, fr.ready && k.cover.ok);
     row('② ' + fr.name, '충전소판 = 구분선 있는 목록(줄 배경·둥근 모서리·그림자 없음, 2·3번 줄 위 가는 선)', '줄 ' + L.rows + ' · 배경 ' + L.list_bg + ' · 모서리 ' + L.list_radius + ' · 윗선 ≥1px ' + L.list_line_style, k.list.text, fr.ready && k.list.ok);
-    row('⑦ ' + fr.name, '판 자리: 왼편 속도판 · 가운데 지도 · 오른편 충전소판 한 줄(세로 창도 같음)', '왼편 < 지도 < 오른편 · 위 끝 같음 · 판이 제 자리 안', k.layout.text, fr.ready && k.layout.ok);
+    row('⑦ ' + fr.name, '판 자리(추가1): 지도 화면 전체 위에 왼편 속도판 · 오른편 충전소판 한 줄(세로 창도 같음)', '지도가 두 판을 품음 · 왼편 판 왼쪽 끝 · 오른편 판 오른쪽 끝 · 왼편 < 오른편 · 위 끝 같음 · 판이 제 자리 안', k.layout.text, fr.ready && k.layout.ok);
     row('글 ' + fr.name, '거리·속도 숫자가 잘리지 않음(상자 안에 다 들어감)', '잘림 0', k.clip.text, fr.ready && k.clip.ok);
     row('누름 ' + fr.name, '메모 칸·이상해·기록 단추 높이', '≥ ' + L.touch_min_px + 'px', k.touch.text, fr.ready && k.touch.ok);
   }

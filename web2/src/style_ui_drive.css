@@ -1,6 +1,10 @@
-/* 운전 화면 세 칸: 왼편 속도 · 가운데 지도 · 오른편 앞의 충전소 — 가로·세로 모두 같은 배치(묘성 11/25 고칠 것 ⑦: 세로에서도 한 줄로 바꾸지 않음).
-   화면 전체는 격자 넷 줄: 상태 자리 / 안내 / 운전 화면 / 아래 띠(지도 단추 · '이상해' · '기록').
-   단추·메모 칸은 아래 띠에 **흐름으로** 놓아(떠 있는 겹이 아님) 폭과 상관없이 판 내용·지도 저작권 표시를 가리지 않는다(고칠 것 ①③⑤). */
+/* 운전 화면(추가1 — 상용 내비처럼): 지도가 상태 줄 아래부터 맨 아래까지 화면 전체를 깔고, 판·검색 칸·저작권·정보 칸·아래 띠 단추를 그 위에 놓는다.
+   겹치는 것끼리는 **자리를 정해 둔 칸**으로 나눈다(고칠 것 일곱의 교훈 — 떠 있는 겹이 서로 덮음):
+   · 몸 격자: 상태 / 안내 / 운전 화면 / 아래 띠(지도 단추 · '이상해' · 더 보기 · '기록'). 운전 화면(.ev-drive)은 운전 화면 줄부터 아래 띠 줄까지 걸치고(줄은 subgrid 로 몸 격자와 같음),
+     지도(.ev-slot-center)는 그 전체를 깐다. 아래 띠 단추는 몸 격자의 아래 띠 줄 — 지도 위(z 1)지만 겹(.ev-over — 운전 화면 줄만)과는 다른 줄이라 같은 자리를 쓰지 않는다.
+   · 겹 격자(.ev-over): 왼편 판 | 가운데 기둥 | 오른편 판. 판 바탕은 불투명(지도 글자 위에서도 숫자가 읽히게), 높이는 내용만큼(그 아래로 지도가 보임).
+     가운데 기둥은 위에서부터 검색 칸 · 비어 보이는 지도 자리(.ev-map-open — 카메라가 내 위치를 여기 둠) · 지도 저작권 자리(.ev-attrib) · 정보 칸·목록 칸·내 차 칸(아래에서 올라옴 — 기둥 안이라 판·아래 띠를 덮지 않음).
+   · 겹의 빈 곳은 누름이 지도로 간다(pointer-events: none — 내용이 있는 칸만 받음). 가로·세로 모두 같은 배치(묘성 11/25 고칠 것 ⑦). */
 html, body { margin: 0; height: 100%; }
 body {
   display: grid;
@@ -9,18 +13,32 @@ body {
   grid-template-areas: "status status status status" "notice notice notice notice" "drive drive drive drive" "tools odd more log";
   background: #111827;
 }
-.ev-drive { grid-area: drive; display: flex; min-height: 0; min-width: 0; }
+.ev-drive { grid-column: 1 / -1; grid-row: 3 / -1; display: grid; grid-template-rows: subgrid; grid-template-columns: minmax(0, 1fr); min-height: 0; min-width: 0; z-index: 0; }
 .ev-drive[hidden] { display: none; }
-.ev-slot-side { flex: 1; background: #1f2937; container-type: inline-size; min-width: 0; }
-/* 가운데 칸 = 지도 묶음(지도 + 그 위에 겹친 검색 칸 — A6) + 그 아래 충전소 정보 칸(A4). 정보 칸이 열리면 지도 묶음이 줄어든다(겹치지 않음).
-   검색 칸은 지도 묶음 안에서만 겹친다 — 지도 칸 크기·자리는 그대로, 양옆 판·아래 띠·정보 칸에는 닿지 않음 */
-.ev-center { flex: 3; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-.ev-mapwrap { flex: 1 1 auto; display: flex; flex-direction: column; position: relative; min-width: 0; }
-.ev-slot-center { flex: 1 1 auto; position: relative; min-width: 0; }
-/* (A7) 아래 띠 more = 목록·내 차 여는 단추(ui_route·ui_my 가 꽂음) — 흐름. 열린 칸은 가운데 칸 안(지도 아래)에 들어가 지도만 줄인다 */
+.ev-slot-center { grid-row: 1 / -1; grid-column: 1; position: relative; min-width: 0; min-height: 0; z-index: 0; }
+.ev-over { grid-row: 1; grid-column: 1; z-index: 1; display: grid; grid-template-columns: 1fr minmax(0, 3fr) 1fr; grid-template-rows: minmax(0, 1fr); min-height: 0; min-width: 0; pointer-events: none; }
+/* 판 자리: 내용 높이만큼(위에 붙음), 불투명 바탕 · 자리 안에서 넘치면 자름(판이 다른 칸으로 나가지 않음) */
+.ev-slot-side { align-self: start; max-height: 100%; background: #1f2937; container-type: inline-size; min-width: 0; pointer-events: auto; }
+#ev-slot-left { grid-column: 1; }
+#ev-slot-right { grid-column: 3; }
+.ev-center { grid-column: 2; display: flex; flex-direction: column; min-width: 0; min-height: 0; pointer-events: none; }
+.ev-center > * { pointer-events: auto; }
+/* 지도 묶음은 기둥의 30% 아래로 줄지 않는다 — 칸 둘(정보 칸 + 목록·내 차 칸)이 함께 열려도 칸들이 줄어(칸 안에서 넘겨 봄) 검색 칸·저작권과 같은 자리를 쓰지 않게 */
+.ev-center > .ev-mapwrap { flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; min-height: 30%; overflow: hidden; pointer-events: none; }
+.ev-map-open { flex: 1 1 0; min-height: 0; }
+/* 지도 저작권 자리: 지도 라이브러리의 오른쪽 아래 조각을 mapview 가 여기로 옮겨 꽂는다 — 늘 보이고 아무것도 덮지 않음(가운데 기둥 아래 끝, 아래 띠·정보 칸 바로 위) */
+.ev-attrib { flex: 0 0 auto; align-self: flex-end; max-width: 100%; pointer-events: auto; font: 12px/20px system-ui, sans-serif; }
+.ev-attrib:empty { display: none; }
+.ev-attrib .maplibregl-ctrl-bottom-right { position: static; pointer-events: auto; }
+.ev-attrib .maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin: 0; float: none; }
+.ev-attrib .maplibregl-ctrl-attrib { background: #f9fafb; color: #111827; }
+.ev-attrib .maplibregl-ctrl-attrib a { color: #111827; }
+/* 아래 띠: 지도 위(z 1). 칸 사이 빈 곳은 지도가 보이고 누름도 지도로 간다 — 단추·칸은 저마다 불투명 */
+.ev-map-bar, .ev-odd, .ev-more, .ev-log-open { z-index: 1; }
+/* (A7) 아래 띠 more = 목록·내 차 여는 단추(ui_route·ui_my 가 꽂음). 열린 칸은 가운데 기둥 안(지도 자리 아래) */
 .ev-more { grid-area: more; display: flex; gap: 8px; align-items: center; padding: 8px 0; }
 .ev-more:empty { display: none; }
-/* 좁은 창: 아래 띠를 두 줄로(지도 단추·목록·내 차·기록 / 이상해) — 여전히 흐름이라 겹치지 않는다. 좁으면 단추 폭을 48 로 */
+/* 좁은 창: 아래 띠를 두 줄로(지도 단추·목록·내 차·기록 / 이상해) — 운전 화면은 두 줄 모두 걸친다. 좁으면 단추 폭을 48 로 */
 @media (max-width: 560px) {
   body {
     grid-template-columns: auto auto minmax(0, 1fr) auto;

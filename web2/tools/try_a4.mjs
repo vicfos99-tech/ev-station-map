@@ -345,7 +345,8 @@ async function partChrome() {
     const card0 = (before.station || [])[0];
     const cardE = one('station');
     const center = one('center');
-    const map = one('slot_center');
+    // (추가1 — 기대 값 바꿈) 지도가 화면 전체라 '지도 높이'는 가운데 기둥 안 지도 묶음(검색 칸·비어 보이는 지도·저작권)의 높이로 잰다
+    const map = one('mapwrap');
     const covered = [];
     for (const nm of L.contents) (g[nm] || []).forEach((e, i) => { if (!e.shown) covered.push(nm + '[' + i + '] 안 보임'); for (const h of e.hits || []) if (!h.ok) covered.push(nm + '[' + i + '] ← ' + h.by); });
     const overlaps = [];
