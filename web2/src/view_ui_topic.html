@@ -1,0 +1,9 @@
+<!-- 제목 바꾸기(ui_topic — 정비 나 ③): 여는 단추는 아래 띠(격자 자리 more 의 맨 앞 — 흐름이라 판·지도를 덮지 않음). 목록 칸은 처음엔 숨김 — ui_topic.js 가 운전 화면 가운데 칸(ev-center — 지도 아래)으로 옮겨 꽂는다. 글은 설정(config_ui_topic)에서 -->
+<button id="ev-topic-open" class="ev-more-btn ev-topic-open" type="button" aria-pressed="false" hidden></button>
+<section id="ev-topic" class="ev-panel ev-topic" hidden>
+  <div class="ev-panel-head">
+    <div id="ev-topic-title" class="ev-panel-title"></div>
+    <button id="ev-topic-close" class="ev-panel-btn" type="button"></button>
+  </div>
+  <div id="ev-topic-list" class="ev-topic-list"></div>
+</section>

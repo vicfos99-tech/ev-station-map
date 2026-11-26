@@ -169,6 +169,21 @@ export async function loadBoards(app, tc) {
     const view = fs.readFileSync(path.join(app, tc.build.src_dir, tc.build.view_prefix + name + tc.build.view_ext), 'utf8');
     out.push({ name, module, view });
   }
+  // (정비 나 ①) 제목 꾸러미도 빌드와 같은 무늬(build.topic_decl)로 줍는다 — 시험마다 고치지 않게 판 목록에 붙여 넘기고 startApp 이 꺼내 쓴다
+  out.topics = await loadTopics(app, tc);
+  return out;
+}
+
+export async function loadTopics(app, tc) {
+  const dir = path.join(app, tc.build.src_dir);
+  const rx = new RegExp(tc.build.topic_decl, 'm');
+  const out = [];
+  for (const n of fs.readdirSync(dir).filter((f) => f.endsWith(tc.build.module_ext)).sort()) {
+    if (!rx.test(fs.readFileSync(path.join(dir, n), 'utf8'))) continue;
+    const name = path.basename(n, tc.build.module_ext);
+    const module = await import(pathToFileURL(path.join(dir, n)).href);
+    out.push({ name: name.slice(tc.build.topic_prefix.length), module });
+  }
   return out;
 }
 
@@ -212,7 +227,7 @@ export function startApp(ctx, opts) {
   };
   const realFetch = opts.fetchFn || fetch;
   const platform = {
-    config: raw, doc, win: fakeWin(), disk, console: con, clock, geo: opts.geo || null, maplibre: lib, boards: ctx.boards || [],
+    config: raw, doc, win: fakeWin(), disk, console: con, clock, geo: opts.geo || null, maplibre: lib, boards: ctx.boards || [], topics: ctx.topics || (ctx.boards && ctx.boards.topics) || [],
     fetch: (url, init) => { fetchCalls.push({ url: String(url), headers: { ...((init && init.headers) || {}) } }); return realFetch(url, init); },
   };
   const made = main(platform);

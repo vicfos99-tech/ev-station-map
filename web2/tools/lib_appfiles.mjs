@@ -48,6 +48,15 @@ function readJson(p, errors) {
   }
 }
 
+// (정비 나 ①) 제목 꾸러미의 계산 줄(config_topic_<제목>.calc_rows) — 시험이 조립과 같은 표(StateCalc.expandTable(기본 표, 이 줄, slot_key))를 쓰게.
+// topic 을 안 주면 첫 꾸러미(이름 차례 — 조립이 주소 꼬리 없이 켜는 것과 같음). 꾸러미가 없으면 빈 목록
+export function topicRowsOf(app, b, topic) {
+  const names = listFiles(path.join(app, b.config_dir), b.config_ext).map((p) => path.basename(p, b.config_ext)).filter((n) => n.startsWith(b.topic_config_prefix)).sort();
+  const want = topic ? b.topic_config_prefix + topic : names[0];
+  if (!want || !names.includes(want)) return [];
+  return JSON.parse(fs.readFileSync(path.join(app, b.config_dir, want + b.config_ext), 'utf8')).calc_rows || [];
+}
+
 // b = tc.build. opts = {secretPath, buildInfo, overrides: {이름: 객체}}
 export function loadAppConfig(app, b, opts) {
   const errors = [];

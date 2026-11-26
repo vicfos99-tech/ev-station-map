@@ -59,7 +59,9 @@
     "config_mine": "plan",
     "config_ui_route": "plan",
     "config_ui_my": "my",
-    "config_tap": "tap"
+    "config_tap": "tap",
+    "config_topic_station": "station",
+    "config_ui_topic": "topic"
   },
   "reason_of_file": {
     "config_gateway": "gateway",
@@ -149,7 +151,8 @@
         "config_geo",
         "config_navi",
         "config_statecalc",
-        "config_calcrunner"
+        "config_calcrunner",
+        "config_topic_station"
       ],
       "sources": []
     },
@@ -176,7 +179,8 @@
         "config_relay_read",
         "config_relay_fresh",
         "config_relay_html",
-        "config_navlink"
+        "config_navlink",
+        "config_topic_station"
       ],
       "sources": []
     },
@@ -218,7 +222,8 @@
         "config_ui_route",
         "config_statecalc",
         "config_calcrunner",
-        "config_formcheck"
+        "config_formcheck",
+        "config_topic_station"
       ],
       "sources": []
     },
@@ -240,6 +245,15 @@
         "config_calcrunner"
       ],
       "sources": []
+    },
+    "topic": {
+      "configs": [
+        "config_ui_topic",
+        "config_store"
+      ],
+      "sources": [
+        "datadir"
+      ]
     }
   }
 }

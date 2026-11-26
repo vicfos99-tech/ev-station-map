@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { loadToolsConfig, appDir, toolLog, kstText, TOOLS_DIR } from './lib_tools.mjs';
 import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, fetchWithLines } from './lib_testbed.mjs';
 import { loadBoards, startApp as runApp, waitFor, memDisk, sleep } from './lib_apprun.mjs';
-import { loadAppConfig } from './lib_appfiles.mjs';
+import { loadAppConfig, topicRowsOf } from './lib_appfiles.mjs';
 import { pick, testMap } from './try_pick.mjs';
 
 const tc = loadToolsConfig();
@@ -21,6 +21,8 @@ const HC = cfgOf('config_health');
 const US = cfgOf('config_ui_status');
 const LG = cfgOf('config_log');
 const SC = cfgOf('config_statecalc');
+// (정비 나 ①) 충전소 줄(ahead·plan)은 충전소 꾸러미 설정에 — 조립과 같게 꽂는 자리에 끼운 표 전체로 본다
+const TOPIC_ROWS = topicRowsOf(APP, tc.build);
 
 const rows = [];
 function row(no, title, expect, actual, ok) {
@@ -32,7 +34,8 @@ const fill = (tpl, vals) => tpl.replace(new RegExp(US.slot_re, 'g'), (m, k) => (
 const offLine = (feat) => fill(US.texts.off_line, { feat: US.texts.feature_names[feat] || feat });
 
 function gitShow(rel) {
-  const r = spawnSync(tc.git.cmd, ['show', 'HEAD:' + T.pure.pick_prefix + rel], { cwd: APP, encoding: 'utf8' });
+  // (정비 나) '커밋 전' = 정비 가 전 커밋(T.base_rev) — HEAD 로 두면 정비 가 커밋 뒤에는 이미 고친 것과 비교해 ②-1·②-2 가 늘 틀림
+  const r = spawnSync(tc.git.cmd, ['show', T.base_rev + ':' + T.pure.pick_prefix + rel], { cwd: APP, encoding: 'utf8' });
   if (r.status !== tc.exit.ok) throw new Error('git show ' + rel + ': ' + r.stderr);
   return r.stdout;
 }
@@ -43,7 +46,7 @@ async function partPure() {
   // ① 고르개 예시
   const tests = testMap();
   P.picks.forEach((c, i) => {
-    const res = pick(c.files, { prefix: P.pick_prefix });
+    const res = pick(c.files, { prefix: P.pick_prefix, cover: false }); // (정비 나) 낱말 고르기만 본다 — 커버리지 표 고르기는 tests_unit/try_pick.test.mjs
     const missing = c.must.filter((t) => !res.tests.includes(t));
     const extra = c.must_not.filter((t) => res.tests.includes(t));
     const notChrome = c.only_chrome ? res.tests.filter((t) => !tests[t].chrome) : [];
@@ -59,7 +62,7 @@ async function partPure() {
   // ② ⑦ 입출력 = 커밋 전 config_calcrunner
   const statecalc = await srcOf('statecalc');
   const head = JSON.parse(gitShow(P.head_calcrunner));
-  const io = statecalc.ioOf(SC.table);
+  const io = statecalc.ioOf(statecalc.expandTable(SC.table, TOPIC_ROWS, SC.slot_key));
   const now = cfgOf('config_calcrunner');
   row('②-1', '⑦ 계산 표에서 뽑은 입력 = 커밋 전 config_calcrunner.inputs (차례까지)', JSON.stringify(head.inputs), JSON.stringify(io.inputs), JSON.stringify(head.inputs) === JSON.stringify(io.inputs));
   row('②-2', '⑦ 계산 표에서 뽑은 조각 = 커밋 전 config_calcrunner.outputs (차례까지)', JSON.stringify(head.outputs), JSON.stringify(io.outputs), JSON.stringify(head.outputs) === JSON.stringify(io.outputs));
@@ -158,7 +161,7 @@ function replay(create, cfg, statecalc, parts, events) {
   };
   const clock = { setTimeout: (fn) => { pending = fn; return 1; }, now: () => 0 };
   const lg = { error: (e, ctx) => errors.push(String(e && e.message) + ' ' + JSON.stringify(ctx && ctx.params && ctx.params.piece)) };
-  create({ cfg, log: lg, state, clock, statecalc, parts });
+  create({ cfg, log: lg, state, clock, statecalc, parts, topic_rows: TOPIC_ROWS });
   for (const ev of events) {
     if (handlers[ev.name]) handlers[ev.name](ev.v, ev.name);
     if (pending) { const f = pending; pending = null; f(); }
@@ -172,7 +175,7 @@ async function partApp() {
   const boards = await loadBoards(APP, tc);
   const statecalc = await srcOf('statecalc');
   const { createConfig } = await srcOf('cfg');
-  const io = statecalc.ioOf(SC.table);
+  const io = statecalc.ioOf(statecalc.expandTable(SC.table, TOPIC_ROWS, SC.slot_key));
   const open = (overrides, disk) => runApp({ app: APP, tc, main, boards }, { secretFile: SECRET_FILE, fetchFn: fetchWithLines(tc, INFO, SECRET, fetch), stamp: 'try-ga', overrides, disk });
   await withBridge(A.run_seconds, async () => {
     await selectScene(INFO, A.scene, false);
@@ -197,7 +200,7 @@ async function partApp() {
       a.stage() === HC.stages.good && goodStatus === '' && Array.isArray(goodOff) && goodOff.length === 0 && a.made.calcrunner && a.made.calcrunner.off().length === 0);
 
     const parts = {};
-    for (const row0 of SC.table) parts[row0.part] = await srcOf(row0.part);
+    for (const row0 of statecalc.expandTable(SC.table, TOPIC_ROWS, SC.slot_key)) parts[row0.part] = await srcOf(row0.part);
     for (const n of A.parts_extra) parts[n] = await srcOf(n);
     const tmp = path.join(APP, tc.tmp_dir, A.tmp_dir);
     fs.mkdirSync(tmp, { recursive: true });
@@ -208,7 +211,10 @@ async function partApp() {
     const raw = a.raw;
     const headCfg = JSON.parse(gitShow(T.pure.head_calcrunner));
     const headShape = JSON.parse(gitShow(tc.build.shape_dir + '/config_calcrunner' + tc.build.shape_ext));
-    const cfgOld = createConfig({ ...raw, files: { ...raw.files, config_calcrunner: headCfg }, shapes: { ...raw.shapes, config_calcrunner: headShape } });
+    // (정비 나) 옛 계산기는 커밋 전 계산 표(꽂는 자리 없음)로 — 새 계산기는 지금 표 + 꾸러미 줄
+    const headSc = JSON.parse(gitShow(tc.build.config_dir + '/config_statecalc' + tc.build.config_ext));
+    const headScShape = JSON.parse(gitShow(tc.build.shape_dir + '/config_statecalc' + tc.build.shape_ext));
+    const cfgOld = createConfig({ ...raw, files: { ...raw.files, config_calcrunner: headCfg, config_statecalc: headSc }, shapes: { ...raw.shapes, config_calcrunner: headShape, config_statecalc: headScShape } });
     const cfgNew = createConfig(raw);
     const o = replay(oldMod.createCalcRunner, cfgOld, statecalc, parts, events);
     const nw = replay(newMod.createCalcRunner, cfgNew, statecalc, parts, events);

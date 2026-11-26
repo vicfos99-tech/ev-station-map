@@ -1,4 +1,4 @@
-// web2 기계 검사 네 가지(node 기본 모듈만). 설계 6-4.
+// web2 기계 검사 다섯 가지(node 기본 모듈만). 설계 6-4 · ⑤ 는 정비 나(설계 5-1).
 //   node web2/tools/check4.mjs
 // ① 빌드      : 빌드 도구가 임시 폴더에 0 으로 끝나고 산출물에 이번 판 글자가 있음 + 모든 설정 JSON·꼴 표가 읽히고 꼴에 맞음
 // ② 박힌 값   : src/*.js 의 숫자(허용 밖)·글(한글·주소·경로·키 무늬)·지역 시각 함수·창 닫기/알림창, 화면 조각(.html)의 한글,
@@ -6,6 +6,8 @@
 // ③ 순환 의존 : import 와 NEEDS(받는 것 목록)를 이은 고리
 // ④ 직접 불러 쓰기 : 허용 목록 밖 import · 층 표(설계 원칙 '만드는 차례와 기댐') 밖의 NEEDS · NEEDS 에 없는 deps.X ·
 //               싱글톤 스스로 만들기·전역(window/document/navigator) · 계산 쪽의 판정 글자 · 화면 안 클라이언트 이름
+// ⑤ 꽂는 자리(정비 나 ⑥ — 설계 5-1) : 작업 트리에 새 판·제목 꾸러미 파일이 있으면 '판·제목 걸음' — 그때 고친 기존 파일이 허용 목록(check4.plug) 밖이면 실패.
+//               '판·제목 꾸러미는 새 파일만, 기본 기능을 고칠 때만 꽂는 자리를 고친다'. 새 판·꾸러미 파일이 없으면(기본 기능 걸음) 막지 않는다.
 // 표로 찍고 하나라도 실패면 0 아닌 코드. 시작·끝·걸린 곳은 도구 기록장(tools/logs/check4.log)에.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -190,7 +192,8 @@ function checkDirect(mods) {
     const layer = c4.module_layer[m.name] || (kind && c4.kind_layer[kind]);
     if (!layer) bad.push(where + ': 층 표(module_layer)에 없는 모듈');
     for (const b of info.badImports) bad.push(where + ':' + b.line + ': 허용하지 않는 import 꼴 — ' + b.text);
-    const allowed = c4.imports_allowed[m.name];
+    // (정비 나 ①) 허용 목록에 없으면 종류 선언으로(제목 꾸러미 = 그 제목의 모듈을 묶는 자리라 import *)
+    const allowed = c4.imports_allowed[m.name] || (kind && c4.kind_imports_allowed && c4.kind_imports_allowed[kind]);
     for (const im of info.imports) {
       looked++;
       if (!names.has(im.from)) bad.push(where + ':' + im.line + ": 없는 모듈 '" + im.from + "' 을(를) import");
@@ -228,6 +231,71 @@ function checkDirect(mods) {
   return { bad, seen: 'import·NEEDS ' + looked + ' 곳 봄' };
 }
 
+// ---------- ⑤ 꽂는 자리 ----------
+// 순수 판정: entries = [{path(web2 기준), state: 'new'|'mod'}], kindOf(path) → 파일 머리 KIND 또는 null, P = check4.plug
+// had = 이미 있던(이번에 새로 더하지 않은) 파일들 [{path, kind}] — 갈림길(정비 나): 같은 종류(판·꾸러미)가 이미 있을 때 새로 더해야 '판·제목 걸음'.
+//   그 종류가 처음 생기는 걸음(틀을 만드는 걸음 — 정비 나의 첫 꾸러미 충전소)은 꽂는 자리를 고쳐야 하므로 기본 기능 걸음으로 본다.
+export function judgePlug(entries, kindOf, P, had) {
+  const newRx = P.new_name_re.map((x) => new RegExp(x));
+  const okRx = P.allowed_modified_re.map((x) => new RegExp(x));
+  const old = had || [];
+  const kindBefore = (k) => old.some((h) => h.kind === k);
+  const nameBefore = (rx) => old.some((h) => rx.test(h.path));
+  const triggers = entries.filter((e) => {
+    if (e.state !== P.states.added) return false;
+    const k = kindOf(e.path);
+    if (P.new_kinds.includes(k) && kindBefore(k)) return true;
+    return newRx.some((rx) => rx.test(e.path) && nameBefore(rx));
+  }).map((e) => e.path);
+  if (!triggers.length) return { step: false, triggers, bad: [] };
+  const bad = entries.filter((e) => e.state === P.states.modified && !P.allowed_modified.includes(e.path) && !okRx.some((rx) => rx.test(e.path))).map((e) => e.path);
+  return { step: true, triggers, bad };
+}
+
+function gitOut(args) {
+  const r = spawnSync(tc.git.cmd, args, { cwd: APP, encoding: 'utf8' });
+  if (r.status !== tc.exit.ok) throw new Error('git ' + args.join(' ') + ' 실패: ' + (r.stderr || '').trim());
+  return r.stdout;
+}
+
+function checkPlug() {
+  const P = c4.plug;
+  let entries;
+  try {
+    const prefix = gitOut(P.git_prefix).trim();
+    entries = gitOut(P.git_status).split(/\r?\n/).filter((l) => l.length > P.status_path_at).map((l) => {
+      const code = l.slice(0, P.status_path_at - 1);
+      let p0 = l.slice(P.status_path_at).trim();
+      if (p0.includes(P.rename_mark)) p0 = p0.split(P.rename_mark).pop().trim();
+      p0 = p0.replace(/^"|"$/g, '');
+      const rel0 = prefix && p0.startsWith(prefix) ? p0.slice(prefix.length) : p0;
+      const state = P.added_codes.includes(code) ? P.states.added : P.states.modified;
+      return { path: rel0, state };
+    });
+  } catch (e) {
+    return { bad: ['git 으로 고친 파일을 못 봄 — ' + e.message], seen: '못 봄' };
+  }
+  const kindRx = new RegExp(c4.kind_decl);
+  const kindOf = (rp) => {
+    if (!rp.endsWith(c4.module_ext)) return null;
+    const full = path.join(APP, rp);
+    if (!fs.existsSync(full)) return null;
+    return (fs.readFileSync(full, 'utf8').match(kindRx) || [])[1] || null;
+  };
+  // 이미 있던 파일 = 앱 폴더의 모듈·설정 가운데 이번에 새로 더하지 않은 것
+  const added = new Set(entries.filter((e) => e.state === P.states.added).map((e) => e.path));
+  const had = [];
+  for (const dir of [tc.build.src_dir, tc.build.config_dir]) {
+    for (const f of fs.readdirSync(path.join(APP, dir))) {
+      const rp = dir + '/' + f;
+      if (!added.has(rp) && fs.statSync(path.join(APP, rp)).isFile()) had.push({ path: rp, kind: kindOf(rp) });
+    }
+  }
+  const j = judgePlug(entries, kindOf, P, had);
+  const bad = j.bad.map((f) => f + ': 판·제목 걸음(' + j.triggers.join(', ') + ')인데 꽂는 자리 밖 기존 파일을 고침');
+  return { bad, seen: '고친 파일 ' + entries.length + ' · ' + (j.step ? '판·제목 걸음(새 ' + j.triggers.length + ')' : '기본 기능 걸음(이미 있던 종류의 새 판·꾸러미 없음 — 처음 생기는 종류는 틀 걸음)') };
+}
+
 export async function runCheck4() {
   log.write('시작', { app: APP });
   const mods = modulesOf();
@@ -236,6 +304,7 @@ export async function runCheck4() {
   rows.push(['② 박힌 값', checkHardcode(mods)]);
   rows.push(['③ 순환 의존', checkCycles(mods)]);
   rows.push(['④ 직접 불러 쓰기', checkDirect(mods)]);
+  rows.push(['⑤ 꽂는 자리', checkPlug()]);
   for (const [title, r] of rows) for (const b of r.bad) log.write('걸림', { check: title, detail: b });
   const ok = rows.every(([, r]) => !r.bad.length);
   log.write('끝', { result: ok ? tc.pass_word : tc.fail_word, failed: rows.reduce((a, [, r]) => a + r.bad.length, 0) });
@@ -247,7 +316,7 @@ function printTable(ok, rows) {
   console.log('|---|---|---|---|');
   for (const [title, r] of rows) console.log('| ' + title + ' | ' + (r.bad.length ? tc.fail_word : tc.pass_word) + ' | ' + r.bad.length + ' | ' + r.seen + ' |');
   for (const [title, r] of rows) for (const b of r.bad) console.log('  [' + title + '] ' + b);
-  console.log('기계 검사 네 가지: ' + (ok ? tc.pass_word : tc.fail_word));
+  console.log('기계 검사 다섯 가지: ' + (ok ? tc.pass_word : tc.fail_word));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

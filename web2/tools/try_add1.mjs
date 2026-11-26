@@ -16,7 +16,7 @@ import http from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { loadToolsConfig, appDir, toolLog, kstText, TOOLS_DIR } from './lib_tools.mjs';
-import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim } from './lib_testbed.mjs';
+import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim, strayGuard, raceLimit } from './lib_testbed.mjs';
 import { findChrome, overlapArea, inside } from './lib_chrome.mjs';
 
 const tc = loadToolsConfig();
@@ -168,7 +168,10 @@ async function openPage(cdp, url, fr) {
     try { if (await evalIn(cdp, '(' + cond + ') && !!(window.__evMaps && window.__evMaps[0] && window.__evMaps[0].loaded())')) { ok = true; break; } } catch (e) { /* 아직 */ }
   }
   await sleep(T.settle_ms);
-  return { ok, ms: Date.now() - t0 };
+  // (정비 나 0-②) 준비 안 됨이면 그때 상태 자리 글(T.q.status)을 같이 — 까닭('다리가 잠시 막았어요' 같은)이 화면에 적혀 있다
+  let statusText = null;
+  if (!ok) { try { statusText = await evalIn(cdp, '(() => { const e = document.querySelector(' + JSON.stringify(T.q.status) + '); return e ? (e.textContent || "").trim().slice(0, 120) : null; })()'); } catch (e) { statusText = null; } }
+  return { ok, ms: Date.now() - t0, statusText };
 }
 
 async function clickQ(cdp, q) {
@@ -253,10 +256,12 @@ async function withServer(fn) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'web2-add1-build-'));
   let server = null;
   let bridge = null;
+  let guard = null;
   try {
     const pages = { '/new/': buildApp(APP, path.join(tmp, 'new'), sec.file), '/old/': buildApp(OLD, path.join(tmp, 'old'), sec.file) };
     const info = testbedInfo(tc, APP);
     const shim = linesShim(tc, info, secret);
+    guard = strayGuard(tc, info, secret, log);
     bridge = await startBridge(tc, info, BRIDGE_S, secret);
     await selectScene(info, T.scene, false);
     if (T.tick) await seekScene(info, T.tick);
@@ -267,6 +272,7 @@ async function withServer(fn) {
           const a = shim.answer(decodeURIComponent(req.url.slice(dataPrefix.length)), req.headers);
           if (a) { res.writeHead(a.status, { 'Content-Type': tc.testbed.json_type, 'Cache-Control': 'no-store' }); res.end(a.body); return; }
         }
+        if (guard.take(req, res)) return;
         const headers = { ...req.headers };
         delete headers.host;
         const up = http.request(new URL(req.url, info.base), { method: req.method, headers }, (ur) => { res.writeHead(ur.statusCode, ur.headers); ur.pipe(res); });
@@ -284,9 +290,10 @@ async function withServer(fn) {
     return await fn(V.scheme + V.host + ':' + V.port);
   } finally {
     if (server) { server.closeAllConnections(); server.close(); }
+    if (guard && guard.count()) log.write('남은 창의 옛 비밀 값 물음 막은 수', { n: guard.count() });
     if (bridge) {
       log.write('다리 끝 기다림', { seconds: BRIDGE_S });
-      const code = await Promise.race([bridge.waitExit(), sleep(BRIDGE_S * V.ms_per_s + C.exit_grace_ms).then(() => 'timeout')]);
+      const code = await raceLimit(bridge.waitExit(), BRIDGE_S * V.ms_per_s + C.exit_grace_ms, 'timeout');
       if (code === 'timeout') bridge.proc.kill();
       row('끝', '다리가 시험 모드 시간 뒤 스스로 끝남', '끝남(코드)', String(code), code !== 'timeout');
     }
@@ -302,7 +309,7 @@ async function partChrome(cdp, base, dist) {
     const op = await openPage(cdp, base + '/new/', fr);
     const rec = { name: fr.name, ready: op.ok, steps: [], taps: [] };
     SAVE.frames.push(rec);
-    if (!op.ok) { row('① ' + fr.name, '앱이 뜸', '준비됨', '준비 안 됨 ' + op.ms + 'ms', false); continue; }
+    if (!op.ok) { row('① ' + fr.name, '앱이 뜸', '준비됨', '준비 안 됨 ' + op.ms + 'ms · 상태 자리 「' + (op.statusText === null ? '없음' : op.statusText) + '」', false); continue; }
     // 단계(열린 칸 조합)마다 재기
     const stepTexts = [];
     let allOk = true;

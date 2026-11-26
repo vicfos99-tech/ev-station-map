@@ -2,6 +2,9 @@
 //   node web2/tools/try_pick.mjs                 # 고친 파일 = git 작업 트리 + 스테이지 + 새 파일
 //   node web2/tools/try_pick.mjs src/ahead.js …  # 고친 파일을 인자로(web2 기준 또는 저장소 기준 경로)
 //   node web2/tools/try_pick.mjs --why …         # 시험마다 고른 까닭(맞은 낱말)도
+// (정비 나 ⑨) 시험 두 층: 고친 모듈의 단위 시험(tests_unit/<모듈>.test.mjs)을 먼저 알려 주고, 통합 시험은 '파일 → 통합 시험' 표(전체 시험이 커버리지로 만듦,
+//   tools/logs/cover_map.json)에 그 시험이 다 모여(complete) 있으면 표로 — 그 시험이 실제로 지나간 파일이면 고른다(크롬 시험은 크롬 안이 표에 안 잡혀 낱말도 함께).
+//   표에 없는 시험은 아래 낱말 + import 거꾸로(정비 가 그대로). pick(files, {cover: false}) 는 표를 안 쓴다, {coverMap} 은 그 표를 쓴다(시험용).
 // 모듈 ↔ 시험 지도는 손으로 적지 않는다: 시험 파일(주석 뺀 코드·글) + 그 시험이 읽는 config_tools 묶음 + 그 시험만의 설정 파일에
 // 모듈 낱말(이름 · 그 모듈 설정 이름 · 화면 조각 id · 모양 조각 ev- 이름)이 나오면 그 모듈을 쓰는 시험. 못 뽑는 것과 까닭은 config_try_pick.json.
 import fs from 'node:fs';
@@ -10,6 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadToolsConfig, appDir, toolLog, listFiles, TOOLS_DIR } from './lib_tools.mjs';
 import { lex, readImports } from './lib_js.mjs';
+import { loadCoverMap } from './lib_cover.mjs';
 
 const PICK_CONFIG = 'config_try_pick.json';
 const tc = loadToolsConfig();
@@ -47,6 +51,10 @@ export function moduleMap() {
   // 계산 표: 계산기는 줄의 셈 모듈(part)에 기대고, 그 줄의 설정(rule·uses)은 셈 모듈이 읽는 설정
   const scPath = path.join(APP, P.paths.config, P.statecalc_config + P.exts.json);
   const table = fs.existsSync(scPath) ? (JSON.parse(read(scPath)).table || []) : [];
+  // (정비 나 ①) 제목 꾸러미 설정(config_topic_*)의 계산 줄도 같은 표로 본다(꽂는 자리 줄은 part 가 없어 저절로 빠짐)
+  for (const p of listFiles(path.join(APP, P.paths.config), P.exts.json)) {
+    if (path.basename(p).startsWith(tc.build.topic_config_prefix)) table.push(...(JSON.parse(read(p)).calc_rows || []));
+  }
   for (const mod of Object.values(mods)) {
     for (const n of mod.needs) {
       if (n === P.parts_dep) { for (const row of table) if (mods[row.part]) mod.deps.add(row.part); continue; }
@@ -151,6 +159,9 @@ export function pick(files, opts) {
   const bootAll = [];
   const notes = [];
   const addSeed = (m, kind) => { if (seeds.get(m) !== 'code') seeds.set(m, kind); };
+  const cover = o.cover === false ? null : (o.coverMap || loadCoverMap(path.join(APP, P.cover_map)));
+  const covered = (t) => (cover && cover.tests[t] && cover.tests[t].complete ? new Set(cover.tests[t].files) : null);
+  const units = new Set();
 
   for (const f of files) {
     const at = place(f, prefix);
@@ -165,6 +176,7 @@ export function pick(files, opts) {
     const base = path.posix.basename(r);
     if (P.boot_files.includes(r)) { bootAll.push(r); continue; }
     if (r.startsWith(P.paths.vendor)) { bootAll.push(r); continue; }
+    if (r.startsWith(P.unit.dir)) { notes.push(r + ' — 단위 시험 자신(' + P.unit.cmd + ')'); continue; }
     if (r.startsWith(P.paths.src)) {
       if (base.endsWith(P.exts.module)) { addSeed(path.posix.basename(base, P.exts.module), 'code'); continue; }
       if (base.startsWith(P.view_prefix) && base.endsWith(P.exts.view)) { addSeed(base.slice(P.view_prefix.length, -P.exts.view.length), 'code'); continue; }
@@ -214,16 +226,21 @@ export function pick(files, opts) {
     }
   }
   for (const [m, info] of affected) {
+    if (info.kind === 'code' && fs.existsSync(path.join(APP, P.unit.dir, m + P.unit.suffix))) units.add(m);
     const words = info.kind === 'style' ? mods[m].styleWords : mods[m].words;
     for (const t of Object.values(tests)) {
       if (info.kind === 'style' && !t.chrome) continue;
+      const cv = info.kind === 'code' ? covered(t.name) : null;
+      if (cv && cv.has(P.paths.src + m + P.exts.module)) { why(t.name, m + (m === info.from ? '' : ' (← ' + info.from + ')') + ' — 지나감(표)'); continue; }
+      if (cv && !t.chrome) continue;
       const w = [...words].find((x) => wordRx(x).test(t.text));
-      if (w) why(t.name, m + (m === info.from ? '' : ' (← ' + info.from + ')') + (info.kind === 'style' ? ' 모양' : '') + ' — 낱말 「' + w + '」');
+      if (w) why(t.name, m + (m === info.from ? '' : ' (← ' + info.from + ')') + (info.kind === 'style' ? ' 모양' : '') + ' — 낱말 「' + w + '」' + (cv ? '(크롬)' : ''));
     }
   }
+  if (units.size) notes.unshift('단위 시험 먼저: ' + P.unit.cmd + ' ' + [...units].sort().join(' '));
   if (bootAll.length) for (const t of Object.values(tests)) if (t.boot) why(t.name, bootAll.join(', ') + ' (앱을 띄우는 시험 모두)');
   const names = Object.keys(chosen).sort();
-  return { tests: names, why: Object.fromEntries(names.map((n) => [n, [...chosen[n]]])), affected: [...affected.keys()], notes };
+  return { tests: names, why: Object.fromEntries(names.map((n) => [n, [...chosen[n]]])), affected: [...affected.keys()], notes, units: [...units].sort(), cover: cover ? Object.keys(cover.tests).filter((t) => cover.tests[t].complete) : [] };
 }
 
 function main() {

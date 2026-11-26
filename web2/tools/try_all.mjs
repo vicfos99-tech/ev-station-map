@@ -6,9 +6,11 @@
 // 결과: web2/tools/logs/try_all_last.md(+ .json), 시험마다 찍은 글 logs/try_all_out/. 실패(한도 넘음·표 없음 포함)가 있으면 종료 코드 1.
 // 한 시험이 한도(limit_s)를 넘기면 그 시험과 딸린 프로세스(다리·크롬)를 끊고 다음으로 간다.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { loadToolsConfig, appDir, toolLog, kstText, TOOLS_DIR } from './lib_tools.mjs';
+import { touchedFiles, putCover } from './lib_cover.mjs';
 
 const ALL_CONFIG = 'config_try_all.json';
 const tc = loadToolsConfig();
@@ -20,6 +22,7 @@ const OUT_DIR = path.join(LOG_DIR, C.out_dir);
 const REPORT = path.join(LOG_DIR, C.report_file);
 const REPORT_JSON = REPORT.replace(/\.md$/, tc.build.config_ext);
 
+const COVER_MAP = path.join(LOG_DIR, C.cover.map_file);
 const keyOf = (r) => [path.basename(r.file, C.tests.ext), ...r.args].join(':');
 
 function runList() {
@@ -34,10 +37,13 @@ function killTree(pid) {
   spawnSync(tc.chrome.kill_cmd, [...tc.chrome.kill_args_before_pid, String(pid), ...tc.chrome.kill_args_after_pid], { encoding: 'utf8' });
 }
 
+// (정비 나 ⑨) cover.on 이면 시험마다 node 커버리지 폴더를 따로 주고, 끝나면 지나간 앱 파일을 '파일 → 통합 시험' 표(cover.map_file)에 넣는다
 function runOne(r) {
   return new Promise((resolve) => {
     const t0 = Date.now();
-    const proc = spawn(C.node, [path.join(TOOLS_DIR, r.file), ...r.args], { cwd: path.resolve(APP, C.cwd), windowsHide: true });
+    const covDir = C.cover.on ? fs.mkdtempSync(path.join(os.tmpdir(), C.cover.tmp_prefix)) : null;
+    const env = covDir ? { ...process.env, [C.cover.env]: covDir } : process.env;
+    const proc = spawn(C.node, [path.join(TOOLS_DIR, r.file), ...r.args], { cwd: path.resolve(APP, C.cwd), windowsHide: true, env });
     let out = '';
     let timedOut = false;
     proc.stdout.on('data', (d) => { if (out.length < C.max_buffer) out += d.toString('utf8'); });
@@ -45,7 +51,12 @@ function runOne(r) {
     const guard = setTimeout(() => { timedOut = true; killTree(proc.pid); }, r.limit_s * C.ms_per_s);
     proc.on('close', (code) => {
       clearTimeout(guard);
-      resolve({ code, out, timedOut, sec: Math.round((Date.now() - t0) / C.ms_per_s) });
+      let cover = null;
+      if (covDir) {
+        try { cover = touchedFiles(covDir, APP, C.cover.src_dir); } catch (e) { log.write('커버리지 못 읽음', { file: r.file, error: e.message }); }
+        try { fs.rmSync(covDir, { recursive: true, force: true }); } catch (e) { log.write('커버리지 폴더 못 지움', { dir: covDir, error: e.message }); }
+      }
+      resolve({ code, out, timedOut, cover, sec: Math.round((Date.now() - t0) / C.ms_per_s) });
     });
     proc.on('error', (e) => { clearTimeout(guard); resolve({ code: null, out: out + '\n' + e.message, timedOut, sec: Math.round((Date.now() - t0) / C.ms_per_s) }); });
   });
@@ -106,6 +117,12 @@ async function main() {
     const s = score(res.out);
     const ok = !res.timedOut && res.code === tc.exit.ok && s.all > 0 && s.fails.length === 0;
     byKey.set(key, { key, state: 'ran', ok, code: res.code, timedOut: res.timedOut, sec: res.sec, pass: s.pass, all: s.all, fails: s.fails });
+    // 표에는 끝까지 돈 것만(한도에 끊긴 것은 덜 지나갔을 수 있다)
+    if (res.cover && !res.timedOut && s.all > 0) {
+      const name = path.basename(r.file, C.tests.ext);
+      const t = putCover(COVER_MAP, name, key, res.cover, runs.filter((x) => x.file === r.file && !(x.s12 && !C.s12)).map(keyOf), kstText(tc), C.cover.note);
+      log.write('커버리지', { key, files: res.cover.length, complete: t.complete });
+    }
     log.write('시험 끝', { key, ok, code: res.code, timedOut: res.timedOut, sec: res.sec, pass: s.pass, all: s.all, fails: s.fails.slice(0, C.fail_rows_max) });
     process.stdout.write(kstText(tc) + ' ■ ' + key + ' ' + s.pass + '/' + s.all + ' · ' + res.sec + '초 · ' + (res.timedOut ? C.words.timeout : '종료 ' + res.code) + (ok ? '' : ' — ' + tc.fail_word) + '\n');
     writeReport(runs.map((x) => byKey.get(keyOf(x))).filter(Boolean), startedAt);

@@ -17,6 +17,18 @@ export function ioOf(table) {
   return { inputs, outputs };
 }
 
+// (정비 나 ①) 꽂는 자리: 기본 표의 {[slotKey]: …} 줄 자리에 지금 켠 제목 꾸러미의 줄(topicRows)을 차례대로 끼운다. 제목이 없으면 그 자리는 빈다.
+export function expandTable(table, topicRows, slotKey) {
+  if (!Array.isArray(table)) throw new TypeError('table');
+  if (!Array.isArray(topicRows)) throw new TypeError('topicRows');
+  const out = [];
+  for (const row of table) {
+    if (row && Object.prototype.hasOwnProperty.call(row, slotKey)) out.push(...topicRows);
+    else out.push(row);
+  }
+  return out;
+}
+
 export function calc(inputs, changed, prev, table, parts, rules) {
   if (!Array.isArray(table)) throw new TypeError('table');
   const out = {};

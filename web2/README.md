@@ -56,6 +56,19 @@ node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_*
 - 새 기능의 설정 파일은 `config_health` 의 `grades`(등급)와 `features`(기능 묶음), `config_ui_status.texts.feature_names`(이름)에 적는다 — 빠지면 `try_ga.mjs pure` ⑤ 가 잡는다(등급 표에 없으면 unknown_grade = app 이라 앱 전체가 점검 중).
 - 계산기가 구독할 입력·낼 조각은 계산 표(`config_statecalc.table`)에서 뽑는다 — `config_calcrunner` 에 따로 적지 않는다.
 
+## 정비 나 (2026-11-26) — 시험 두 층 · '앞의 ○○' 를 제목과 상관없게
+- `ahead.js` 는 충전소를 모른다: 받는 것은 점들(입력 조각 `items_input` 의 `list`·`lines`), 점의 칸 이름은 규칙 `fields`(키·이름·꼬리표·선 위 자리 표시·좌표)에서. 충전소 규칙(`config_ahead`)이 `stations` 조각과 충전소 칸(`id`·`name`·`operator`·`rest`)을 정한다. 다른 제목은 같은 꼴의 규칙 파일만 주면 같은 셈(휴게소 묶기·진행 방향 앞·선 밖이면 주변·경로 따라)을 쓴다. 결과 조각 꼴은 그대로(`ops`·`rest` 칸 이름도 — 화면·목록이 그대로 읽음).
+- 시험 두 층: 단위 시험 `tests_unit/<모듈>.test.mjs`(`node web2/tools/unit.mjs`) → 고르개가 고른 통합 시험 → 커밋 뒤 전체. '파일 → 통합 시험' 표는 전체 시험이 커버리지로 만든다(`tools/README.md` '시험 두 층').
+- 기계 검사 ⑤ 꽂는 자리: 판·제목 꾸러미 걸음은 새 파일만(설계 5-1). 같은 종류가 이미 있을 때 새로 더해야 '판·제목 걸음'(처음 생기는 종류 = 틀 걸음은 안 막음).
+
+## 정비 나 (2026-11-26) — 제목 틀 · 충전소를 첫 꾸러미로 · 제목 바꾸기
+- **제목 꾸러미 꼴**(새 제목 = 이것만 더함): ① `src/topic_<제목>.js` — 머리에 `export const KIND = 'topic'`, `createTopic({cfg})` 가 `{label, rows, parts, clients(d), screens(d)}` 를 돌려줌(받기·화면은 `[[만든 것 이름, 만들기]]` 목록, 계산 모듈은 `parts`) ② `config/config_topic_<제목>.json` — `label`(제목 목록에 보일 글)·`calc_rows`(계산 표 꼴 줄 — `config_statecalc.table` 의 꽂는 자리 `{topic_slot}` 에 들어감) ③ `config/shape/config_topic_<제목>.shape.json`. 그 제목의 받기·계산·화면 모듈과 그 설정은 보통처럼 따로 파일.
+  - 아직 꾸러미 파일만으로 안 되는 것(다음 걸음): 새 설정의 등급(`config_health.grades·features`, `config_ui_status.texts.feature_names`)과 새 화면 조각의 차례(`tools/config_tools.json` 의 `build.views_order`) 한 줄씩.
+- 빌드가 `KIND 'topic'` 모듈을 주워 `@@TOPICS@@`(이름 = 파일 이름에서 `topic_` 을 뗀 것)로 넘기고, 조립(`app.js`)은 한 번에 하나만 켠다: 주소 꼬리 `#topic=<제목>` → 없으면 첫 꾸러미. 켠 꾸러미의 받기는 충전소 목록 받기 다음, 계산 줄은 꽂는 자리, 화면은 '이상해' 단추 다음에 꽂는다. 꾸러미 만들기가 던지면(설정이 깨짐) 그 제목만 꺼지고 기본 기능은 돈다(`tests_unit/topic_station.test.mjs` ⑩).
+- 충전소 꾸러미(`topic_station`) = 상태 받기(`relay_status`) · 정보 칸(`ui_station`) · 목록 칸(`ui_route`) · 계산(`engine`·`planinput`·`mine`, 줄 `ahead`·`plan`). **충전소 목록·고속도로 선 받기(`relay_stations`)는 아직 기본 기능** — 선이 같은 파일로 와서 내 위치·제한 속도·누른 지점 거리가 기댄다(갈림길 1).
+- `engine.js` 는 일 단위로 나눔: 검사·만들기 `engine_model` · 거리 `engine_range` · 상태 `engine_status` · 요금 `engine_price` · 목록 `engine_list` · 추천 `engine_pick` · 차례 묶기(`plan`)와 옛 이름 내주기 `engine`.
+- 제목 바꾸기 단추(`ui_topic`, 설정 `config_ui_topic`): 아래 띠 더 보기 자리 맨 앞(48px) + 가운데 기둥의 제목 목록 칸. 고르면 Store `topic` 에 '마지막에 쓴 제목'을 남기고 주소 꼬리를 바꿔 다시 켬. 켤 때 남긴 것이 지금 것과 다르면 그 제목으로 다시 켬. **제목이 `min_show`(2) 개보다 적으면 단추를 숨김** — 좁은 세로 창(360)의 아래 띠에 폭이 없음(갈림길 3).
+
 ## 폴더
 | 자리 | 무엇 |
 |---|---|

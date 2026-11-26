@@ -8,6 +8,7 @@
   "s12_note": "S12 긴 주행(약 6분) — false 면 건너뜀(표에 '끔')",
   "default_limit_s": 600,
   "runs": [
+    {"file": "unit.mjs", "args": [], "limit_s": 60},
     {"file": "try_speedfit.mjs", "args": [], "limit_s": 60},
     {"file": "try_a1.mjs", "args": [], "limit_s": 300},
     {"file": "try_a2ga.mjs", "args": [], "limit_s": 720},
@@ -48,5 +49,13 @@
   "ms_per_s": 1000,
   "max_buffer": 268435456,
   "words": {"timeout": "한도 넘음", "off": "끔", "not_run": "못 돌림", "crash": "표 없음"},
+  "cover": {
+    "on": true,
+    "env": "NODE_V8_COVERAGE",
+    "tmp_prefix": "web2-cover-",
+    "src_dir": "src/",
+    "map_file": "cover_map.json",
+    "note": "(정비 나 ⑨) 파일 → 통합 시험 표. 전체 시험(try_all)이 시험마다 node 내장 커버리지로 실제로 지나간 앱 소스 파일(src/)을 적는다 — 손으로 적지 않음, 시험이 바뀌면 다음 전체 시험이 다시 만든다. tests.<시험>.complete = 그 시험의 부분(config_try_all runs)이 다 모였을 때만 고르개(try_pick)가 쓴다. 크롬 안에서 도는 빌드 묶음은 node 커버리지에 안 잡혀 크롬 시험은 고르개가 표 + 낱말을 함께 본다"
+  },
   "log_name": "try_all"
 }

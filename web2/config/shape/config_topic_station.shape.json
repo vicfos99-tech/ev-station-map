@@ -1,0 +1,1 @@
+{"keys": {"label": {"t": "str", "min": 1, "max": 20}, "calc_rows": {"t": "arr", "min": 1, "max": 20, "of": {"t": "obj"}}}}

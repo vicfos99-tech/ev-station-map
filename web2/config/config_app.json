@@ -1,6 +1,8 @@
 {
   "where": "app",
   "owner": "app",
+  "topic_prefix": "topic_",
+  "topic_note": "(정비 나 ①) 조립이 만든 것 표(made)에 제목 꾸러미 밝힘을 넣을 이름의 머리(topic_ + 제목 키)",
   "events": {"start": "app.start", "error": "error", "rejection": "unhandledrejection"},
   "words": {"start": "start", "uncaught": "uncaught", "unhandled": "unhandled", "make_failed": "make_failed"}
 }

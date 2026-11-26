@@ -1,0 +1,7 @@
+{
+  "note": "(정비 나 ⑨) 단위 시험 돌리개(unit.mjs) 값. 단위 시험 = 모듈 하나씩, 다리·창 없이 몇 초. 파일 = web2/tests_unit/<모듈>.test.mjs — export default async function (t) 에서 t.check(번호, 무엇, 기대, 실제, 맞나). 인자로 모듈 이름을 주면 그것만, 없으면 전부. 결과 표는 통합 시험과 같은 꼴(전체 시험의 줄 세기와 같음)",
+  "dir": "tests_unit",
+  "suffix": ".test.mjs",
+  "report_file": "unit_last.md",
+  "log_name": "unit"
+}

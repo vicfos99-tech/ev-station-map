@@ -1,5 +1,7 @@
 {
   "note": "정비 가 스스로 시험(try_ga.mjs)의 값. pure = 다리 없음: ① 고르개가 알려진 경우에 맞는 시험을 고르는지(must = 꼭 골라야, must_not = 고르면 안 됨, only_chrome = 고른 것이 모두 크롬 시험) ② ⑦ 계산기 입출력 = 커밋 전(HEAD) config_calcrunner 의 inputs·outputs 와 같음 ③ ⑧ 기록장을 못 읽을 때 경고·상태 ④ 격리 판정(순수) ⑤ 모든 설정 파일이 등급 표(config_health.grades)에 있음. app = S1 가상 창: ⑥ 설정 하나씩 깨서 그 기능만 꺼짐·기본 기능 돎(cases), 꼭 필요한 설정은 '앱 점검 중' ⑦ 같은 입력 기록을 옛(HEAD) 계산기와 새 계산기에 넣어 낸 조각이 같음 ⑧ 앱에서 기록장 읽기 실패 → 상태 자리 한 줄 → 다시 읽히면 사라짐",
+  "base_rev": "471f275",
+  "base_rev_note": "(정비 나) '커밋 전'으로 볼 커밋 = 정비 가 바로 전(추가1). HEAD 로 두면 정비 가 커밋 뒤에는 이미 inputs 를 뺀 config_calcrunner 와 비교해 ②-1·②-2 가 늘 틀린다. ⑦ 옛 계산기·계산 표도 이 커밋의 것",
   "pure": {
     "picks": [
       {"files": ["src/ahead.js"], "must": ["try_a2na", "try_a3", "try_a4", "try_a6", "try_a7"], "must_not": ["try_a1", "try_a2ga", "try_speedfit"]},

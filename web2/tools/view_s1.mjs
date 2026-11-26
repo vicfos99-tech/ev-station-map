@@ -11,7 +11,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { spawnSync } from 'node:child_process';
 import { loadToolsConfig, appDir, toolLog, TOOLS_DIR } from './lib_tools.mjs';
-import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim } from './lib_testbed.mjs';
+import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim, strayGuard } from './lib_testbed.mjs';
 
 const tc = loadToolsConfig();
 const V = tc.view_s1;
@@ -41,6 +41,7 @@ async function run() {
     const page = fs.readFileSync(path.join(out, tc.build.out_file));
     const info = testbedInfo(tc, APP);
     const shim = linesShim(tc, info, secret);
+    const guard = strayGuard(tc, info, secret, log); // (정비 나 0) 앞 보기의 남은 탭이 옛 비밀 값으로 물으면 다리에 안 넘김
     const bridge = await startBridge(tc, info, want, secret);
     await selectScene(info, scene, false);
     if (tick) await seekScene(info, tick);
@@ -56,6 +57,7 @@ async function run() {
             return;
           }
         }
+        if (guard.take(req, res)) return;
         const headers = { ...req.headers };
         delete headers.host;
         const up = http.request(new URL(req.url, info.base), { method: req.method, headers }, (ur) => {

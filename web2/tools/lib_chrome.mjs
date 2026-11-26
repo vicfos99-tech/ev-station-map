@@ -11,7 +11,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
 import { TOOLS_DIR } from './lib_tools.mjs';
-import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim } from './lib_testbed.mjs';
+import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, linesShim, strayGuard, raceLimit } from './lib_testbed.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -68,6 +68,8 @@ async function one(fr) {
   }
   await sleep(P.settle_ms);
   const res = { name: fr.name, w: fr.w, h: fr.h, ready: ok, wait_ms: Date.now() - t0, inner: null, steps: [] };
+  // (정비 나 0-②) 준비 안 됨이면 그때 상태 자리 글을 같이 남긴다(까닭이 화면에 적혀 있는 일이 많다)
+  if (!ok) { try { const st = f.contentDocument && f.contentDocument.querySelector(P.status_q); res.status_text = st ? (st.textContent || '').trim().slice(0, 120) : null; } catch (e) { res.status_text = null; } }
   try {
     const d = f.contentDocument; const w = f.contentWindow;
     res.inner = { w: w.innerWidth, h: w.innerHeight, portrait: w.matchMedia('(orientation: portrait)').matches };
@@ -119,10 +121,11 @@ export async function measureInChrome(tc, app, opts) {
     const page = fs.readFileSync(path.join(out, tc.build.out_file));
     const info = testbedInfo(tc, app);
     const shim = linesShim(tc, info, secret);
+    const guard = strayGuard(tc, info, secret, log);
     bridge = await startBridge(tc, info, C.bridge_seconds, secret);
     await selectScene(info, opts.scene, false);
     if (opts.tick) await seekScene(info, opts.tick);
-    const P = { frames: opts.frames, sel: opts.sel, ready: opts.ready, actions: opts.actions || [], wait_ms: C.ready_wait_ms, poll_ms: C.poll_ms, settle_ms: C.settle_ms, hit_inset_px: C.hit_inset_px, result_path: C.result_path };
+    const P = { frames: opts.frames, sel: opts.sel, ready: opts.ready, actions: opts.actions || [], wait_ms: C.ready_wait_ms, poll_ms: C.poll_ms, settle_ms: C.settle_ms, hit_inset_px: C.hit_inset_px, result_path: C.result_path, status_q: C.status_q };
     const measureHtml = measurePage(P);
     let resolveResult;
     const result = new Promise((res) => { resolveResult = res; });
@@ -133,6 +136,7 @@ export async function measureInChrome(tc, app, opts) {
           const a = shim.answer(decodeURIComponent(req.url.slice(dataPrefix.length)), req.headers);
           if (a) { res.writeHead(a.status, { 'Content-Type': tc.testbed.json_type, 'Cache-Control': 'no-store' }); res.end(a.body); return; }
         }
+        if (guard.take(req, res)) return;
         const headers = { ...req.headers };
         delete headers.host;
         const up = http.request(new URL(req.url, info.base), { method: req.method, headers }, (ur) => { res.writeHead(ur.statusCode, ur.headers); ur.pipe(res); });
@@ -157,14 +161,14 @@ export async function measureInChrome(tc, app, opts) {
     const url = V.scheme + here + C.measure_path;
     proc = spawn(chrome, [...C.args, C.profile_arg + profile, url], { stdio: 'ignore' });
     if (log) log.write('크롬 띄움', { url, frames: opts.frames.map((f) => f.name) });
-    const got = await Promise.race([result, sleep(C.total_wait_ms).then(() => ({ error: '시간 한도 ' + C.total_wait_ms + 'ms 안에 결과가 안 옴' }))]);
-    if (log) log.write('크롬 결과', { error: got.error || null, frames: (got.frames || []).map((f) => ({ name: f.name, ready: f.ready, wait_ms: f.wait_ms })) });
+    const got = await raceLimit(result, C.total_wait_ms, { error: '시간 한도 ' + C.total_wait_ms + 'ms 안에 결과가 안 옴' });
+    if (log) log.write('크롬 결과', { error: got.error || null, frames: (got.frames || []).map((f) => ({ name: f.name, ready: f.ready, wait_ms: f.wait_ms, status_text: f.status_text })) });
     return got;
   } finally {
     if (proc && proc.exitCode === null) spawnSync(C.kill_cmd, [...C.kill_args_before_pid, String(proc.pid), ...C.kill_args_after_pid], { encoding: 'utf8' });
     if (server) { server.closeAllConnections(); server.close(); }
     if (bridge) {
-      const code = await Promise.race([bridge.waitExit(), sleep(C.bridge_seconds * V.ms_per_s + C.exit_grace_ms).then(() => 'timeout')]);
+      const code = await raceLimit(bridge.waitExit(), C.bridge_seconds * V.ms_per_s + C.exit_grace_ms, 'timeout');
       if (code === 'timeout') bridge.proc.kill();
       if (log) log.write('다리 끝', { code });
     }

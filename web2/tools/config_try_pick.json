@@ -44,5 +44,8 @@
     "testbed/": {"tests": "bridge", "why": "테스트 베드(다리·장면)를 쓰는 시험 = lib_testbed.mjs 를 불러 쓰는 시험"}
   },
   "bridge_libs": ["lib_testbed.mjs"],
+  "cover_map": "tools/logs/cover_map.json",
+  "cover_why": "(정비 나 ⑨) 파일 → 통합 시험 표 — 전체 시험(try_all)이 커버리지로 만든다(config_try_all.cover). 그 시험의 부분이 다 모인 것(complete)만 쓴다",
+  "unit": {"dir": "tests_unit/", "suffix": ".test.mjs", "cmd": "node web2/tools/unit.mjs"},
   "log_name": "try_pick"
 }

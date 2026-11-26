@@ -13,9 +13,10 @@ import { createRequire } from 'node:module';
 import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { loadToolsConfig, appDir, toolLog, kstText, TOOLS_DIR } from './lib_tools.mjs';
-import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, fetchWithLines, linesShim } from './lib_testbed.mjs';
+import { testbedInfo, makeSecret, writeSecretFile, startBridge, selectScene, seekScene, fetchWithLines, linesShim, strayGuard } from './lib_testbed.mjs';
 import { sleep, loadBoards, startApp as runApp, waitFor } from './lib_apprun.mjs';
 import { measureInChrome, overlapArea, inside, findChrome } from './lib_chrome.mjs';
+import { topicRowsOf } from './lib_appfiles.mjs';
 
 const tc = loadToolsConfig();
 const T = tc.try_a7;
@@ -466,7 +467,9 @@ async function partS12() {
     a.el(RI.open).click();
     const statecalc = await srcOf('statecalc');
     const lib = await pureLib();
-    const SC = cfgOf('config_statecalc');
+    const SC0 = cfgOf('config_statecalc');
+    // (정비 나 ①) 충전소 줄은 충전소 꾸러미 설정에 — 조립과 같은 표 전체로
+    const SC = { ...SC0, table: statecalc.expandTable(SC0.table, topicRowsOf(APP, tc.build), SC0.slot_key) };
     const rules = {};
     for (const r of SC.table) for (const n of [r.rule, ...(r.uses || [])]) rules[n] = cfgOf(n);
     const parts = { ...lib.parts, limitmatch: await srcOf('limitmatch'), speed: await srcOf('speed'), naviroute: await srcOf('naviroute'), navi: await srcOf('navi') };
@@ -653,6 +656,7 @@ async function partShots() {
     const page = fs.readFileSync(path.join(out, tc.build.out_file));
     const info = testbedInfo(tc, APP);
     const shim = linesShim(tc, info, secret);
+    const guard = strayGuard(tc, info, secret, log);
     bridge = await startBridge(tc, info, C.bridge_seconds, secret);
     await selectScene(info, T.s1.scene, false);
     if (C.tick) await seekScene(info, C.tick);
@@ -663,6 +667,7 @@ async function partShots() {
           const a2 = shim.answer(decodeURIComponent(req.url.slice(dataPrefix.length)), req.headers);
           if (a2) { res.writeHead(a2.status, { 'Content-Type': tc.testbed.json_type }); res.end(a2.body); return; }
         }
+        if (guard.take(req, res)) return;
         const headers = { ...req.headers };
         delete headers.host;
         const up = http.request(new URL(req.url, info.base), { method: req.method, headers }, (ur) => { res.writeHead(ur.statusCode, ur.headers); ur.pipe(res); });

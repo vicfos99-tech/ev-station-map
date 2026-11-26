@@ -35,6 +35,16 @@ export function writeSecretFile(tc, secret) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// (정비 나 0-③) 한도 기다림 — 먼저 끝나면 한도 타이머를 지운다(안 지우면 표를 다 찍고도 node 가 타이머만큼 안 끝나 전체 시험 한도에 끊김)
+export async function raceLimit(promise, ms, onLimit) {
+  let h = null;
+  try {
+    return await Promise.race([promise, new Promise((res) => { h = setTimeout(() => res(onLimit), ms); })]);
+  } finally {
+    clearTimeout(h);
+  }
+}
+
 export async function call(info, method, route, opt) {
   const o = opt || {};
   const headers = {};
@@ -112,6 +122,29 @@ export function linesShim(tc, info, secret) {
       }
       return { status: 200, body: files[sub] };
     },
+  };
+}
+
+// (정비 나 0) 남은 창 막기 — 앞 시험이 시간 한도에 끊겨 크롬이 남으면, 그 창의 앱이 옛 비밀 값으로 같은 주소(127.0.0.1)를 계속 두드려
+// 다리가 '틀린 비밀 값 lock_max_wrong 번'으로 주소를 막는다(lock_block_s 초) → 이번 시험의 앱이 '앱 점검 중 — 횟수 한도'로 안 뜸(정비 가 추가1 실패의 까닭).
+// 시험 서버가 다리 앞에서, 비밀 값 머리가 있는데 이번 값과 다른 물음은 다리로 넘기지 않고 다리처럼 lock 으로 답한다(머리가 없는 물음은 그대로 넘김).
+// 돌려주는 것: {take(req, res) → 막았으면 true, count() → 막은 수}
+// 세 곳(try_add1·lib_chrome·view_s1)이 이 함수 하나를 쓴다. 일부러 틀린 비밀 값을 다리까지 보내 보는 시험은 opts.pass_wrong = true 로 따로 둔다(그때는 다 넘김).
+export function strayGuard(tc, info, secret, log, opts) {
+  const passWrong = !!(opts && opts.pass_wrong);
+  let n = 0;
+  return {
+    take(req, res) {
+      if (passWrong) return false;
+      const got = req.headers[info.b.secret_header.toLowerCase()];
+      if (got === undefined || got === secret) return false;
+      n += 1;
+      if (log && n === 1) log.write('남은 화면이 옛 비밀 값으로 묻고 있음 — 다리로 안 넘김(처음 하나만 적음)', { url: req.url, ua: req.headers['user-agent'] || null, referer: req.headers.referer || null });
+      res.writeHead(tc.testbed.lock_status, { 'Content-Type': tc.testbed.json_type, 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify(tc.testbed.lock_body));
+      return true;
+    },
+    count: () => n,
   };
 }
 

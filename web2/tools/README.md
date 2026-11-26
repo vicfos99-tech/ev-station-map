@@ -2,7 +2,7 @@
 
 모든 값(경로·무늬·허용 목록·층 표·판)은 `config_tools.json` 에 있다. node 기본 모듈만 쓴다(설치할 묶음 없음). 명령은 저장소 맨 위(`ev-charge-planner`)에서 돌린다.
 
-## 기계 검사 네 가지 — `check4.mjs` (설계 6-4)
+## 기계 검사 다섯 가지 — `check4.mjs` (설계 6-4 · ⑤ 는 정비 나)
 ```
 node web2/tools/check4.mjs
 ```
@@ -11,6 +11,7 @@ node web2/tools/check4.mjs
 | ① 빌드 | 빌드 도구(`tools/build.mjs`)를 임시 폴더에 돌려 0 으로 끝나고 산출물(`index.html`)에 이번 판 글자(`build.json` 의 `stamp`)가 있나 + 모든 설정 JSON·꼴 표가 읽히고 `src/cfg.js` 의 꼴 검사를 통과하나 | `check4.build_*`, `config_dir`, `shape_dir` |
 | ② 박힌 값 | `src/*.js` 의 숫자(허용 `allowed_numbers` 밖)·글(한글·`://`·경로·긴 키 무늬·IP)·지역 시각 함수·`window.close`·`alert(` / 화면 조각(`src/*.html`)의 한글 / `http` 가 있으면 안 되는 설정 / 저장소 안 `config_app_secret.json` | `check4.hardcode` |
 | ③ 순환 의존 | `import` 와 받는 것 목록(`export const NEEDS = [...]`)을 이은 고리 | `dep_module` |
+| ⑤ 꽂는 자리 | (정비 나 ⑥ — 설계 5-1) 작업 트리(git status)에 **새로 더한** 판·제목 꾸러미 파일(머리 KIND `board`·`topic`, 또는 `config/config_topic_*.json`)이 있고 **같은 종류가 이미 있으면** '판·제목 걸음' — 그때 고친 기존 파일이 허용 목록(설명서·기록장) 밖이면 실패. 새 판·꾸러미 파일이 없거나(기본 기능 걸음) 그 종류가 처음 생기면(틀 걸음 — 정비 나의 첫 꾸러미) 막지 않음 | `check4.plug` |
 | ④ 직접 불러 쓰기 | 허용 목록(`imports_allowed`) 밖 import · 층 표(`module_layer`·`layer_may_need`·`extra_needs` — 설계 원칙 '만드는 차례와 기댐')를 어긴 NEEDS · NEEDS 에 없는 `deps.X` · `new Logger/Store/Config/State`·`getInstance`·`window.`·`document.`·`navigator.` · 계산 쪽(`calcrunner`·`statecalc`)의 `health`·`conn.` · 화면 층의 클라이언트 이름 · 순수 층의 `deps`·로그 | `check4.*` |
 
 - 표로 찍고 하나라도 실패면 종료 코드 1. 기록장: `web2/tools/logs/check4.log`(git 밖).
@@ -145,6 +146,22 @@ node web2/tools/try_all.mjs --list                         # 돌릴 차례와 �
 - 차례·부분 인자·시험마다 시간 한도는 `config_try_all.json` 의 `runs`(거기 없는 새 `try_*.mjs` 는 인자 없이 `default_limit_s` 로 끝에). S12 긴 주행은 `s12` 로 켜고 끔.
 - 한 시험이 한도를 넘기면 그 시험과 딸린 다리·크롬을 끊고(`taskkill /T`) 다음으로. 결과 `tools/logs/try_all_last.md` — 맨 위 한 줄 합계 + 표(시험 · 통과/전체 · 걸린 초 · 종료 · 실패 줄), 시험마다 찍은 글 `tools/logs/try_all_out/`. 실패가 있으면 종료 코드 1.
 - 통과/전체는 시험이 찍은 표의 `| 통과 |`·`| 실패 |` 줄을 센다(시험이 표를 안 찍고 죽으면 '표 없음' 실패).
+
+## 시험 두 층 (정비 나 ⑨)
+```
+node web2/tools/unit.mjs [모듈 …]     # 첫 층: 단위 시험(몇 초) — web2/tests_unit/<모듈>.test.mjs, 인자 없으면 전부 → tools/logs/unit_last.md
+node web2/tools/try_pick.mjs --why    # 둘째 층 고르기: '단위 시험 먼저: …' 한 줄 + 고친 파일이 닿는 통합 시험(try_*)
+```
+- 차례: 고친 모듈의 단위 시험 먼저 → 통과하면 고르개가 고른 통합 시험(가상 창·크롬)만 → 커밋 뒤 전체 시험(`try_all.mjs`, 단위 시험도 맨 앞에 돎).
+- 단위 시험 파일 꼴: `export default async function (t) { t.check(번호, 무엇, 기대, 실제, 맞나); }` — `t.src('ahead')` 앱 모듈, `t.cfg('config_ahead')` 앱 설정, `t.tools`·`t.app` 폴더. 다리·창 없이. 옛 try_* 안의 단위 시험은 아직 그대로(새로 만지는 모듈만 여기로).
+- **'파일 → 통합 시험' 표**(`tools/logs/cover_map.json`)는 손으로 적지 않는다: 전체 시험이 시험마다 node 내장 커버리지(`NODE_V8_COVERAGE`)를 켜고, 실제로 함수가 불린 `src/` 파일을 시험·부분마다 적는다(`config_try_all.json` 의 `cover`). 시험이 바뀌면 다음 전체 시험이 다시 만든다. 부분이 다 모인 시험(`complete`)만 고르개가 쓴다 — 그 시험이 고친 파일을 지나갔으면 고르고, 안 지나갔으면 안 고름. 크롬 안에서 도는 빌드 묶음은 node 커버리지에 안 잡혀 **크롬 시험은 표 + 낱말**을 함께 본다. 표가 없거나 덜 모인 시험은 정비 가 그대로(낱말 + import 거꾸로).
+- 뼈대(`app.js`·빌드·뼈대 html)를 고치면 앱을 띄우는 시험이 다 골라지는 것이 맞다(조립은 표가 아니라 '앱을 띄우는 시험'으로 잇는다).
+- 지금 단위 시험 파일: `ahead`('앞의 ○○' 를 제목과 상관없게) · `check4`(⑤ 판정, 갈림길 양쪽) · `lib_testbed`(남은 화면 물음 막기·한도 타이머) · `topic_station`(꽂는 자리·제목 고르기·격리) · `ui_topic`(제목 단추, 제목 하나/둘 양쪽) · `try_pick`(커버리지 표 고르기).
+
+## 남은 화면 물음 막기 (정비 나 0 — 추가1 크롬 실패의 까닭)
+- 크롬 시험 서버(`lib_chrome`·`try_add1`·`try_a7 shots`)와 보기(`view_s1`)는 `/v1/…` 를 다리로 넘기기 전에 `lib_testbed.strayGuard` 로 비밀 값 머리를 본다: 머리가 있는데 이번 실행 값과 다르면(앞 보기의 브라우저 탭이 남아 옛 값으로 묻는 것) 다리로 넘기지 않고 잠금 답(`testbed.lock_status`) — 다리의 '틀린 비밀 값 5번 → 30초 막음'이 안 쌓인다. 처음 하나만 기록장에 보낸 쪽·Referer 와 함께, 끝에 막은 수. 머리 없는 물음(stream·scene)은 그대로. 일부러 틀린 값을 다리까지 보내는 시험은 `strayGuard(…, {pass_wrong: true})`.
+- 크롬 창이 '준비 안 됨'이면 그때 상태 자리 글(`#ev-status` — `chrome.status_q`)을 실패 줄(추가1)·기록장(`lib_chrome`)에 같이 적는다. 크롬 시험이 '준비 안 됨'으로 실패하면 화면을 의심하기 전에 `testbed/logs/testbed.log` 에서 `앱 비밀 값 틀림`·`막힌 주소` 부터 본다.
+- 다리 끝 기다림·결과 기다림의 한도 타이머는 `raceLimit` 으로 — 먼저 끝나면 타이머를 지워 시험이 곧바로 끝난다(추가1 이 표를 다 찍고도 안 끝나 전체 시험 600초 한도에 끊기던 것).
 
 ## 정비 가 스스로 시험 — `try_ga.mjs`
 ```

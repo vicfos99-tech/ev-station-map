@@ -1,0 +1,214 @@
+{
+ "keys": {
+  "owner": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "where": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "app_piece": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "store_key": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "host_id": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "more_id": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "hash_key": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "type_attr": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "type_button": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "key_attr": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "pressed_attr": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "label_attr": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "yes": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "no": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "click_event": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "act_init": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "act_load": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "act_pick": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "word_loaded": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "word_restart": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "word_save_failed": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "word_no_location": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "word_no_host": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "hash_mark": {
+   "t": "str",
+   "min": 1,
+   "max": 4
+  },
+  "hash_eq": {
+   "t": "str",
+   "min": 1,
+   "max": 4
+  },
+  "hash_sep": {
+   "t": "str",
+   "min": 1,
+   "max": 4
+  },
+  "slot": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "other_panel_pieces": {
+   "t": "arr",
+   "max": 10,
+   "of": {
+    "t": "str",
+    "min": 1,
+    "max": 40
+   }
+  },
+  "ids.open": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ids.root": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ids.title": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ids.close": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ids.list": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "tags.item": {
+   "t": "str",
+   "min": 1,
+   "max": 20
+  },
+  "classes.item": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "texts.title": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "texts.close": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "texts.item_on": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "texts.none": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "texts.open_label": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "min_show": {
+   "t": "num",
+   "int": true,
+   "min": 1,
+   "max": 10
+  }
+ }
+}

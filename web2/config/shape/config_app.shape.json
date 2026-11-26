@@ -1,6 +1,8 @@
 {"keys": {
   "where": {"t": "str", "min": 1, "max": 40},
   "owner": {"t": "str", "min": 1, "max": 40},
+  "topic_prefix": {"t": "str", "min": 1, "max": 40},
+  "topic_note": {"t": "str", "min": 1, "max": 400},
   "events.start": {"t": "str", "min": 1, "max": 40},
   "events.error": {"t": "str", "min": 1, "max": 40},
   "events.rejection": {"t": "str", "min": 1, "max": 40},

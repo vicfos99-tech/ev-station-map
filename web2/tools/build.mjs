@@ -127,6 +127,11 @@ function main() {
   }
   for (const s of Object.keys(views)) if (!b.views_order.includes(s)) throw new Error('화면 차례(views_order)에 없는 조각: ' + s);
   const viewsHtml = b.views_order.filter((s) => views[s]).map((s) => views[s]).join('\n');
+  // (정비 나 ①) 제목 꾸러미: 머리에 KIND 'topic' 이 있는 모듈 → 제목 목록(이름 = 모듈 이름에서 topic_prefix 를 뗀 것). 조립은 목록만 받는다
+  const topicRx = new RegExp(b.topic_decl, 'm');
+  const topicNames = Object.keys(mods).filter((n) => topicRx.test(fs.readFileSync(path.join(srcDir, n + b.module_ext), 'utf8'))).sort();
+  for (const n of topicNames) if (!n.startsWith(b.topic_prefix)) throw new Error('제목 꾸러미 이름은 ' + b.topic_prefix + ' 로 시작: ' + n);
+  const topicsCode = '[' + topicNames.map((n) => '{ name: ' + JSON.stringify(n.slice(b.topic_prefix.length)) + ', module: ' + b.module_var_prefix + n + ' }').join(', ') + ']';
   const boardsCode = '[' + boardNames.map((n) => '{ name: ' + JSON.stringify(n) + ', module: ' + b.module_var_prefix + n + ', view: ' + JSON.stringify(boardViews[n]).replace(/<!--/g, '<\\u0021--') + ' }').join(', ') + ']';
   // 바깥 라이브러리
   const vendorJs = b.vendor_js.map((f) => fs.readFileSync(path.join(APP, f), 'utf8')).join('\n');
@@ -143,8 +148,11 @@ function main() {
     [b.marks.modules]: scriptSafe(modulesCode),
     [b.marks.entry]: b.module_var_prefix + b.entry_module + '.' + b.entry_export,
     [b.marks.boards]: scriptSafe(boardsCode),
+    [b.marks.topics]: scriptSafe(topicsCode),
   };
   for (const [mark, value] of Object.entries(fills)) {
+    // 옛 앱 사본(정비 나 전)은 뼈대에 제목 자리가 없고 꾸러미도 없다 — 그때만 빼고 짓는다
+    if (mark === b.marks.topics && !html.includes(mark) && !topicNames.length) continue;
     if (!html.includes(mark)) throw new Error('뼈대에 자리 표시가 없음: ' + mark);
     html = html.split(mark).join(value);
   }
@@ -153,8 +161,8 @@ function main() {
   fs.writeFileSync(path.join(a.out, b.out_file), html, 'utf8');
   fs.writeFileSync(path.join(a.out, b.stamp_file), JSON.stringify(buildInfo, null, b.json_indent), 'utf8');
   const kb = Math.round(Buffer.byteLength(html) / b.kb);
-  console.log(b.out_file + ' ' + kb + 'KB · 판 ' + buildInfo.stamp + ' · 모듈 ' + Object.keys(mods).length + ' · 판 ' + boardNames.length + '(' + boardNames.join(',') + ')' + ' · 설정 ' + Object.keys(raw.files).length + ' · 비밀 값 ' + (raw.files[b.secret_name] ? '넣음' : '안 넣음'));
-  log.write('끝', { result: 'ok', stamp: buildInfo.stamp, kb, modules: Object.keys(mods).length, boards: boardNames });
+  console.log(b.out_file + ' ' + kb + 'KB · 판 ' + buildInfo.stamp + ' · 모듈 ' + Object.keys(mods).length + ' · 판 ' + boardNames.length + '(' + boardNames.join(',') + ')' + ' · 제목 ' + topicNames.length + '(' + topicNames.join(',') + ')' + ' · 설정 ' + Object.keys(raw.files).length + ' · 비밀 값 ' + (raw.files[b.secret_name] ? '넣음' : '안 넣음'));
+  log.write('끝', { result: 'ok', stamp: buildInfo.stamp, kb, modules: Object.keys(mods).length, boards: boardNames, topics: topicNames });
 }
 
 try {

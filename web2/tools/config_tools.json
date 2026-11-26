@@ -30,14 +30,18 @@
     "view_ext": ".html",
     "style_prefix": "style_",
     "style_ext": ".css",
-    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_route", "ui_my", "ui_tap", "ui_odd", "ui_log"],
+    "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_route", "ui_my", "ui_topic", "ui_tap", "ui_odd", "ui_log"],
     "views_optional": ["ui_boards"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
+    "topic_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]topic['\"]",
+    "topic_prefix": "topic_",
+    "topic_config_prefix": "config_topic_",
+    "topic_note": "(정비 나 ①) 제목 꾸러미: 파일 머리에 KIND 'topic' 이 있는 모듈을 판처럼 주워 제목 목록(@@TOPICS@@ — 이름(모듈 이름에서 topic_prefix 를 뗀 것)·모듈)을 만든다. 조립은 목록을 읽을 뿐 제목 이름을 모른다. 옛 앱 사본(뼈대에 @@TOPICS@@ 가 없고 꾸러미도 없음)은 그대로 짓는다",
     "vendor_js": ["vendor/maplibre-gl.js"],
     "vendor_css": ["vendor/maplibre-gl.css"],
     "marks": {
       "title": "@@TITLE@@", "vendor_css": "@@VENDOR_CSS@@", "styles": "@@STYLES@@", "views": "@@VIEWS@@",
-      "config": "@@CONFIG@@", "vendor_js": "@@VENDOR_JS@@", "modules": "@@MODULES@@", "entry": "@@ENTRY@@", "boards": "@@BOARDS@@"
+      "config": "@@CONFIG@@", "vendor_js": "@@VENDOR_JS@@", "modules": "@@MODULES@@", "entry": "@@ENTRY@@", "boards": "@@BOARDS@@", "topics": "@@TOPICS@@"
     },
     "title": "충전 길잡이 (새 앱)",
     "secret_name": "config_app_secret",
@@ -98,11 +102,32 @@
     "import_star": "^\\s*import\\s*\\*\\s*as\\s+([A-Za-z_$][\\w$]*)\\s+from\\s*['\"]\\./([A-Za-z0-9_]+)\\.js['\"]\\s*;?\\s*$",
     "needs_decl": "export\\s+const\\s+NEEDS\\s*=\\s*\\[([^\\]]*)\\]",
     "kind_decl": "export\\s+const\\s+KIND\\s*=\\s*['\"]([a-z_]+)['\"]",
-    "kind_layer": {"board": "screen"},
+    "kind_layer": {"board": "screen", "topic": "topic"},
+    "kind_imports_allowed": {"topic": "*"},
+    "kind_note": "(정비 나 ①) 제목 꾸러미(KIND topic)는 조립처럼 그 제목의 받기·계산·화면 모듈을 불러 묶는다(import 허용 *, 층 topic) — 아무도 꾸러미를 import 하지 않는다(조립은 빌드가 준 목록으로만 받음)",
+    "plug": {
+      "note": "(정비 나 ⑥ — 설계 5-1) 기계 검사 ⑤ 꽂는 자리. 작업 트리(git status — 스테이지·새 파일 포함)에 새로 더한 파일 가운데 머리 KIND 가 new_kinds 이거나 이름이 new_name_re 인 것이 있으면 '판·제목 걸음'. 그때 고친 기존 파일(새 파일 아님)이 allowed_modified·allowed_modified_re 밖이면 실패 — 판·제목 꾸러미는 새 파일만 더하고, 꽂는 자리(build·app·ui_boards·config_statecalc·config_tools)는 기본 기능을 고칠 때만 고친다. 허용 = 설명서와 도구 기록장뿐",
+      "new_kinds": ["board", "topic"],
+      "new_name_re": ["^config/config_topic_[a-z0-9_]+\\.json$"],
+      "allowed_modified": ["README.md", "tools/README.md"],
+      "allowed_modified_re": ["^tools/logs/"],
+      "git_status": ["status", "--porcelain", "--untracked-files=all", "--", "."],
+      "git_prefix": ["rev-parse", "--show-prefix"],
+      "status_path_at": 3,
+      "rename_mark": " -> ",
+      "added_codes": ["??", "A ", "AM"],
+      "states": {"added": "new", "modified": "mod"}
+    },
     "deps_use":"\\bdeps\\s*\\.\\s*([A-Za-z_$][\\w$]*)",
     "imports_allowed": {
       "app": "*",
-      "ui_map": ["mapview"]
+      "ui_map": ["mapview"],
+      "engine": ["engine_model", "engine_range", "engine_status", "engine_price", "engine_list", "engine_pick"],
+      "engine_range": ["engine_model"],
+      "engine_status": ["engine_model"],
+      "engine_price": ["engine_model"],
+      "engine_list": ["engine_model", "engine_range", "engine_status", "engine_price"],
+      "engine_pick": ["engine_model", "engine_range"]
     },
     "module_layer": {
       "cfg": "cfg",
@@ -126,6 +151,12 @@
       "naviroute": "pure",
       "navi": "pure",
       "engine": "pure",
+      "engine_model": "pure",
+      "engine_range": "pure",
+      "engine_status": "pure",
+      "engine_price": "pure",
+      "engine_list": "pure",
+      "engine_pick": "pure",
       "planinput": "pure",
       "mine": "pure",
       "tapdist": "pure",
@@ -156,6 +187,8 @@
       "ui_route": "screen",
       "ui_my": "screen",
       "ui_tap": "screen",
+      "ui_topic": "screen",
+      "topicpick": "pure",
       "app": "app"
     },
     "layer_may_need": {
@@ -170,6 +203,7 @@
       "runner": ["cfg", "log", "store", "state", "pure", "platform"],
       "screen_part": ["pure", "platform"],
       "screen": ["cfg", "log", "store", "state", "pure", "platform"],
+      "topic": ["*"],
       "app": ["*"]
     },
     "extra_needs": {
@@ -209,9 +243,10 @@
       "navi": "navi",
       "engine": "engine",
       "planinput": "planinput",
-      "mine": "mine"
+      "mine": "mine",
+      "topicpick": "topicpick"
     },
-    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send"],
+    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send", "topic_rows", "topic_list"],
     "banned_everywhere": [
       "\\bnew\\s+(Logger|Store|Config|State)\\b",
       "\\bgetInstance\\b",
@@ -400,6 +435,8 @@
     "kill_args_after_pid": ["/T", "/F"],
     "measure_path": "/measure",
     "result_path": "/measure-result",
+    "status_q": "#ev-status",
+    "status_q_note": "(정비 나 0-②) 창이 준비 안 됨이면 이 자리 글을 기록장에 같이 적는다",
     "bridge_seconds": 130,
     "total_wait_ms": 115000,
     "exit_grace_ms": 20000,
