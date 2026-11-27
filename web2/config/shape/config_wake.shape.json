@@ -1,0 +1,23 @@
+{"keys": {
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "on": {"t": "bool"},
+  "app_piece": {"t": "str", "min": 1, "max": 40},
+  "conn_piece": {"t": "str", "min": 1, "max": 40, "re": "^conn\\."},
+  "kind": {"t": "str", "min": 1, "max": 20},
+  "vis_event": {"t": "str", "min": 1, "max": 40},
+  "visible_word": {"t": "str", "min": 1, "max": 20},
+  "release_event": {"t": "str", "min": 1, "max": 20},
+  "codes.unsupported": {"t": "str", "min": 1, "max": 20},
+  "codes.denied": {"t": "str", "min": 1, "max": 20},
+  "why_start": {"t": "str", "min": 1, "max": 20},
+  "why_visible": {"t": "str", "min": 1, "max": 20},
+  "act_init": {"t": "str", "min": 1, "max": 20},
+  "act_request": {"t": "str", "min": 1, "max": 20},
+  "words.start": {"t": "str", "min": 1, "max": 40},
+  "words.got": {"t": "str", "min": 1, "max": 40},
+  "words.released": {"t": "str", "min": 1, "max": 40},
+  "words.fail": {"t": "str", "min": 1, "max": 40},
+  "words.off": {"t": "str", "min": 1, "max": 40},
+  "words.skip_hidden": {"t": "str", "min": 1, "max": 40}
+}}

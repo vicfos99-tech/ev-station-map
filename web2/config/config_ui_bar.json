@@ -1,0 +1,24 @@
+{
+  "note": "(11/26 묘성) 아래 띠 단추 그림 글자(ui_bar). mode = narrow(좁은 창 — 560px 이하 — 에서만 그림 글자, 처음 값) · always(늘 그림 글자) · never(늘 글). buttons = 그림 글자를 붙일 단추(cfg·key = 그 단추를 만드는 모듈의 설정 이름과 id 칸 — key_sep 로 나눈 길. id 를 여기 다시 적지 않음: 원칙 점검 설정 중복)와 글자(글자 바꾸기는 여기 한 줄). 그림 글자로 보일 때 단추는 48×48, 화면 읽기 글(aria-label)은 글로 남김 — 이미 있는 단추(제목 단추)는 그대로, 없는 단추는 지금 글을 넣고 글이 바뀌면 따라 고침(observe = MutationObserver 에 줄 것). 좁은 세로 창(360)에서 아래 띠 한 줄 344px — 판이 밀리지 않음(시험 tools/try_fix27.mjs)",
+  "owner": "ui_bar",
+  "where": "ui_bar",
+  "mode": "narrow",
+  "modes": {"narrow": "narrow", "always": "always", "never": "never"},
+  "mode_attr": "data-bar-glyph",
+  "glyph_attr": "data-glyph",
+  "label_attr": "aria-label",
+  "buttons": [
+    {"cfg": "config_ui_map", "key": "ids.me", "glyph": "◎"},
+    {"cfg": "config_ui_map", "key": "ids.only3", "glyph": "③"},
+    {"cfg": "config_ui_topic", "key": "ids.open", "glyph": "⇄"},
+    {"cfg": "config_ui_route", "key": "ids.open", "glyph": "≡"},
+    {"cfg": "config_ui_my", "key": "ids.open", "glyph": "🚗"},
+    {"cfg": "config_ui_log", "key": "open_id", "glyph": "📝"}
+  ],
+  "key_sep": ".",
+  "observe": {"childList": true, "characterData": true, "subtree": true},
+  "word_set": "bar_glyph",
+  "word_missing": "bar_glyph_missing",
+  "act_init": "init",
+  "act_label": "label"
+}

@@ -68,8 +68,11 @@ export function srcViews(app, tc) {
 
 export function fakeWin() {
   // copied = 복사 단추가 넘긴 글(A4). navigator.clipboard 를 null 로 바꾸면 복사 실패 길
+  // (11/27) wakeLock = 화면 깨움 유지(wake.js) — 잡힌 횟수 wakes. navigator.wakeLock 을 null 로 바꾸면 '지원 안 됨' 길
   const copied = [];
-  return { innerWidth: 1280, innerHeight: 720, listeners: {}, copied, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, navigator: { clipboard: { writeText: async (t) => { copied.push(t); } } }, Blob, URL };
+  const wakes = [];
+  const wakeLock = { request: async (kind) => { const s = { kind, released: false, addEventListener() {}, release: async () => { s.released = true; } }; wakes.push(s); return s; } };
+  return { innerWidth: 1280, innerHeight: 720, listeners: {}, copied, wakes, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, navigator: { clipboard: { writeText: async (t) => { copied.push(t); } }, wakeLock }, Blob, URL };
 }
 
 // 가짜 지도 라이브러리: 'load' 와 첫 그림 조각을 곧바로 알리고, 점 옮김(moves)·카메라 명령(jumps)·층 켬끔·번호 표시(Marker)를 적는다.

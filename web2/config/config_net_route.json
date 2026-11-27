@@ -47,6 +47,16 @@
     "max_per_press": 100,
     "stop_codes": ["home_off", "offline", "timeout", "status_fail", "busy", "quota", "lock", "gate"]
   },
+  "resume": {
+    "note": "(묘성 11/27 ②) 다시 켜면 고른 길로 돌아오기. on = 켬·끔. 검사를 통과한 길 답(집 PC 답 그대로 + 목적지)을 Store 키 store_key 에 남기고(새 답마다), '경로 지우기'(clear_piece)면 비운다. 앱이 좋음이 되면 남긴 답을 같은 검사(naviroute.checkRoute)로 다시 보고 answer 조각으로 다시 낸다 — 다시 길을 묻지 않음(집 PC·인터넷이 없어도 바로 그림). 낼 때 요청 번호는 seq(0 — 화면의 첫 요청 번호 1 보다 작아 새 길·지우기가 늘 이김). 남긴 지 max_age_ms(12시간) 넘은 답은 버림(어제 길이 돌아오지 않게)",
+    "on": true,
+    "store_key": "route",
+    "clear_piece": "route.clear",
+    "seq": 0,
+    "max_age_ms": 43200000,
+    "words": {"saved": "route_saved", "save_fail": "route_save_fail", "cleared": "route_save_cleared", "restored": "route_restored", "none": "route_restore_none", "old": "route_restore_old", "bad": "route_restore_bad", "skip": "route_restore_skip", "off": "route_resume_off"},
+    "act": "resume"
+  },
   "where": "net_route",
   "act_place": "place",
   "act_route": "route",

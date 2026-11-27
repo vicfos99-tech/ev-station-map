@@ -34,8 +34,9 @@ node web2/tools/principles_run.mjs check --all            # 저장소 전체 + �
 node web2/tools/principles_run.mjs check --files src/x.js # 고른 파일만
 node web2/tools/principles_run.mjs judge --files src/x.js --force   # 판단 점검 손으로 한 번(돈 듦)
 ```
-- 커밋 전 걸쇠가 check4 다음에 `check --staged`(바뀐 파일만)를 돌린다. 막을지는 `block_on_fail`(지금 **거짓 — 알리기만**).
-- 커밋 뒤 걸쇠가 `judge --commit <커밋>` 을 뒤에서 띄운다. `judge.auto` 가 **거짓**(지금)이면 모델을 부르지 않고 끝난다 — 켜려면 그 한 줄을 `true` 로.
+- 커밋 전 걸쇠가 check4 다음에 `check --staged`(바뀐 파일만)를 돌린다. 막을지는 `block_on_fail`(지금 **참 — 스크립트 점검 위반이면 커밋을 막음**, 묘성 11/27). 일부러 넘길 줄은 그 줄·윗줄에 `원칙점검:허용 <까닭>`.
+- 같은 곳(점검 + 파일 + 줄 내용)이 커밋 시도에서 **세 번**(`stuck.threshold`) 연달아 막히면 텔레그램으로 한 번 묻고 알림에 한 줄 — 그 곳이 든 커밋만 계속 막히고, 통과하면 수를 지운다(상태 `tools/logs/원칙점검_막힘_상태.json`). 텔레그램 토큰이 없으면 알림 한 줄로 대신.
+- 커밋 뒤 걸쇠가 `judge --commit <커밋>` 을 뒤에서 띄운다 — **절대 막지 않음**. `judge.auto` **참**(지금, 묘성 11/27 — 커밋마다). 하루(한국 날짜) 돈 한도 `judge.daily_budget_usd`(지금 2달러)를 넘길 것 같으면 그날은 부르지 않고 알림 한 줄(그날 한 번). 상위 모델(오퍼스) 다시 보기는 처음 3번(`judge.upper.max_runs`), 소넷과 갈리면 결과 파일(`tools/logs/원칙점검_판단_결과.jsonl` 의 `split`)·알림에 한 줄.
 - 문제가 있을 때만 `<작업 폴더>/90_임시/실행요청/원칙점검_알림.md` 에 한 줄. 기록장은 `tools/logs/원칙점검_*.log`.
 
 ## 빌드 — `build.mjs`
@@ -84,6 +85,12 @@ node web2/tools/try_fix7.mjs chrome-old <앱 사본 폴더>   # 같은 재기를
 - ④ 보기 bat 과 같은 S2 창(틱 460·60초)을 가상 창으로 돌려 속도판 글을 1초마다 적는다(다리 창 동안 / 끝난 뒤).
 - ①②③⑤⑦ `lib_chrome.mjs`: 앱을 빌드해 작은 서버(`127.0.0.1:5173` — 보기 도구와 함께 돌리지 않는다)에 내고, **크롬을 창 없이** 띄워 정한 크기의 iframe(넓은 가로·좁은 가로·좁은 세로 둘 — `layout.frames`)에 앱을 차례로 연다. 실제로 그린 상자(`getBoundingClientRect`)와 **그 자리에 실제로 보이는 것**(`elementFromPoint` — 가운데와 네 귀퉁이)을 재서: 충전소판 줄·거리·속도 숫자·지도 저작권 글이 가려지지 않음, 단추·메모 칸과 겹치는 넓이 0, 구분선 목록 모양, 세 칸 배치(세로 창도 왼편·가운데·오른편), 숫자 잘림, 누르는 높이 48px. 잰 값 통째는 `tools/logs/try_fix7_chrome.json`.
 - 한계: 창 없는 크롬의 글꼴·그림(소프트웨어 WebGL)이라 묘성 폰·PC 크롬과 글꼴 폭이 조금 다를 수 있다.
+
+## 11/27 — `try_fix27.mjs` (제목 단추 자리 · 아래 띠 그림 글자, 진짜 크롬)
+```
+node web2/tools/try_fix27.mjs   # 약 2분 30초(다리가 끝날 때까지)
+```
+- `config_ui_topic.min_show` 를 1 로 바꾼 빌드(아래 띠가 가장 붐빔)를 넓은 가로·좁은 세로 400·폰 세로 360 에서: ① 양옆 판·아래 띠 단추 화면 안 · 페이지 가로 넘침 0 ② 단추 48px 이상 · 가림 0 · 화면 읽기 글 · 좁은 창이면 그림 글자 ③ 제목 단추 누름 → 목록 칸이 가운데 기둥 안. 값 `config_try_fix27.json`, 표 `tools/logs/try_fix27_last.md`, 잰 값 `try_fix27_chrome.json`, 상태 자리 글은 기록장에.
 
 ## 스스로 시험 — `try_a3.mjs` (A3 지도)
 ```

@@ -25,7 +25,23 @@
    "min": 1,
    "max": 40
   },
-  "more_id": {
+  "button_slot.host_id": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "button_slot.index": {
+   "t": "num",
+   "int": true,
+   "min": -1,
+   "max": 20
+  },
+  "word_slot": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "texts.open": {
    "t": "str",
    "min": 1,
    "max": 40
@@ -212,7 +228,7 @@
   "texts.open_label": {
    "t": "str",
    "min": 1,
-   "max": 40
+   "max": 60
   },
   "min_show": {
    "t": "num",

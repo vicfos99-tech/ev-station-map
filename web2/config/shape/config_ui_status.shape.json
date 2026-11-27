@@ -22,6 +22,7 @@
   "texts.need_names": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
   "texts.src_names": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
   "texts.src_line": {"t": "str", "min": 1, "max": 120},
+  "texts.src_line_by_src": {"t": "map", "of": {"t": "str", "min": 1, "max": 120}},
   "texts.why_words": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
   "texts.why_by_src": {"t": "map", "of": {"t": "map", "of": {"t": "str", "min": 1, "max": 60}}},
   "texts.time_pattern": {"t": "str", "min": 2, "max": 20}

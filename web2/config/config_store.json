@@ -1,7 +1,7 @@
 {
-  "note": "데이터 폴더(브라우저 개인 파일 저장소 안)와 저장 키. records = 기록 하나가 파일 하나인 종류(A2-나 '이상해'): 이름 목록 파일(index_file)·판 번호·보관 개수(keep — 넘으면 오래된 것부터 지움). (A6) odd_sent = 올린 '이상해' 기록 이름 목록(쓰는 모듈은 RouteClient 하나 — 설계 5-9)",
+  "note": "데이터 폴더(브라우저 개인 파일 저장소 안)와 저장 키. records = 기록 하나가 파일 하나인 종류(A2-나 '이상해'): 이름 목록 파일(index_file)·판 번호·보관 개수(keep — 넘으면 오래된 것부터 지움). (A6) odd_sent = 올린 '이상해' 기록 이름 목록(쓰는 모듈은 RouteClient 하나 — 설계 5-9). (11/27) session = 지난번 마지막 표시(쓰는 모듈 resume — 꺼진 까닭 로그), route = 마지막 고른 길 답(쓰는 모듈 RouteClient — 다시 켜면 그 길을 다시 그림)",
   "dir": "data",
-  "keys": {"my": {"file": "my.json", "v": 1}, "mapcam": {"file": "mapcam.json", "v": 1}, "limit": {"file": "limit.json", "v": 1}, "odd_sent": {"file": "odd_sent.json", "v": 1}, "topic": {"file": "topic.json", "v": 1}},
+  "keys": {"my": {"file": "my.json", "v": 1}, "mapcam": {"file": "mapcam.json", "v": 1}, "limit": {"file": "limit.json", "v": 1}, "odd_sent": {"file": "odd_sent.json", "v": 1}, "topic": {"file": "topic.json", "v": 1}, "session": {"file": "session.json", "v": 1}, "route": {"file": "route.json", "v": 1}},
   "records": {"odd": {"index_file": "odd_index.json", "v": 1, "keep": 300}},
   "version_key": "v",
   "value_key": "value",

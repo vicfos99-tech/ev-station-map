@@ -1,0 +1,15 @@
+{
+  "note": "(묘성 11/27 ②) 꺼진 까닭 남기기(resume — SessionMark). on = 켬·끔. 폰 데이터 폴더 Store 키 store_key 에 '마지막 표시'(marks — 켬 start · 보임 visible · 숨김 hidden · 내림 pagehide)를 그때그때 적고, 다음에 켤 때 그것으로 지난번 끝(ends — 처음 first · 깨끗이 닫힘 clean = pagehide 를 적음 · 예기치 않게 꺼짐 unexpected = 깨끗한 닫힘 표시 없음, while = 숨긴 채/보이는 채)을 로그 한 줄(words.last_end — 예기치 않으면 warn). 하던 자리로 돌아오기(제목·지도 카메라·고른 길)는 저마다의 모듈(ui_topic · ui_map · net_route.resume)",
+  "owner": "resume",
+  "where": "resume",
+  "on": true,
+  "store_key": "session",
+  "events": {"vis": "visibilitychange", "hide": "pagehide", "show": "pageshow"},
+  "visible_word": "visible",
+  "marks": {"start": "start", "visible": "visible", "hidden": "hidden", "pagehide": "pagehide"},
+  "ends": {"first": "first", "clean": "clean", "unexpected": "unexpected"},
+  "act_init": "init",
+  "act_start": "start",
+  "act_mark": "mark",
+  "words": {"last_end": "last_end", "mark": "session_mark", "write_fail": "session_write_fail", "off": "resume_off"}
+}

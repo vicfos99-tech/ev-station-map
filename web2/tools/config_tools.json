@@ -31,7 +31,7 @@
     "style_prefix": "style_",
     "style_ext": ".css",
     "views_order": ["ui_status", "ui_drive", "ui_locate", "ui_map", "ui_station", "ui_navi", "ui_route", "ui_my", "ui_topic", "ui_tap", "ui_odd", "ui_log"],
-    "views_optional": ["ui_boards"],
+    "views_optional": ["ui_boards", "ui_bar"],
     "board_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]board['\"]",
     "topic_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]topic['\"]",
     "topic_prefix": "topic_",
@@ -188,6 +188,9 @@
       "ui_my": "screen",
       "ui_tap": "screen",
       "ui_topic": "screen",
+      "ui_bar": "screen",
+      "wake": "client",
+      "resume": "client",
       "topicpick": "pure",
       "app": "app"
     },
@@ -304,6 +307,8 @@
     "limit_shim": {
       "note": "(A5) 중계 R5 전이라 시험 다리가 제한 속도 파일을 내주지 않는다. 시험·보기 도구만 다리 자료 길의 제한 속도 파일 이름(앱 config_relay_limit)을 지금 장면의 limits 로 만든 파일로 대신 답한다(lib_testbed.limitFiles). piece_m = 좌표 조각을 자르는 길이. 없는 파일은 다리처럼 none(404), 시험이 끊김을 켜면 upstream(502, 자료 길)",
       "piece_m": 500,
+      "real_source": "config/limit_source.json",
+      "real_source_note": "(2026-11-27) 실제 제한 속도 출처 설정 — 테스트 베드 폴더(testbed.dir) 기준. 그 설정 use_scenes 의 장면은 lines 의 선 조각 제한 속도를 뽑은 표(오픈스트리트맵 등)로 내준다(lib_testbed.limitFiles)",
       "id_sep": "-",
       "at_text": "20261125230000",
       "earth_radius_m": 6371008.8,

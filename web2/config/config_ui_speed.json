@@ -19,5 +19,35 @@
     "size_var": "--ev-speed-size",
     "size_unit": "px",
     "size_attr": "data-size"
+  },
+  "sign": {
+    "note": "(2026-11-27) 제한 속도 표지판 — 흰 바탕(bg_color) 둥근 판 + 빨간 테두리(ring_color, 두께 ring_px) + 검은 숫자(ink_color, 크기 font_px), 판 지름 size_px. 좁은 판(style_ui_speed.css 의 @container 폭 아래)은 small_*. 넘음·위험이면 판 둘레 빛 테 halo_px(주의 halo_over_color · 위험 halo_danger_color — 속도판 두 상태 테두리 색과 같음). 값이 없으면 판을 숨김(CSS). ui_speed.js 가 vars(칸 이름 → CSS 변수 이름)대로 판 뿌리에 넣는다 — 숫자 칸은 뒤에 unit 을 붙임. 숫자 세 자리(110)가 판 안에 들어가게: max_digits × digit_em × font_px ≤ size_px − 2 × ring_px",
+    "size_px": 56,
+    "small_size_px": 44,
+    "font_px": 22,
+    "small_font_px": 17,
+    "ring_px": 5,
+    "small_ring_px": 4,
+    "halo_px": 3,
+    "bg_color": "#ffffff",
+    "ring_color": "#dc2626",
+    "ink_color": "#111827",
+    "halo_over_color": "#fbbf24",
+    "halo_danger_color": "#fecaca",
+    "unit": "px",
+    "vars": {
+      "size_px": "--ev-sign-size",
+      "small_size_px": "--ev-sign-size-small",
+      "font_px": "--ev-sign-font",
+      "small_font_px": "--ev-sign-font-small",
+      "ring_px": "--ev-sign-ring",
+      "small_ring_px": "--ev-sign-ring-small",
+      "halo_px": "--ev-sign-halo",
+      "bg_color": "--ev-sign-bg",
+      "ring_color": "--ev-sign-ring-color",
+      "ink_color": "--ev-sign-ink",
+      "halo_over_color": "--ev-sign-halo-over",
+      "halo_danger_color": "--ev-sign-halo-danger"
+    }
   }
 }

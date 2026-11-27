@@ -10,6 +10,10 @@
   "full_turn_deg": 360,
   "only3_default": false,
   "saved_bools": ["follow", "bearing_locked", "zoom_locked", "only3"],
+  "center_note": "(11/27 묘성 ②) 손으로 옮겨 따라가기를 끈 채 꺼졌으면 다시 열 때 그 가운데로. 저장 값의 가운데 [경도, 위도] 를 받을 범위(center_lng·center_lat = [작은, 큰] — 지구 전체, 틀린 값만 거름)와 칸 수",
+  "center_len": 2,
+  "center_lng": [-180, 180],
+  "center_lat": [-90, 90],
   "user_event": "user_event",
   "fix_word": "fix"
 }

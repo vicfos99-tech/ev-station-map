@@ -1,0 +1,584 @@
+{
+  "schema_version": 1,
+  "name": "S18_주소검색경로_실선",
+  "title": "주소 검색과 경로(실제 도로 모양)",
+  "description": "경부고속도로 부산 방향 선 km 40→52 를 시속 95 로 달리는 동안 주소 검색(/v1/place)과 경로(/v1/route)의 답이 시간표대로 바뀐다: 0~120초 정해 둔 답('휴게소'·'안성'이 든 검색은 실제 휴게소 세 곳, 그 밖은 빈 목록 / 경로는 장면 길), 120~240초 느린 답(3초 늦게), 240~360초 실패 답(검색 502 upstream — 카카오 실패, 경로 504 home_off — 집 PC 답 없음), 360초부터 다시 정해 둔 답. 시험하는 것: 검색 칸·경로 그리기, 늦을 때 화면 상태 유지와 시간 한도, 실패 때 까닭 한 줄, 돌아온 뒤 다시 됨. — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 경로 답(scene_route)도 이 선 모양으로 나간다. 검색 답의 휴게소 자리는 옛 장면 그대로(실제 좌표). 위 설명의 km 는 옛 직선 km — 새 km 는 route",
+  "data_source": {
+    "real": true,
+    "from": "선: scenes/lines/gyeongbu_down_osm.json(오픈스트리트맵 실제 도로 모양 — © OpenStreetMap contributors, ODbL). 휴게소·충전소: 옛 장면과 같음 — 선: scenes/lines/gyeongbu_down.json. 휴게소·충전소·충전기 id·처음 상태와 검색 답의 휴게소 이름·자리: 중계 자료 사본 90_임시/중계자료_사본_2026-11-25 의 routes.json + stations/<시군구>.json — tools/pick_stations.py 로 뽑음",
+    "taken_at": "2026-11-25 10:17 (중계 자료 사본, 한국 시각)",
+    "note": "길·휴게소·충전소, 검색 답의 휴게소 이름·자리는 실제 자료다. 검색 답의 주소 글은 지어내지 않고 '(시험용 — 주소 없음)'. 늦춤 3초·실패 시각은 시험용 값이다(앱 시간 한도가 정해지면 늦춤을 그보다 길게 고친다). [실자료판] 길(선)은 실제 도로 모양이고, 선 조각·속도·제한 구간의 km 는 옛 직선 km 자리를 새 선에 내려 옮긴 값, 휴게소 km 는 휴게소 좌표를 새 선에 내려 다시 셈한 값이다."
+  },
+  "route": {
+    "legs": [
+      {
+        "kind": "line",
+        "line": "gyeongbu_down_osm",
+        "from_km": 40.52,
+        "to_km": 53.92,
+        "note": "기흥휴게소 지나 → 안성휴게소 앞 (이 글의 km 는 옛 직선 km — 새 선 km 는 from_km·to_km)"
+      }
+    ]
+  },
+  "speeds": [
+    {
+      "leg": 0,
+      "from_km": 40.52,
+      "to_km": 53.92,
+      "kmh": 95
+    }
+  ],
+  "stops": [],
+  "emit": {
+    "fields": [
+      "t",
+      "lat",
+      "lng",
+      "speed_kmh",
+      "heading_deg",
+      "accuracy_m"
+    ],
+    "accuracy_m": 5,
+    "heading": "from_path",
+    "speed": "device",
+    "note": "S1 과 같음"
+  },
+  "limits": [
+    {
+      "leg": 0,
+      "from_km": 40.52,
+      "to_km": 53.92,
+      "limit_kmh": 100,
+      "note": "시험용 값"
+    }
+  ],
+  "stations": [
+    {
+      "id": "live-gb-down-3",
+      "name": "안성휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down_osm",
+      "km": 60.75,
+      "loc": [
+        37.01329,
+        127.14488
+      ],
+      "operators": [
+        {
+          "station_id": "HD000003",
+          "operator": "현대자동차",
+          "maker": "채비",
+          "loc": [
+            37.0129,
+            127.14522
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "HY001966",
+          "operator": "현대엔지니어링",
+          "maker": "이브이시스",
+          "loc": [
+            37.0129,
+            127.14522
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "comm_error"
+            }
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME18B303",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            37.01341,
+            127.1448
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "11",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "12",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "안성(부산) 휴게소",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST601529",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            37.01437,
+            127.14392
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "charging"
+            }
+          ],
+          "name": "안성휴게소 (부산)",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-down-4",
+      "name": "망향휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down_osm",
+      "km": 79.61,
+      "loc": [
+        36.85422,
+        127.18044
+      ],
+      "operators": [
+        {
+          "station_id": "SGMAC044",
+          "operator": "SK시그넷",
+          "maker": "시그넷",
+          "loc": [
+            36.85431,
+            127.18047
+          ],
+          "chargers": [
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "망향휴게소(부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST441324",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            36.85418,
+            127.18043
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "망향휴게소 (부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-down-5",
+      "name": "천안호두휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down_osm",
+      "km": 98.76,
+      "loc": [
+        36.73043,
+        127.26335
+      ],
+      "operators": [
+        {
+          "station_id": "EC440004",
+          "operator": "이지차저",
+          "maker": "시그넷",
+          "loc": [
+            36.73043,
+            127.26308
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "천안호두휴게소 (부산방향) (급)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME21A209",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            36.73042,
+            127.26388
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "charging"
+            }
+          ],
+          "name": "천안호두(부산) 휴게소",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        }
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "t_s": 120,
+      "type": "response_mode",
+      "path": "/v1/place",
+      "mode": "slow"
+    },
+    {
+      "t_s": 120,
+      "type": "response_mode",
+      "path": "/v1/route",
+      "mode": "slow"
+    },
+    {
+      "t_s": 240,
+      "type": "response_mode",
+      "path": "/v1/place",
+      "mode": "fail"
+    },
+    {
+      "t_s": 240,
+      "type": "response_mode",
+      "path": "/v1/route",
+      "mode": "fail"
+    },
+    {
+      "t_s": 360,
+      "type": "response_mode",
+      "path": "/v1/place",
+      "mode": "found"
+    },
+    {
+      "t_s": 360,
+      "type": "response_mode",
+      "path": "/v1/route",
+      "mode": "scene"
+    }
+  ],
+  "responses": {
+    "/v1/place": [
+      {
+        "mode": "found",
+        "match": "휴게소|안성",
+        "status": 200,
+        "delay_ms": 0,
+        "body": {
+          "v": 1,
+          "ok": true,
+          "source": "store",
+          "places": [
+            {
+              "kind": "place",
+              "name": "안성휴게소(부산방향)",
+              "addr": "(시험용 — 주소 없음)",
+              "loc": [
+                37.01329,
+                127.14488
+              ]
+            },
+            {
+              "kind": "place",
+              "name": "안성휴게소(서울방향)",
+              "addr": "(시험용 — 주소 없음)",
+              "loc": [
+                37.07617,
+                127.13263
+              ]
+            },
+            {
+              "kind": "place",
+              "name": "망향휴게소(부산방향)",
+              "addr": "(시험용 — 주소 없음)",
+              "loc": [
+                36.85422,
+                127.18044
+              ]
+            }
+          ]
+        },
+        "note": "검색 글에 '휴게소' 나 '안성' 이 들면"
+      },
+      {
+        "mode": "found",
+        "status": 200,
+        "delay_ms": 0,
+        "body": {
+          "v": 1,
+          "ok": true,
+          "source": "store",
+          "places": []
+        },
+        "note": "그 밖의 검색 — 찾은 곳 없음"
+      },
+      {
+        "mode": "slow",
+        "status": 200,
+        "delay_ms": 3000,
+        "body": {
+          "v": 1,
+          "ok": true,
+          "source": "kakao",
+          "places": [
+            {
+              "kind": "place",
+              "name": "안성휴게소(부산방향)",
+              "addr": "(시험용 — 주소 없음)",
+              "loc": [
+                37.01329,
+                127.14488
+              ]
+            }
+          ]
+        },
+        "note": "3초 늦게"
+      },
+      {
+        "mode": "fail",
+        "status": 502,
+        "delay_ms": 0,
+        "body": {
+          "v": 1,
+          "ok": false,
+          "code": "upstream",
+          "src": "home"
+        },
+        "note": "카카오 실패"
+      }
+    ],
+    "/v1/route": [
+      {
+        "mode": "scene",
+        "status": 200,
+        "delay_ms": 0,
+        "build": "scene_route",
+        "note": "장면 길을 우리 모양 길 답으로"
+      },
+      {
+        "mode": "slow",
+        "status": 200,
+        "delay_ms": 3000,
+        "build": "scene_route",
+        "note": "3초 늦게"
+      },
+      {
+        "mode": "fail",
+        "status": 504,
+        "delay_ms": 0,
+        "body": {
+          "v": 1,
+          "ok": false,
+          "code": "home_off",
+          "src": "home"
+        },
+        "note": "집 PC 답 없음"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "note": "(정비 나 ③) 제목 바꾸기 단추(ui_topic). 단추는 아래 띠 더 보기 자리(more_id — 추가1 의 자리를 정해 둔 칸, 맨 앞)에, 목록 칸은 가운데 기둥(host_id — 지도 아래)에. 고르면 Store 키 store_key 에 '마지막에 쓴 제목'으로 남기고 주소 꼬리(hash_mark + hash_key + hash_eq + 제목 키)를 바꿔 다시 켠다 — 조립이 켤 때 그 꼬리로 제목을 고른다(topicpick). 다른 칸(other_panel_pieces)이 열리면 목록 칸은 닫힌다. texts.item_on 의 slot 자리에 켠 제목 글",
+  "note": "(정비 나 ③) 제목 바꾸기 단추(ui_topic). 단추 글 = texts.open 의 slot 자리에 지금 제목(예: '충전소 ▾'), 화면 읽기 글 = texts.open_label. 단추 자리 = button_slot(11/26 묘성 — 아래 단추 줄의 묶음 host_id 의 index 째. 0 = 맨 앞, 묶음 길이 이상·음수 = 맨 뒤. 묶음: ev-map-bar = 내 위치·세 곳만 / ev-more = 목록·내 차. 처음 값 ev-more 맨 앞). 좁은 창에서 단추 글을 그림 글자로 바꾸는 것은 config_ui_bar. 목록 칸은 가운데 기둥(host_id — 지도 아래)에. 고르면 Store 키 store_key 에 '마지막에 쓴 제목'으로 남기고 주소 꼬리(hash_mark + hash_key + hash_eq + 제목 키)를 바꿔 다시 켠다 — 조립이 켤 때 그 꼬리로 제목을 고른다(topicpick). 다른 칸(other_panel_pieces)이 열리면 목록 칸은 닫힌다. texts.item_on 의 slot 자리에 켠 제목 글",
   "owner": "ui_topic",
   "where": "ui_topic",
   "app_piece": "health.app",
@@ -9,7 +9,7 @@
   ],
   "store_key": "topic",
   "host_id": "ev-center",
-  "more_id": "ev-more",
+  "button_slot": {"host_id": "ev-more", "index": 0},
   "hash_mark": "#",
   "hash_key": "topic",
   "hash_eq": "=",
@@ -41,7 +41,8 @@
     "close": "닫기",
     "item_on": "{label} (지금)",
     "none": "제목 없음",
-    "open_label": "제목 바꾸기"
+    "open": "{label} ▾",
+    "open_label": "제목 바꾸기 — 지금 {label}"
   },
   "act_init": "init",
   "act_load": "load",
@@ -53,6 +54,7 @@
   "word_save_failed": "topic_save_failed",
   "word_no_location": "no_location",
   "word_no_host": "no_host",
+  "word_slot": "topic_slot",
   "min_show": 2,
-  "min_show_note": "(정비 나 갈림길 3) 제목이 이만큼 있어야 단추가 보인다. 지금은 충전소 하나라 숨김 — 좁은 세로 창(360×740)에서 아래 띠에 단추 하나 더 들어갈 폭이 없어(A3 크롬 시험: 오른편 판이 x 382 로 밀림) 충전소 화면을 그대로 두려고. 둘째 제목(화장실) 걸음 전에 좁은 창의 단추 자리를 정해야 함(정할 것)"
+  "min_show_note": "(정비 나 갈림길 3 → 11/27) 제목이 이만큼 있어야 단추가 보인다(처음 값 2 — 제목이 하나면 바꿀 것이 없어 숨김). 1 로 바꾸면 제목 하나여도 보인다. 좁은 세로 창(360×740)에서 판이 밀리던 것(A3 크롬 시험: 오른편 판이 x 382)은 아래 띠 단추를 좁을 때 그림 글자 48px 로 줄여(config_ui_bar) 풂 — 시험 tools/try_fix27.mjs 가 이 값을 1 로 바꾼 빌드에서 판 오른쪽 끝을 잰다"
 }

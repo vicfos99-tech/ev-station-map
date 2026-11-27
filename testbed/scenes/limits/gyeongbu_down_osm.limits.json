@@ -1,0 +1,100 @@
+{
+  "line": "gyeongbu_down_osm",
+  "source": "osm",
+  "real": true,
+  "from": "OpenStreetMap (Overpass API) — © OpenStreetMap contributors, ODbL 1.0 (Open Database License) (https://www.openstreetmap.org/copyright). 원본: gyeongbu_down_osm_2026-11-26_2146.osm.json (작업 폴더의 30_자료/도로선). 만든 도구: testbed/tools/limit_table.py",
+  "taken_at": "2026-11-26 21:46 (받은 때, 한국 시각) · 자료 시각 2026-11-26T12:44:47Z (UTC)",
+  "note": "선(scenes/lines/gyeongbu_down_osm) 첫 점에서 잰 km 구간별 제한 속도(km/h). 값 없는 구간은 null(짐작 없음). 꼬리표: 앞 방향 maxspeed:forward, maxspeed / 뒤 방향 maxspeed:backward, maxspeed. 길을 못 찾은 조각 0 / 1346",
+  "summary": {
+    "sections": 13,
+    "valued_sections": 13,
+    "line_km": 168.3,
+    "valued_km": 168.3,
+    "blank_km": 0.0,
+    "km_by_kmh": {
+      "100": 74.5,
+      "110": 70.4,
+      "80": 23.4
+    }
+  },
+  "sections": [
+    {
+      "from_km": 0.0,
+      "to_km": 6.853,
+      "fwd": 80,
+      "back": null
+    },
+    {
+      "from_km": 6.853,
+      "to_km": 35.904,
+      "fwd": 110,
+      "back": null
+    },
+    {
+      "from_km": 35.904,
+      "to_km": 41.326,
+      "fwd": 80,
+      "back": null
+    },
+    {
+      "from_km": 41.326,
+      "to_km": 45.207,
+      "fwd": 110,
+      "back": null
+    },
+    {
+      "from_km": 45.207,
+      "to_km": 45.228,
+      "fwd": 100,
+      "back": null
+    },
+    {
+      "from_km": 45.228,
+      "to_km": 62.634,
+      "fwd": 110,
+      "back": null
+    },
+    {
+      "from_km": 62.634,
+      "to_km": 62.915,
+      "fwd": 100,
+      "back": null
+    },
+    {
+      "from_km": 62.915,
+      "to_km": 82.943,
+      "fwd": 110,
+      "back": null
+    },
+    {
+      "from_km": 82.943,
+      "to_km": 93.559,
+      "fwd": 100,
+      "back": null
+    },
+    {
+      "from_km": 93.559,
+      "to_km": 99.084,
+      "fwd": 80,
+      "back": null
+    },
+    {
+      "from_km": 99.084,
+      "to_km": 100.354,
+      "fwd": 100,
+      "back": null
+    },
+    {
+      "from_km": 100.354,
+      "to_km": 105.952,
+      "fwd": 80,
+      "back": null
+    },
+    {
+      "from_km": 105.952,
+      "to_km": 168.253,
+      "fwd": 100,
+      "back": null
+    }
+  ]
+}

@@ -35,7 +35,8 @@ export function createStatusBar(deps) {
     const out = offs.map((f) => fill(x.off_line, { feat: x.feature_names[f] || f }));
     for (const [s, v] of Object.entries(src)) {
       if (v.ok) continue;
-      out.push(fill(x.src_line, {
+      // (11/27) 출처마다 줄 꼴이 따로 있으면 그것(화면 켜 두기처럼 '끊김'이 아닌 것 — src_line_by_src)
+      out.push(fill(x.src_line_by_src[s] || x.src_line, {
         src: x.src_names[s] || s,
         time: v.since === null ? '' : deps.timefmt.format(v.since, x.time_pattern, t),
         // 같은 까닭 코드라도 출처마다 뜻이 다르면(집 PC 의 잠금 틀림·카카오 실패 — A6) 출처의 글이 먼저

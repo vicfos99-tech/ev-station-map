@@ -1,5 +1,20 @@
 {
  "keys": {
+  "resume.on": {"t": "bool"},
+  "resume.store_key": {"t": "str", "min": 1, "max": 40},
+  "resume.clear_piece": {"t": "str", "min": 1, "max": 40},
+  "resume.seq": {"t": "num", "int": true, "min": 0, "max": 0},
+  "resume.max_age_ms": {"t": "num", "int": true, "min": 60000, "max": 604800000},
+  "resume.words.saved": {"t": "str", "min": 1, "max": 40},
+  "resume.words.save_fail": {"t": "str", "min": 1, "max": 40},
+  "resume.words.cleared": {"t": "str", "min": 1, "max": 40},
+  "resume.words.restored": {"t": "str", "min": 1, "max": 40},
+  "resume.words.none": {"t": "str", "min": 1, "max": 40},
+  "resume.words.old": {"t": "str", "min": 1, "max": 40},
+  "resume.words.bad": {"t": "str", "min": 1, "max": 40},
+  "resume.words.skip": {"t": "str", "min": 1, "max": 40},
+  "resume.words.off": {"t": "str", "min": 1, "max": 40},
+  "resume.act": {"t": "str", "min": 1, "max": 40},
   "owner": {
    "t": "str",
    "min": 1,

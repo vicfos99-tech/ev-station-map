@@ -44,6 +44,8 @@
 | `limits/index.json` | `{v, at, cells:["740_2543", …]}` — 자료가 있는 칸 목록. 칸 열쇠 = `내림(위도÷칸 크기)_내림(경도÷칸 크기)`(칸 크기 `config_limitmatch.cell.deg`, 지금 0.05°) |
 | `limits/cell/<칸>.json` | `{v, at, cell, segs:[{id, kmh, both, pts:[[위도, 경도]…]}]}` — 도로 조각(`both` = 양방향). 칸에 걸친 조각은 두 칸에 다 넣는다. 값이 0·빈 조각은 싣지 않는다 |
 - 시험·보기 도구는 테스트 베드 장면의 `limits`(시험용 값)로 이 꼴을 만들어 대신 답한다(`tools/lib_testbed.limitFiles`) — 실제 제한 속도 자료가 아니다.
+- (2026-11-27) **실제 출처**: 테스트 베드 `testbed/config/limit_source.json` 의 `use_scenes` 장면(지금 S13)은 실자료 선 구간의 제한 속도를 출처(`source` — 지금 `osm` 오픈스트리트맵 `maxspeed`)에서 뽑은 표(`testbed/scenes/limits/<선>.limits.json`, 도구 `testbed/tools/limit_table.py`)로 내준다. 값 없는 구간은 싣지 않음(빈 칸). 설정 칸은 `config_tools.testbed.limit_shim.real_source`.
+- 속도판의 제한 속도는 도로 표지판 모양(흰 둥근 판 + 빨간 테두리 + 검은 숫자 — `config_ui_speed.sign` 을 CSS 변수로). 값이 없으면 판 자체를 숨기고, 넘음·위험이면 판 둘레에 그 상태 색 빛 테.
 
 ## 알림판 (설계 5-1-다)
 - 판 = `ui_<판>.js`(머리에 `export const KIND = 'board';` · `create(deps)` 가 `deps.board.define({needs, show})` 를 돌려줌) + `view_ui_<판>.html` + `style_ui_<판>.css` + `config/config_ui_<판>.json`(+ 꼴 표).
@@ -73,7 +75,15 @@ node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_*
 - 빌드가 `KIND 'topic'` 모듈을 주워 `@@TOPICS@@`(이름 = 파일 이름에서 `topic_` 을 뗀 것)로 넘기고, 조립(`app.js`)은 한 번에 하나만 켠다: 주소 꼬리 `#topic=<제목>` → 없으면 첫 꾸러미. 켠 꾸러미의 받기는 충전소 목록 받기 다음, 계산 줄은 꽂는 자리, 화면은 '이상해' 단추 다음에 꽂는다. 꾸러미 만들기가 던지면(설정이 깨짐) 그 제목만 꺼지고 기본 기능은 돈다(`tests_unit/topic_station.test.mjs` ⑩).
 - 충전소 꾸러미(`topic_station`) = 상태 받기(`relay_status`) · 정보 칸(`ui_station`) · 목록 칸(`ui_route`) · 계산(`engine`·`planinput`·`mine`, 줄 `ahead`·`plan`). **충전소 목록·고속도로 선 받기(`relay_stations`)는 아직 기본 기능** — 선이 같은 파일로 와서 내 위치·제한 속도·누른 지점 거리가 기댄다(갈림길 1).
 - `engine.js` 는 일 단위로 나눔: 검사·만들기 `engine_model` · 거리 `engine_range` · 상태 `engine_status` · 요금 `engine_price` · 목록 `engine_list` · 추천 `engine_pick` · 차례 묶기(`plan`)와 옛 이름 내주기 `engine`.
-- 제목 바꾸기 단추(`ui_topic`, 설정 `config_ui_topic`): 아래 띠 더 보기 자리 맨 앞(48px) + 가운데 기둥의 제목 목록 칸. 고르면 Store `topic` 에 '마지막에 쓴 제목'을 남기고 주소 꼬리를 바꿔 다시 켬. 켤 때 남긴 것이 지금 것과 다르면 그 제목으로 다시 켬. **제목이 `min_show`(2) 개보다 적으면 단추를 숨김** — 좁은 세로 창(360)의 아래 띠에 폭이 없음(갈림길 3).
+- 제목 바꾸기 단추(`ui_topic`, 설정 `config_ui_topic`): 아래 띠 더 보기 자리 맨 앞(48px) + 가운데 기둥의 제목 목록 칸. 고르면 Store `topic` 에 '마지막에 쓴 제목'을 남기고 주소 꼬리를 바꿔 다시 켬. 켤 때 남긴 것이 지금 것과 다르면 그 제목으로 다시 켬. **제목이 `min_show`(2) 개보다 적으면 단추를 숨김** — 좁은 세로 창(360)의 아래 띠에 폭이 없음(갈림길 3 — 11/27 아래 띠 그림 글자로 폭 문제는 풂, 아래 '11/27').
+
+## 11/27 — 제목 단추 자리 · 아래 띠 그림 글자 · 꺼지지 않게
+- 제목 단추(`ui_topic`): 글 '지금 제목 ▾'(`config_ui_topic.texts.open`), 자리 = `button_slot`(아래 단추 줄 묶음 `ev-more`/`ev-map-bar` 의 몇째 — 처음 값 `ev-more` 맨 앞). 보일 조건 `min_show`(처음 값 2 — 제목이 하나면 숨김, 1 이면 늘 보임).
+- 아래 띠 그림 글자(`ui_bar`, `config_ui_bar`): `mode` narrow(560px 이하에서만 — 처음 값)·always·never. 그림 글자일 때 단추 48×48, 화면 읽기 글(aria-label)은 글. 좁은 세로(360) 아래 띠 한 줄 344px — 판이 밀리지 않음.
+- 화면 꺼짐 막기(`wake`, `config_wake.on`): 좋음이 되면 Screen Wake Lock, 다시 보이면 다시 잡음. 지원 안 됨·거절이면 상태 자리 '화면 켜 두기 안 됨 — 까닭'(`conn.wake`).
+- 하던 자리로 돌아오기: 제목 = Store `topic`(그대로) · 지도 카메라 = `data/mapcam.json`(손으로 옮겨 따라가기를 끈 채면 그 가운데도 — `mapcam` center) · 고른 길 = `data/route.json`(`config_net_route.resume` — 새 답마다 남기고 '경로 지우기'면 비움, 켤 때 다시 묻지 않고 같은 검사로 다시 그림, 12시간 넘으면 버림).
+- 꺼진 까닭(`resume`, `config_resume.on`): 켤 때 로그 `last_end` 한 줄 — first · clean(pagehide 를 적음) · unexpected(깨끗한 닫힘 표시 없음, `while` 숨긴 채/보이는 채). 표시는 `data/session.json`.
+- 시험: 단위 `ui_topic`·`ui_bar`·`wake`·`resume`·`mapcam`·`net_route`·`ui_status` · 크롬 `node web2/tools/try_fix27.mjs`(min_show 1 빌드, 세 창).
 
 ## 폴더
 | 자리 | 무엇 |

@@ -39,4 +39,34 @@ export default async function (t) {
   t.check('⑥', '먼저 끝나면 그 값(한도 타이머는 지움 — 이 시험이 60초 안 기다리고 끝나는 것으로 봄)', '끝 · 1초 안', fast + ' · ' + (Date.now() - t0) + 'ms', fast === '끝' && Date.now() - t0 < 1000);
   const slow = await raceLimit(new Promise(() => {}), 20, 'timeout');
   t.check('⑦', '한도를 넘기면 한도 값', 'timeout', slow, slow === 'timeout');
+
+  // (2026-11-27) 제한 속도 실제 출처 — limit_source.json use_scenes 장면은 뽑은 표, 그 밖은 장면의 손으로 쓴 값 그대로
+  const { testbedInfo, limitFiles } = await import(pathToFileURL(path.join(t.tools, 'lib_testbed.mjs')).href);
+  const fs = await import('node:fs');
+  const tb = testbedInfo(t.tc, t.app);
+  const LS = JSON.parse(fs.readFileSync(path.join(tb.dir, t.tc.testbed.limit_shim.real_source), 'utf8'));
+  const RL = t.cfg('config_relay_limit');
+  const L = t.cfg('config_relay_parse').limit;
+  const sceneOf = (n) => JSON.parse(fs.readFileSync(path.join(path.resolve(path.dirname(tb.cfgPath), tb.tb.scenes.dir), n + t.tc.build.config_ext), 'utf8'));
+  const realScene = LS.use_scenes[0];
+  const realLine = sceneOf(realScene).route.legs.find((g) => g.kind === 'line').line;
+  const table = JSON.parse(fs.readFileSync(path.resolve(path.dirname(path.join(tb.dir, t.tc.testbed.limit_shim.real_source)), LS.lines[realLine].table), 'utf8'));
+  const K = LS.table;
+  const want = table[K.sections_key].filter((s) => s[K.fwd_key] !== null || s[K.back_key] !== null);
+  const r = limitFiles(t.tc, tb, realScene);
+  const hw = JSON.parse(r.files[RL.highway_file]);
+  const got = hw[L.sections_key];
+  const vals = [...new Set(got.map((s) => s[L.fwd_key]))].sort();
+  const realSame = got.length === want.length && got.every((s, i) => s[L.line_key] === realLine && s[L.from_key] === want[i][K.from_key] && s[L.to_key] === want[i][K.to_key] && s[L.fwd_key] === want[i][K.fwd_key] && s[L.back_key] === want[i][K.back_key]);
+  t.check('⑧', '실제 출처 장면(' + realScene + ') — 고속도로 표 = 뽑은 표(' + LS.source + ')의 값 있는 구간 그대로 · 0 없음 · 손으로 쓴 그 선 값은 안 씀',
+    '구간 ' + want.length + ' · 같음 · 선 ' + realLine + ' · 0 없음', '구간 ' + got.length + ' · ' + (realSame ? '같음' : '다름') + ' · 값 ' + JSON.stringify(vals) + ' · 출처 ' + r.realSource,
+    realSame && !vals.includes(0) && r.realSource === LS.source);
+
+  const oldScene = 'S2_제한속도';
+  const o = limitFiles(t.tc, tb, oldScene);
+  const oh = JSON.parse(o.files[RL.highway_file])[L.sections_key];
+  const ow = sceneOf(oldScene).limits.filter((x) => x.limit_kmh !== null);
+  const osame = oh.length === ow.length && oh.every((s, i) => s[L.from_key] === ow[i].from_km && s[L.to_key] === ow[i].to_km && s[L.fwd_key] === ow[i].limit_kmh);
+  t.check('⑨', '옛 장면(' + oldScene + ', use_scenes 밖) — 장면의 손으로 쓴 limits 그대로(실제 출처 안 씀)', '구간 ' + ow.length + ' · 같음 · 실제 출처 없음',
+    '구간 ' + oh.length + ' · ' + (osame ? '같음' : '다름') + ' · 실제 출처 ' + o.realSource, osame && o.realSource === null && o.realLines.length === 0);
 }

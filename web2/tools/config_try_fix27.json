@@ -1,0 +1,27 @@
+{
+  "note": "11/27 시험(try_fix27.mjs) 값 — 제목 바꾸기 단추 자리(묘성 11/26) + 아래 띠 그림 글자(ui_bar). 진짜 크롬(lib_chrome — 창 없이)으로 앱을 빌드할 때 config_ui_topic.min_show 를 override_min_show 로 바꿔(제목이 하나여도 단추가 보이는 가장 붐비는 아래 띠) 창마다 잰다: 양옆 판·아래 띠 단추 오른쪽 끝 ≤ 창 폭(+tol_px), 왼쪽 끝 ≥ 0, 단추 높이·폭 ≥ touch_min_px, 몸 가로 넘침 0, 좁은 창(narrow_max_w 이하)이면 단추 글자 크기 0(그림 글자), 화면 읽기 글 있음. 단추를 누르면 제목 목록 칸이 가운데 기둥 안에 열림. 상태 자리 글은 적기만(화면 켜 두기가 창 없는 크롬에서 거절될 수 있음)",
+  "override_min_show": 1,
+  "scene": "S1_고속도로",
+  "tick": 0,
+  "frames": ["넓은 가로 1280×720", "좁은 세로 400×800", "폰 세로 360×740"],
+  "narrow_max_w": 560,
+  "tol_px": 1,
+  "touch_min_px": 48,
+  "sel": {
+    "page": {"q": "html"},
+    "body": {"q": "body", "attrs": ["data-bar-glyph"]},
+    "status": {"q": "#ev-status"},
+    "center": {"q": "#ev-center"},
+    "slot_left": {"q": "#ev-slot-left"},
+    "slot_right": {"q": "#ev-slot-right"},
+    "bar_btns": {"q": "#ev-map-me, #ev-map-only3, #ev-more > button, #ev-log-open", "attrs": ["id", "aria-label", "data-glyph", "hidden"], "styles": ["font-size"], "hit": true},
+    "topic_open": {"q": "#ev-topic-open", "attrs": ["aria-label", "data-glyph"], "styles": ["font-size"]},
+    "topic_root": {"q": "#ev-topic"},
+    "topic_items": {"q": "#ev-topic-list > *"}
+  },
+  "ready": {"ahead_rows": {"min": 3, "text": true}},
+  "ready_sel": {"ahead_rows": {"q": "#ev-ahead-list > *"}},
+  "actions": [{"name": "제목 단추 누름", "q": "#ev-topic-open", "wait_ms": 1500}],
+  "report_file": "try_fix27_last.md",
+  "json_file": "try_fix27_chrome.json"
+}

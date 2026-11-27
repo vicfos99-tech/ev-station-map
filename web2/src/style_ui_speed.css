@@ -1,5 +1,5 @@
-/* 속도판: 지금 속도를 크게, 그 아래 제한 속도(숫자를 크게). 세 모습(A5):
-   정상 — 바탕 없음(카드 아님), 제한 칸에 '제한 100' · 넘음 data-judge="over" — 주의(주황 바탕 + 노란 테두리) · data-judge="danger" — 위험(빨강 바탕 + 밝은 테두리)
+/* 속도판: 지금 속도를 크게, 그 아래 제한 속도(도로 표지판 모양 — 아래 .ev-speed-limit). 세 모습(A5):
+   정상 — 바탕 없음(카드 아님), 제한 칸에 '제한' + 표지판 100 · 넘음 data-judge="over" — 주의(주황 바탕 + 노란 테두리) · data-judge="danger" — 위험(빨강 바탕 + 밝은 테두리)
    빈 칸 — 제한 칸 data-limit="blank"(글 없음, 자리 높이는 그대로 — 판이 들썩이지 않게). 주황·빨강은 이 두 상태에만 쓴다.
    숫자 크기는 ui_speed.js 가 설정의 크기 단계에서 골라 --ev-speed-size 로 넣는다(판 폭에 세 자리가 다 들어가게).
    판은 자리 폭을 넘지 않고(max-width), 숫자는 줄을 바꾸지 않으며, 단위(km/h)·'제한' 글은 자리가 모자라면 숫자 아래로 내려간다. */
@@ -7,9 +7,16 @@
 .ev-speed-now { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 8px; max-width: 100%; }
 .ev-speed-value { font-size: var(--ev-speed-size); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-speed-unit { font-size: 16px; color: #9ca3af; }
-.ev-speed-limit-row { margin-top: 8px; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 8px; min-height: 32px; max-width: 100%; }
+.ev-speed-limit-row { margin-top: 8px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; column-gap: 8px; min-height: var(--ev-sign-size); max-width: 100%; }
 .ev-speed-limit-label { font-size: 16px; color: #d1d5db; }
-.ev-speed-limit { font-size: 32px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 제한 속도 표지판(2026-11-27): 흰 바탕 둥근 판 + 빨간 테두리 + 검은 숫자. 크기·두께·색은 config_ui_speed.sign 을 ui_speed.js 가 CSS 변수로 넣는다.
+   값이 없으면(data-limit="blank") 판 자체를 숨김 — 빈 둥근 판도 안 보임(자리 높이는 그대로). 넘음·위험이면 판 둘레에 그 상태 색 빛 테(주의 주황·위험 밝은 빨강 — 위 두 상태 색과 같은 규칙) */
+/* 칸(숫자를 담는 네모)은 그대로 네모 — 둥근 판은 칸 안의 바탕 그림(::before)이라 칸 네 모서리를 눌러도 칸 자신이 받음(진짜 크롬 가림 시험: 둥근 칸이면 모서리가 줄 칸에 '가려짐'으로 잡힘) */
+.ev-speed-limit { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; flex: none; width: var(--ev-sign-size); height: var(--ev-sign-size); color: var(--ev-sign-ink); font-size: var(--ev-sign-font); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-speed-limit::before { content: ""; position: absolute; inset: 0; z-index: -1; box-sizing: border-box; border-radius: 50%; background: var(--ev-sign-bg); border: var(--ev-sign-ring) solid var(--ev-sign-ring-color); }
+.ev-speed-limit-row[data-limit="blank"] .ev-speed-limit { visibility: hidden; }
+.ev-speed[data-judge="over"] .ev-speed-limit::before { box-shadow: 0 0 0 var(--ev-sign-halo) var(--ev-sign-halo-over); }
+.ev-speed[data-judge="danger"] .ev-speed-limit::before { box-shadow: 0 0 0 var(--ev-sign-halo) var(--ev-sign-halo-danger); }
 .ev-speed[data-judge="over"] { background: #b45309; box-shadow: inset 0 0 0 4px #fbbf24; }
 .ev-speed[data-judge="danger"] { background: #b91c1c; box-shadow: inset 0 0 0 4px #fecaca; }
 .ev-speed[data-judge="over"] .ev-speed-unit, .ev-speed[data-judge="over"] .ev-speed-limit-label { color: #fef3c7; }
@@ -18,6 +25,7 @@
 @container (max-width: 140px) {
   .ev-speed { padding: 12px 4px; }
   .ev-speed-unit, .ev-speed-limit-label { font-size: 14px; }
-  .ev-speed-limit { font-size: 24px; }
-  .ev-speed-limit-row { min-height: 24px; }
+  .ev-speed-limit { width: var(--ev-sign-size-small); height: var(--ev-sign-size-small); font-size: var(--ev-sign-font-small); }
+  .ev-speed-limit::before { border-width: var(--ev-sign-ring-small); }
+  .ev-speed-limit-row { min-height: var(--ev-sign-size-small); }
 }

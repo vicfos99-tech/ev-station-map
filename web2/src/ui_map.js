@@ -220,7 +220,7 @@ export function createMapScreen(deps) {
       if (!slot) throw new Error(c.slot_id);
       const b = baseStyle();
       view = createMapView({ maplibre: deps.maplibre, doc }, {
-        container: slot, style: b.style, center: c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
+        container: slot, style: b.style, center: s.center || c.start_center, zoom: s.zoom, bearing: s.bearing, attribution: c.attribution,
         geo: c.geo, dot: c.dot, others: c.others, marks: c.marks, events: c.events, route: c.route,
         tile_source_id: c.tile_source_id, no_lib_code: c.no_lib_code, pick: c.pick, tap: c.tap,
         attrib: { host: doc.getElementById(c.over.attrib_id), part_selector: c.over.attrib_part },

@@ -47,6 +47,9 @@ import { createMyScreen } from './ui_my.js';
 import { createTapLabel } from './ui_tap.js';
 import { createTopicButton } from './ui_topic.js';
 import * as topicpick from './topicpick.js';
+import { createBarGlyph } from './ui_bar.js';
+import { createWakeKeeper } from './wake.js';
+import { createSessionMark } from './resume.js';
 
 export const NEEDS = ['platform'];
 
@@ -100,6 +103,8 @@ export function main(platform) {
   if (!make('store', () => createStore({ ...base, disk }))) return made;
   if (!make('state', () => createState(base))) return made;
   const s = { ...base, store: made.store, state: made.state, clock: p.clock };
+  // (11/27) 지난번이 어떻게 끝났는지 로그 한 줄 + 이번 켬 표시 — 다른 것보다 먼저(뒤에서 죽어도 남게)
+  make('resume', () => createSessionMark({ ...base, store: made.store, doc: p.doc, win: p.win, clock: p.clock }));
   // 꾸러미 밝힘을 모두 읽는다(가벼움 — 받기·화면은 켠 것만 만든다). 이름은 빌드가 준 것(파일 이름), 깨진 꾸러미는 목록에서 빠진다
   const topics = [];
   for (const t of p.topics || []) {
@@ -142,6 +147,9 @@ export function main(platform) {
   make('ui_my', () => createMyScreen({ ...screen, formcheck }));
   make('ui_tap', () => createTapLabel(screen));
   make('ui_topic', () => createTopicButton({ ...screen, topicpick, topic_list: topics.map((t) => ({ name: t.name, label: t.label, on: t === topic })) }));
+  // 아래 띠 그림 글자는 단추 모듈들이 다 꽂은 뒤
+  make('ui_bar', () => createBarGlyph(screen));
+  make('wake', () => createWakeKeeper(screen));
 
   try {
     made.state.claim(c.owner, [c.events.start])(c.events.start, { at: p.clock.now() });

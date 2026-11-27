@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "note": "테스트 베드 제한 속도 출처(2026-11-27). tools/limit_table.py 가 source(지금 출처) 의 원본에서 우리 선(scenes/lines/<선>.json)의 km 구간별 제한 속도 표를 뽑아 lines.<선>.table 에 쓴다. 시험·보기 도구(web2/tools/lib_testbed.limitFiles)는 use_scenes 의 장면이 이 표가 있는 선을 달리면 그 선 구간의 제한 속도를 장면의 손으로 쓴 limits 대신 이 표로 내준다(다른 장면은 그대로). 값이 없는 구간은 짐작 없이 비움(null — 0·기본값 채우기 없음). 경로는 이 파일 폴더 기준, 작업 폴더는 realline_config 의 work.env 읽기(realcfg)로만. 출처를 더할 때(중계 R0 의 공공데이터 등) = sources 에 출처 칸 하나 + source 이름만 바꿈(읽는 법 reader 가 새 꼴이면 limit_table.py 에 읽개 하나)",
+  "realline_config": "realline.json",
+  "source": "osm",
+  "sources": {
+    "osm": {
+      "note": "오픈스트리트맵 — 4-2 에서 받은 원본(osm_fetch.py)의 길(way)마다 꼬리표. 우리 선은 그 원본의 점(node)을 이은 것이라(osm_line.py) 선의 점 둘 사이마다 두 점을 잇는 길을 찾아 그 길의 꼬리표를 읽는다. 선 방향으로 그 길을 지나면 tags_forward 를 앞에서부터, 거꾸로 지나면 tags_backward 를 앞에서부터 보고 처음 있는 꼬리표 값. 값 꼴 value_re(숫자 + 단위), 단위는 unit_factor 로 km/h 로 바꿈(없는 단위·'none'·'signals'·'KR:urban' 같은 낱말 → 빈 값). multi_sep 로 나뉜 여러 값이 서로 다르면 빈 값. kmh_min~kmh_max 밖이면 빈 값. 화물차 꼬리표(maxspeed:hgv)는 보지 않는다(승용차 기준)",
+      "reader": "osm_ways",
+      "raw_dir": "${CLAUDE_WORK_ROOT}/30_자료/도로선",
+      "raw_place_text": "30_자료/도로선",
+      "raw_suffix": ".osm.json",
+      "meta_suffix": ".meta.json",
+      "stamp_sep": "_",
+      "tags_forward": ["maxspeed:forward", "maxspeed"],
+      "tags_backward": ["maxspeed:backward", "maxspeed"],
+      "value_re": "^\\s*(?P<num>[0-9]+(?:\\.[0-9]+)?)\\s*(?P<unit>[A-Za-z/]*)\\s*$",
+      "value_re_note": "이름 붙은 묶음 num(숫자)·unit(단위)을 limit_table.py 가 읽는다",
+      "unit_factor": {"": 1, "km/h": 1, "kmh": 1, "kph": 1, "mph": 1.609344},
+      "multi_sep": ";",
+      "kmh_min": 10,
+      "kmh_max": 150
+    }
+  },
+  "lines": {
+    "gyeongbu_down_osm": {
+      "note": "경부고속도로 부산 방향 실제 도로 모양 선(4-2). 한쪽 차로만 이은 선이라 표는 선 방향(fwd) 값만 있고 거꾸로(back)는 늘 빈 값",
+      "table": "../scenes/limits/gyeongbu_down_osm.limits.json"
+    }
+  },
+  "use_scenes": ["S13_고속도로_실선"],
+  "use_scenes_note": "실제 출처 표를 내줄 장면(고르는 길 = 이 설정 칸). 여기 있는 장면이 lines 의 선을 달리면 그 선 조각의 제한 속도는 장면의 손으로 쓴 limits 대신 표 값(좌표 조각·다른 선은 장면 값 그대로). 없는 장면은 손으로 쓴 limits 그대로 — 옛 장면 S1~S12 와, 넘음·풀림을 정한 값으로 시험하는 실자료 장면(S14 제한속도 등)이 흔들리지 않게. 빼면 그 장면은 손으로 쓴 값으로 돌아감",
+  "table": {
+    "note": "뽑은 표 파일의 칸 이름(limit_table.py 가 쓰고 lib_testbed.limitFiles 가 읽음). sections = 선 첫 점에서 잰 km 구간(from 이상 to 미만, 빈틈·겹침 없이 선 전체를 덮음), fwd = 선 방향·back = 거꾸로 제한 속도(km/h), null = 자료 없음. km_decimals = km 자릿수",
+    "sections_key": "sections",
+    "from_key": "from_km",
+    "to_key": "to_km",
+    "fwd_key": "fwd",
+    "back_key": "back",
+    "km_decimals": 3,
+    "tool_text": "testbed/tools/limit_table.py"
+  },
+  "try": {
+    "note": "try_limit_table.py(단위 시험) 값. values = 값 읽기 시험(꼬리표 글 → 기대 km/h, null = 빈 값). fake = 손으로 만든 작은 원본·선(점 넷, 길 셋: 정방향 100 · 거꾸로 지나는 길(oneway -1, maxspeed:backward 80) · 꼬리표 없는 길)으로 방향·이어 붙이기·빈 값을 봄. line = 실제 표를 다시 뽑아 같은지 볼 선",
+    "line": "gyeongbu_down_osm",
+    "values": [
+      ["100", 100], ["110 km/h", 110], ["60 mph", 97], ["none", null], ["signals", null], ["KR:urban", null],
+      ["100;100", 100], ["80;100", null], ["5", null], ["300", null], ["", null]
+    ],
+    "fake_points": [[37.0, 127.0], [37.001, 127.0], [37.002, 127.0], [37.003, 127.0]],
+    "fake_ways": [
+      {"nodes": [0, 1], "tags": {"maxspeed": "100", "oneway": "yes"}},
+      {"nodes": [2, 1], "tags": {"maxspeed": "110", "maxspeed:backward": "80", "oneway": "-1"}},
+      {"nodes": [2, 3], "tags": {"oneway": "yes"}}
+    ],
+    "fake_expect": [100, 80, null]
+  }
+}

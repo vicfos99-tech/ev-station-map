@@ -71,6 +71,13 @@
     "leg_note_add": " (이 글의 km 는 옛 직선 km — 새 선 km 는 from_km·to_km)",
     "data_source_from": "선: scenes/lines/gyeongbu_down_osm.json(오픈스트리트맵 실제 도로 모양 — © OpenStreetMap contributors, ODbL). 휴게소·충전소: 옛 장면과 같음 — ",
     "data_source_note_add": " [실자료판] 길(선)은 실제 도로 모양이고, 선 조각·속도·제한 구간의 km 는 옛 직선 km 자리를 새 선에 내려 옮긴 값, 휴게소 km 는 휴게소 좌표를 새 선에 내려 다시 셈한 값이다.",
+    "data_source_note_handmade": " 단 고속도로 조각만 새 선이고, 손으로 찍은 좌표 조각은 그대로라 real 은 false 다.",
+    "pin_window_km": 0.5,
+    "pin_note": "spec pin_stations 가 참인 장면만: 옛 km 가 휴게소 옛 km 에서 pin_window_km 안이면 '휴게소 새 km + 옛 차이'(휴게소 정차·후진이 휴게소 자리에서 — 옛 직선 자리를 내리면 S6 은 휴게소를 140 m 지나 멈춤)",
+    "join_gap_m": 1,
+    "join_len_eps_km": 1e-9,
+    "join_note_add": " [실자료판 이음] 새 선 끝이 옛 선 위의 처음 점에서 {m} m 떨어져, 새 선 끝 점 하나를 맨 앞에 더해 곧게 이음(원래 점은 그대로 — 이음 길도 손으로 만든 것). 이 조각의 km 는 이음 길만큼 밀림",
+    "join_note": "spec join_points 가 참인 장면만: 옮긴 선 조각 뒤의 좌표 조각 처음 점이 새 선 끝에서 join_gap_m 넘게 떨어지면 새 선 끝 점을 앞에 더함. 참이 아닌데 떨어지면 못 만듦. join_len_eps_km = 조각 끝 km(옛 길이)를 알아볼 허용 차",
     "make": [
       {
         "base": "S1_고속도로",
@@ -79,6 +86,48 @@
         "from_line": "gyeongbu_down",
         "to_line": "gyeongbu_down_osm",
         "description_add": " — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 동탄(고칠 것 일곱 ⑥, 옛 직선 km 40.8 = 위도 37.174·경도 127.116 이 동탄 단지 안)을 지난다. 옛 S1 의 km 는 새 선 km 로 옮김"
+      },
+      {
+        "base": "S2_제한속도",
+        "name": "S14_제한속도_실선",
+        "title": "제한속도 넘기(실제 도로 모양)",
+        "from_line": "gyeongbu_down",
+        "to_line": "gyeongbu_down_osm",
+        "description_add": " — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 위 설명의 km(28→82, 40~48, 64~70)는 옛 직선 km — 새 선 km 는 route·speeds·limits"
+      },
+      {
+        "base": "S3_상행하행",
+        "name": "S15_상행하행_실선",
+        "title": "상행·하행(실제 도로 모양)",
+        "from_line": "gyeongbu_down",
+        "to_line": "gyeongbu_down_osm",
+        "description_add": " — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm — 부산 방향 차로만). 상행은 옛 S3 처럼 같은 선(부산 방향 차로)을 거꾸로 달린다 — 실제 서울 방향 차로에서 수십 m 옆. 위 설명의 km 는 옛 직선 km — 새 선 km 는 route·stations"
+      },
+      {
+        "base": "S4_나들목일반도로",
+        "name": "S16_나들목일반도로_실선",
+        "title": "나들목 나가 일반 도로(고속도로만 실제 도로 모양)",
+        "from_line": "gyeongbu_down",
+        "to_line": "gyeongbu_down_osm",
+        "join_points": true,
+        "description_add": " — 실자료판: 고속도로 조각만 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 손으로 찍은 일반 도로는 그대로이고, 그 처음 점(옛 직선 km 60.6)이 새 선에서 떨어져 있어 새 선 끝 점에서 곧게 잇는 이음 길을 앞에 더함(그만큼 일반 도로 조각 km 가 밀림). 위 설명의 km 는 옛 값 — 새 km 는 route·speeds·limits"
+      },
+      {
+        "base": "S6_정차출발튐",
+        "name": "S17_정차출발튐_실선",
+        "title": "정차·출발·후진·위치 튐(실제 도로 모양)",
+        "from_line": "gyeongbu_down",
+        "to_line": "gyeongbu_down_osm",
+        "pin_stations": true,
+        "description_add": " — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 정차·후진·다시 출발 자리는 안성휴게소 새 km 에 붙임(휴게소 둘레 pin_window_km 는 옛 거리 그대로). 위 설명의 km 는 옛 직선 km — 새 km 는 route·speeds·stops"
+      },
+      {
+        "base": "S9_주소검색경로",
+        "name": "S18_주소검색경로_실선",
+        "title": "주소 검색과 경로(실제 도로 모양)",
+        "from_line": "gyeongbu_down",
+        "to_line": "gyeongbu_down_osm",
+        "description_add": " — 실자료판: 길은 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 경로 답(scene_route)도 이 선 모양으로 나간다. 검색 답의 휴게소 자리는 옛 장면 그대로(실제 좌표). 위 설명의 km 는 옛 직선 km — 새 km 는 route"
       }
     ]
   },
@@ -95,6 +144,10 @@
     "rail_check_ticks": 1,
     "min_points_per_km": 5,
     "max_gap_m": 2000,
-    "max_gap_note": "끊긴 길을 잡으려는 한도. 오픈스트리트맵은 곧은 구간에 점을 드물게 둔다(첫 받기에서 가장 긴 사이 1,746 m). 잇기는 받은 길만 따라가므로 길이 끊기면 아예 못 이음(②에서 잡힘)"
+    "max_gap_note": "끊긴 길을 잡으려는 한도. 오픈스트리트맵은 곧은 구간에 점을 드물게 둔다(첫 받기에서 가장 긴 사이 1,746 m). 잇기는 받은 길만 따라가므로 길이 끊기면 아예 못 이음(②에서 잡힘)",
+    "step_slack_m": 5,
+    "step_note": "⑨ 흐름 이어짐: 위치 튐을 넣기 전 틱 자리(장면 재생 build_track)에서 이웃 틱 사이가 '장면 가장 빠른 시속 × 틱 간격 + step_slack_m' 안이어야(조각 사이 순간 이동이 없음 — S4 이음 길을 잡음)",
+    "same_keys": ["timeline", "emit", "responses", "compose"],
+    "same_note": "⑪ 실자료 장면이 옛 장면과 같아야 할 칸(위치와 상관없는 사건·답) — 그 밖에 시속 값·제한 값·멈춤 시간·충전소 id 차례도 같아야"
   }
 }

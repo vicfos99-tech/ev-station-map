@@ -238,7 +238,9 @@
       "S1_고속도로": "plain", "S2_제한속도": "speeding", "S3_상행하행": "updown", "S4_나들목일반도로": "exit",
       "S5_충전기상태": "charger", "S6_정차출발튐": "stop", "S7_출처끊김": "down",
       "S8_켤때실패_목록": "startup", "S8_켤때실패_비밀값": "startup", "S8_켤때실패_다리주소": "startup",
-      "S9_주소검색경로": "ask", "S10_이상해기록": "odd", "S11_나쁜자료": "bad", "S12_긴주행": "long"
+      "S9_주소검색경로": "ask", "S10_이상해기록": "odd", "S11_나쁜자료": "bad", "S12_긴주행": "long",
+      "S13_고속도로_실선": "plain", "S14_제한속도_실선": "speeding", "S15_상행하행_실선": "updown", "S16_나들목일반도로_실선": "exit",
+      "S17_정차출발튐_실선": "stop", "S18_주소검색경로_실선": "ask"
     }
   },
   "checks": {
@@ -282,8 +284,10 @@
       "realcfg": ["tbconfig"],
       "osm_line": ["geo", "pick_stations", "realcfg", "tbconfig", "tblog"],
       "osm_fetch": ["osm_line", "realcfg", "tbconfig", "tblog"],
-      "real_scene": ["check_scenes", "osm_line", "pick_stations", "realcfg", "tbconfig", "tblog"],
-      "try_realline": ["check_scenes", "geo", "osm_line", "pick_stations", "realcfg", "tbconfig", "tblog"]
+      "real_scene": ["check_scenes", "geo", "osm_line", "pick_stations", "realcfg", "tbconfig", "tblog"],
+      "try_realline": ["check_scenes", "geo", "osm_line", "pick_stations", "realcfg", "tbconfig", "tblog"],
+      "limit_table": ["geo", "realcfg", "tbconfig", "tblog"],
+      "try_limit_table": ["limit_table", "tbconfig", "tblog"]
     }
   }
 }

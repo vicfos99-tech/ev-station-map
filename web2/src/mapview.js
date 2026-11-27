@@ -171,7 +171,8 @@ export function createMapView(deps, o) {
     if (!touching) return;
     const t = touching;
     touching = null;
-    if (onUser) onUser({ moved: !!t.moved, rotated: !!t.rotated, zoomed: !!t.zoomed, bearing: map.getBearing(), zoom: map.getZoom() });
+    const ct = typeof map.getCenter === 'function' ? map.getCenter() : null;
+    if (onUser) onUser({ moved: !!t.moved, rotated: !!t.rotated, zoomed: !!t.zoomed, bearing: map.getBearing(), zoom: map.getZoom(), center: ct ? [ct.lng, ct.lat] : null });
   });
 
   return {

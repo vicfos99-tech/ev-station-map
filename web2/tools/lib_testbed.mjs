@@ -153,6 +153,7 @@ export function strayGuard(tc, info, secret, log, opts) {
 //   선 조각의 구간 → 고속도로 표 sections(조각이 선 방향이면 fwd, 거꾸로면 back) · 좌표 조각의 구간 → 짧은 도로 조각(piece_m)으로 잘라
 //   양 끝 점의 칸 파일에 넣음(칸 셈은 앱 설정 config_limitmatch.cell 의 크기·이음표를 시험이 따로 셈) · 값이 null(자료 없음)인 구간은 싣지 않음.
 // 파일 이름·판 번호는 앱 설정(config_relay_limit·config_relay_parse)의 것 — 앱 코드는 쓰지 않는다.
+// (2026-11-27) 실제 출처: 테스트 베드 testbed/config/limit_source.json 의 use_scenes 장면은 그 설정 lines 의 선 조각 구간을 뽑은 표(realLimitTables)로 — 값 없는 구간은 싣지 않음.
 // 두 점 사이 거리(m) — 앱의 geo 와 따로 셈(값은 도구 설정 S)
 function distM(a, b, S) {
   const k = S.deg_to_rad;
@@ -177,6 +178,22 @@ function cutKm(points, fromKm, toKm, S) {
   }
   return out;
 }
+// (2026-11-27) 실제 제한 속도 출처 — 테스트 베드 설정(limit_shim.real_source) 의 use_scenes 장면이면 {선 이름: 뽑은 표}, 아니면 빈 것.
+// 표는 testbed/tools/limit_table.py 가 출처(지금 오픈스트리트맵) 원본에서 뽑은 km 구간 표. 설정에 적힌 표가 없으면 던진다(빈 칸으로 삼키지 않음).
+export function realLimitTables(tc, info, sceneName) {
+  const S = tc.testbed.limit_shim;
+  const srcPath = path.join(info.dir, S.real_source);
+  const LS = JSON.parse(fs.readFileSync(srcPath, 'utf8'));
+  if (!LS.use_scenes.includes(sceneName)) return { tables: {}, keys: LS.table, source: LS.source };
+  const tables = {};
+  for (const [line, v] of Object.entries(LS.lines)) {
+    const p = path.resolve(path.dirname(srcPath), v.table);
+    if (!fs.existsSync(p)) throw new Error('제한 속도 표가 없음(' + line + '): ' + p + ' — testbed/tools/limit_table.py 로 먼저 뽑기');
+    tables[line] = JSON.parse(fs.readFileSync(p, 'utf8'));
+  }
+  return { tables, keys: LS.table, source: LS.source };
+}
+
 const LIMIT_CACHE = new Map();
 export function limitFiles(tc, info, sceneName) {
   if (LIMIT_CACHE.has(sceneName)) return LIMIT_CACHE.get(sceneName);
@@ -192,9 +209,21 @@ export function limitFiles(tc, info, sceneName) {
   const sections = [];
   const cells = {};
   const key = (p) => Math.floor(p[0] / LM.cell.deg) + LM.cell.sep + Math.floor(p[1] / LM.cell.deg);
+  // 실제 출처 표가 있는 선을 달리는 장면(use_scenes)이면 그 선 조각은 표 값으로 — 장면의 손으로 쓴 그 선 구간은 쓰지 않음
+  const real = realLimitTables(tc, info, sceneName);
+  const K = real.keys;
+  const realLines = [...new Set((scene.route.legs || []).filter((g) => g.kind === 'line' && real.tables[g.line]).map((g) => g.line))];
+  for (const line of realLines) {
+    for (const s of real.tables[line][K.sections_key]) {
+      const f = s[K.fwd_key]; const b = s[K.back_key];
+      if ((f === null || f === undefined) && (b === null || b === undefined)) continue; // 값 없는 구간 — 싣지 않음(앱은 '없음' → 빈 칸)
+      sections.push({ [L.line_key]: line, [L.from_key]: s[K.from_key], [L.to_key]: s[K.to_key], [L.fwd_key]: f === undefined ? null : f, [L.back_key]: b === undefined ? null : b });
+    }
+  }
   for (const lim of scene.limits || []) {
     const leg = scene.route.legs[lim.leg];
     if (lim.limit_kmh === null || lim.limit_kmh === undefined) continue; // 자료 없는 길 — 싣지 않음
+    if (leg.kind === 'line' && realLines.includes(leg.line)) continue; // 실제 출처 표가 대신함
     if (leg.kind === 'line') {
       const fwd = leg.to_km >= leg.from_km;
       sections.push({ [L.line_key]: leg.line, [L.from_key]: lim.from_km, [L.to_key]: lim.to_km, [L.fwd_key]: fwd ? lim.limit_kmh : null, [L.back_key]: fwd ? null : lim.limit_kmh });
@@ -216,7 +245,7 @@ export function limitFiles(tc, info, sceneName) {
   if (sections.length) files[RL.highway_file] = JSON.stringify({ ...head, [L.sections_key]: sections });
   files[RL.index_file] = JSON.stringify({ ...head, [L.cells_key]: Object.keys(cells).sort() });
   for (const [k, segs] of Object.entries(cells)) files[RL.cell_file.split(RL.cell_mark).join(k)] = JSON.stringify({ ...head, [L.cell_key]: k, [L.segs_key]: segs });
-  const out = { files, sections, cells, isLimitName: (n) => n === RL.highway_file || n === RL.index_file || n.startsWith(RL.cell_file.split(RL.cell_mark)[0]) };
+  const out = { files, sections, cells, realLines, realSource: realLines.length ? real.source : null, isLimitName: (n) => n === RL.highway_file || n === RL.index_file || n.startsWith(RL.cell_file.split(RL.cell_mark)[0]) };
   LIMIT_CACHE.set(sceneName, out);
   return out;
 }

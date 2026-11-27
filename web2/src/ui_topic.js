@@ -1,4 +1,4 @@
-// TopicButton(제목 바꾸기 단추 — 화면, 정비 나 ③). 아래 띠의 더 보기 자리(격자 자리 more — 추가1 의 자리를 정해 둔 칸)에 단추 하나(48px)를 꽂고,
+// TopicButton(제목 바꾸기 단추 — 화면, 정비 나 ③). 아래 띠의 정한 자리(c.button_slot — 묶음 id·몇째, 처음 값은 더 보기 자리 more 의 맨 앞)에 단추 하나(48px, 글 '지금 제목 ▾')를 꽂고,
 // 누르면 가운데 기둥(ev-center — 지도 아래)에 제목 목록 칸을 연다. 지금 켠 제목에 표시. 다른 제목을 고르면 폰 데이터 폴더(Store)에 '마지막에 쓴 제목'으로 남기고
 // 주소 꼬리를 그 제목으로 바꿔 다시 켠다(topicpick.hashOf — 제목은 한 번에 하나, 받기·계산·화면을 통째로 바꿈). 켤 때 남긴 제목을 읽어 지금 것과 다르면 그 제목으로 다시 켠다.
 // 남긴 것이 없으면 지금 제목을 남긴다. 제목 목록(이름·보일 글·켰나)은 조립이 넘긴다(topic_list). 글·자리는 config_ui_topic.
@@ -86,11 +86,18 @@ export function createTopicButton(deps) {
     const host = doc.getElementById(c.host_id);
     if (host) host.appendChild($(c.ids.root));
     else log.warn(c.where, c.word_no_host, { host: c.host_id });
-    const more = doc.getElementById(c.more_id);
-    if (more) more.insertBefore($(c.ids.open), more.firstChild || null);
-    else log.warn(c.where, c.word_no_host, { host: c.more_id });
-    $(c.ids.open).textContent = active ? active.label : x.none;
-    $(c.ids.open).setAttribute(c.label_attr, x.open_label);
+    // (11/26 묘성) 단추 자리는 설정 한 줄 — 묶음(host_id)의 몇째(index, 0 = 맨 앞, 넘거나 음수면 맨 뒤). 그 묶음에 먼저 꽂힌 단추들 기준
+    const bs = c.button_slot;
+    const bar = doc.getElementById(bs.host_id);
+    if (bar) {
+      const kids = bar.children ? Array.from(bar.children) : [];
+      const ref = bs.index >= 0 && bs.index < kids.length ? kids[bs.index] : null;
+      bar.insertBefore($(c.ids.open), ref);
+      log.info(c.where, c.word_slot, { host: bs.host_id, index: bs.index, at: ref ? bs.index : kids.length });
+    } else log.warn(c.where, c.word_no_host, { host: bs.host_id });
+    const now = active ? active.label : x.none;
+    $(c.ids.open).textContent = x.open.split(c.slot).join(now);
+    $(c.ids.open).setAttribute(c.label_attr, x.open_label.split(c.slot).join(now));
     $(c.ids.title).textContent = x.title;
     $(c.ids.close).textContent = x.close;
     draw();
@@ -102,7 +109,7 @@ export function createTopicButton(deps) {
 
   deps.state.subscribe(c.app_piece, (v) => {
     if (!v || v.stage !== h.stages.good) return;
-    // (정비 나 갈림길 3) 제목이 min_show 개보다 적으면 단추를 숨긴다 — 좁은 세로 창(360)의 아래 띠에 남는 폭이 없어 단추 하나가 판을 화면 밖으로 민다
+    // (정비 나 갈림길 3) 제목이 min_show 개보다 적으면 단추를 숨긴다(처음 값 2 — 제목이 하나면 바꿀 것이 없음). 좁은 창 폭은 아래 띠 그림 글자(ui_bar)가 맡는다
     try { $(c.ids.open).hidden = list.length < c.min_show; } catch (e) { log.error(e, { where: c.where, params: { act: c.act_init } }); }
   });
   // 다른 칸(목록·내 차)이 열리면 이 칸은 닫는다(가운데 칸에 칸 하나만)

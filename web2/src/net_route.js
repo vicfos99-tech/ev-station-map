@@ -9,6 +9,8 @@
 //     집 PC 길이 끊긴 실패(down_codes)도 conn.route 로, 카카오 쪽 실패(오늘 한도·카카오 실패 — 쌓인 주소는 계속 찾아짐)는 conn.route.kakao 로 따로.
 // **주소·잠금 값을 모른다** — 길 이름과 보낼 것만 NetCore 에 넘긴다. 답은 들어오는 자리에서 naviroute.checkPlaces·checkRoute 로 검사(틀리면 버리고 '답이 이상함' + 로그에 앞부분만).
 // health.app 이 '좋음'일 때만 움직인다('점검 중'이면 멈춤). 값·글·길 이름은 config_net_route.
+//   · (11/27 묘성 ②) 고른 길 남기기·되살리기(c.resume): 검사 통과한 길 답을 데이터 폴더에 남기고 '경로 지우기'면 비움. 좋음이 되면 남긴 답을 같은 검사로 다시 보고
+//     route.answer 로 다시 낸다(요청 번호 c.resume.seq — 화면의 새 요청·지우기가 늘 이김). 다시 묻지 않는다(집 PC 없이도 바로 그림). 오래된 답(max_age_ms)은 버림.
 export const NEEDS = ['cfg', 'log', 'store', 'state', 'clock', 'netcore', 'naviroute'];
 
 export function createRouteClient(deps) {
@@ -156,11 +158,70 @@ export function createRouteClient(deps) {
         return;
       }
       log.info(c.where, c.words.got, { act: c.act_route, seq, pieces: res.pieces.length, dist_km: res.dist_km, source: res.source, ms: clock.now() - t0 });
-      pub(P.answer, { seq, dest: { name: typeof v.name === 'string' ? v.name : '', lat: v.to[0], lng: v.to[1] }, ...res });
+      const dest = { name: typeof v.name === 'string' ? v.name : '', lat: v.to[0], lng: v.to[1] };
+      pub(P.answer, { seq, dest, ...res });
       pub(P.progress, { seq, stage: S.done, source: res.source });
+      saveRoute(seq, dest, got.data);
     } catch (e) {
       log.error(e, { where: c.where, params: { act: c.act_route, seq } });
       if (routeSeq === seq) pub(P.progress, { seq, stage: S.fail, code: c.codes.internal });
+    }
+  }
+
+  // ---------- (11/27) 다시 켜면 고른 길로 돌아오기 ----------
+  // 검사를 통과한 답(집 PC 답 그대로)과 목적지를 남긴다 — 다시 켤 때 같은 검사를 다시 거친다
+  const RS = c.resume;
+  let lastSaveSeq = null;
+  async function saveRoute(seq, dest, data) {
+    if (!RS.on) return;
+    try {
+      lastSaveSeq = seq;
+      const w = await deps.store.write(RS.store_key, { saved_at: clock.now(), dest, answer: data });
+      if (w.ok) log.info(c.where, RS.words.saved, { seq });
+      else log.warn(c.where, RS.words.save_fail, { seq, why: w.why });
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: RS.act, seq } });
+    }
+  }
+
+  async function forgetRoute(v) {
+    if (!RS.on) return;
+    try {
+      const w = await deps.store.write(RS.store_key, null);
+      if (w.ok) log.info(c.where, RS.words.cleared, { seq: v && v.seq, had: lastSaveSeq });
+      else log.warn(c.where, RS.words.save_fail, { seq: v && v.seq, why: w.why });
+      lastSaveSeq = null;
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: RS.act } });
+    }
+  }
+
+  async function restoreRoute() {
+    if (!RS.on) { log.info(c.where, RS.words.off, {}); return; }
+    try {
+      const got = await deps.store.read(RS.store_key);
+      const s = got.ok ? got.value : null;
+      if (!s || typeof s !== 'object' || !s.answer) { log.info(c.where, RS.words.none, { why: got.ok ? null : got.why }); return; }
+      // 그사이 새로 길을 물었으면(화면이 먼저 움직임) 남긴 것은 내지 않는다
+      if (routeSeq !== null) { log.info(c.where, RS.words.skip, { latest: routeSeq }); return; }
+      const age = typeof s.saved_at === 'number' ? clock.now() - s.saved_at : null;
+      if (age === null || age < 0 || age > RS.max_age_ms) {
+        log.info(c.where, RS.words.old, { age_ms: age, max_ms: RS.max_age_ms });
+        await forgetRoute(null);
+        return;
+      }
+      let res;
+      try { res = nr.checkRoute(s.answer, rr); } catch (e) {
+        log.warn(c.where, RS.words.bad, { why: e.message, head: head(s.answer) });
+        await forgetRoute(null);
+        return;
+      }
+      const d = s.dest && typeof s.dest === 'object' ? s.dest : {};
+      const dest = { name: typeof d.name === 'string' ? d.name : '', lat: typeof d.lat === 'number' ? d.lat : null, lng: typeof d.lng === 'number' ? d.lng : null };
+      log.info(c.where, RS.words.restored, { seq: RS.seq, pieces: res.pieces.length, dist_km: res.dist_km, age_ms: age, name_chars: [...dest.name].length });
+      pub(P.answer, { seq: RS.seq, dest, ...res });
+    } catch (e) {
+      log.error(e, { where: c.where, params: { act: RS.act } });
     }
   }
 
@@ -288,9 +349,11 @@ export function createRouteClient(deps) {
     if (v.stage === r.stages.broken) { stopped = true; scheduleHealth(); return; }
     if (v.stage === r.stages.good && !good) {
       good = true;
+      restoreRoute();
       checkHome();
     }
   });
+  deps.state.subscribe(RS.clear_piece, (v) => { forgetRoute(v); });
   deps.state.subscribe(P.place_request, (v) => { findPlaces(v); });
   deps.state.subscribe(P.route_request, (v) => { findRoute(v); });
   deps.state.subscribe(P.upload_request, (v) => { upload(v); });

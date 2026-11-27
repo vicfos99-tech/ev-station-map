@@ -1,0 +1,16 @@
+/* 아래 띠 단추 그림 글자(ui_bar — 11/26 묘성): 몸의 data-bar-glyph 가 narrow 면 좁은 창(style_ui_drive 의 좁은 창 문턱과 같은 560px)에서만, always 면 늘,
+   그림 글자(data-glyph)가 있는 단추를 48×48 정사각으로 줄이고 글 대신 그림 글자를 보인다(글은 글자 크기 0 으로 남김 — 화면 읽기 글은 aria-label).
+   좁은 세로 창(360) 아래 띠 한 줄: 지도 단추 묶음 8+48+8+48+8 · 더 보기 48×3+8×2 · 기록 8+48+8 = 344 ≤ 360 — 판이 화면 밖으로 밀리지 않음.
+   숨긴 단추([hidden])는 건드리지 않는다. 누르는 곳 48px 이상 */
+body[data-bar-glyph="always"] [data-glyph]:not([hidden]) {
+  box-sizing: border-box; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 0; line-height: 0; overflow: hidden;
+}
+body[data-bar-glyph="always"] [data-glyph]:not([hidden])::before { content: attr(data-glyph); font-size: 22px; line-height: 1; }
+@media (max-width: 560px) {
+  body[data-bar-glyph="narrow"] [data-glyph]:not([hidden]) {
+    box-sizing: border-box; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0; line-height: 0; overflow: hidden;
+  }
+  body[data-bar-glyph="narrow"] [data-glyph]:not([hidden])::before { content: attr(data-glyph); font-size: 22px; line-height: 1; }
+}

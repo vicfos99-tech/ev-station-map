@@ -1,0 +1,18 @@
+{"keys": {
+  "owner": {"t": "str", "min": 1, "max": 40},
+  "where": {"t": "str", "min": 1, "max": 40},
+  "mode": {"t": "str", "one_of": ["narrow", "always", "never"]},
+  "modes.narrow": {"t": "str", "min": 1, "max": 20},
+  "modes.always": {"t": "str", "min": 1, "max": 20},
+  "modes.never": {"t": "str", "min": 1, "max": 20},
+  "mode_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
+  "glyph_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
+  "label_attr": {"t": "str", "min": 1, "max": 40},
+  "buttons": {"t": "arr", "max": 20, "of": {"t": "obj"}},
+  "key_sep": {"t": "str", "min": 1, "max": 2},
+  "observe": {"t": "obj"},
+  "word_set": {"t": "str", "min": 1, "max": 40},
+  "word_missing": {"t": "str", "min": 1, "max": 40},
+  "act_init": {"t": "str", "min": 1, "max": 40},
+  "act_label": {"t": "str", "min": 1, "max": 40}
+}}

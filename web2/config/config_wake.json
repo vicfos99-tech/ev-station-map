@@ -1,0 +1,18 @@
+{
+  "note": "(묘성 11/27 ①) 화면 꺼짐 막기(wake). on = 켬·끔. 앱이 좋음이 되면 화면 깨움 유지(Screen Wake Lock, 종류 kind)를 잡고, 페이지가 다시 보이면(vis_event 에서 visible_word) 다시 잡는다(숨으면 브라우저가 스스로 풂). 지원 안 됨(codes.unsupported)·거절(codes.denied)이면 conn_piece 를 나쁨으로 — 상태 자리 한 줄(config_health.conn_source 의 wake, 글은 config_ui_status). 안드로이드 앱 감싸기 때의 뒤에서도 안 죽기는 이번에 안 함",
+  "owner": "wake",
+  "where": "wake",
+  "on": true,
+  "app_piece": "health.app",
+  "conn_piece": "conn.wake",
+  "kind": "screen",
+  "vis_event": "visibilitychange",
+  "visible_word": "visible",
+  "release_event": "release",
+  "codes": {"unsupported": "wake_none", "denied": "wake_denied"},
+  "why_start": "start",
+  "why_visible": "visible",
+  "act_init": "init",
+  "act_request": "request",
+  "words": {"start": "wake_ask", "got": "wake_on", "released": "wake_released", "fail": "wake_fail", "off": "wake_off", "skip_hidden": "wake_skip_hidden"}
+}

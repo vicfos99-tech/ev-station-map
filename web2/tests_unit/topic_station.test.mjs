@@ -38,7 +38,9 @@ export default async function (t) {
   const ok = !!(a.made.topic_station && a.made.relay_status && a.made.ui_station && a.made.ui_route && a.made.calcrunner);
   const io = a.made.calcrunner ? a.made.calcrunner.io().outputs.join(',') : '-';
   t.check('⑧', '설정 그대로: 충전소 꾸러미가 켜져 상태 받기·정보 칸·목록 칸이 만들어지고 계산기가 ahead·plan 을 냄', '만듦 · pos,limit,speed,route,ahead,plan,tap', (ok ? '만듦' : '빠짐') + ' · ' + io, ok && io === 'pos,limit,speed,route,ahead,plan,tap');
-  t.check('⑨', '제목 단추: 켠 제목 = station, 단추 글 = 충전소', 'station · ' + TS.label, (a.made.ui_topic ? a.made.ui_topic.active() : '-') + ' · ' + (a.el(UT.ids.open) ? a.el(UT.ids.open).textContent : '-'), a.made.ui_topic && a.made.ui_topic.active() === 'station' && a.el(UT.ids.open) && a.el(UT.ids.open).textContent === TS.label);
+  // (11/27) 단추 글 = 설정 texts.open 의 자리에 제목 글(예: '충전소 ▾')
+  const openText = UT.texts.open.split(UT.slot).join(TS.label);
+  t.check('⑨', '제목 단추: 켠 제목 = station, 단추 글 = ' + openText, 'station · ' + openText, (a.made.ui_topic ? a.made.ui_topic.active() : '-') + ' · ' + (a.el(UT.ids.open) ? a.el(UT.ids.open).textContent : '-'), a.made.ui_topic && a.made.ui_topic.active() === 'station' && a.el(UT.ids.open) && a.el(UT.ids.open).textContent === openText);
   a.stop();
   const b = startApp({ app: t.app, tc: t.tc, main, boards }, { fetchFn, stamp: 'unit-topic', overrides: { config_topic_station: { label: TS.label } } });
   const off = !b.made.topic_station && !b.made.relay_status && !b.made.ui_station && !b.made.ui_route;

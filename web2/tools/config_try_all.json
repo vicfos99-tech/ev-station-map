@@ -36,6 +36,9 @@
     {"file": "try_a8.mjs", "args": ["app"], "limit_s": 240},
     {"file": "try_a8.mjs", "args": ["chrome"], "limit_s": 240},
     {"file": "try_add1.mjs", "args": [], "limit_s": 600},
+    {"file": "try_add2.mjs", "args": ["frames", "260"], "limit_s": 360, "note": "(정한것반영 ⑧, 2026-11-27) 추가2 시험은 일은 약 3분이지만 끝에 다리가 '다리 초'를 다 채우고 스스로 끝나기를 기다린다(끝 줄 시험). 인자 없이 돌리면 다리 720초라 600초 한도에 늘 끊겼다 — 부분마다 그 부분 다리 초(추가2 세션이 쓴 값)로 나눠 돌림. limit_s = 다리 초 + 여유"},
+    {"file": "try_add2.mjs", "args": ["turn", "330"], "limit_s": 430},
+    {"file": "try_add2.mjs", "args": ["switch", "240"], "limit_s": 340},
     {"file": "try_fix7.mjs", "args": [], "limit_s": 360},
     {"file": "try_ga.mjs", "args": ["pure"], "limit_s": 120},
     {"file": "try_ga.mjs", "args": ["app"], "limit_s": 360}

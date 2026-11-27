@@ -9,6 +9,9 @@
   "full_turn_deg": {"t": "num", "min": 360, "max": 360},
   "only3_default": {"t": "bool"},
   "saved_bools": {"t": "arr", "min": 1, "max": 10, "of": {"t": "str", "min": 1, "max": 40}},
+  "center_len": {"t": "num", "int": true, "min": 2, "max": 2},
+  "center_lng": {"t": "arr", "min": 2, "max": 2, "of": {"t": "num", "min": -180, "max": 180}},
+  "center_lat": {"t": "arr", "min": 2, "max": 2, "of": {"t": "num", "min": -90, "max": 90}},
   "user_event": {"t": "str", "min": 1, "max": 40},
   "fix_word": {"t": "str", "min": 1, "max": 40}
 }}

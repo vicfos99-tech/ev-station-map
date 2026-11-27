@@ -18,23 +18,31 @@ function angleDiff(a, b, r) {
   return Math.min(d, t - d);
 }
 
+// (11/27) 지도 가운데 [경도, 위도] 가 꼴·범위(r.center_lng·r.center_lat = [작은, 큰])에 맞나
+function okCenter(v, r) {
+  return Array.isArray(v) && v.length === r.center_len && isNum(v[0]) && isNum(v[1])
+    && v[0] >= r.center_lng[0] && v[0] <= r.center_lng[1] && v[1] >= r.center_lat[0] && v[1] <= r.center_lat[1];
+}
+
 // 저장해 둔 값(saved)이 꼴에 맞으면 그것으로, 아니면 처음 값
 export function init(saved, r) {
-  const s = { follow: true, bearing_locked: false, zoom_locked: false, bearing: r.start_bearing, zoom: r.start_zoom, heading: null, only3: r.only3_default };
+  const s = { follow: true, bearing_locked: false, zoom_locked: false, bearing: r.start_bearing, zoom: r.start_zoom, heading: null, only3: r.only3_default, center: null };
   if (!saved || typeof saved !== 'object') return s;
   for (const k of r.saved_bools) if (typeof saved[k] === 'boolean') s[k] = saved[k];
   if (isNum(saved.bearing)) s.bearing = saved.bearing;
   // (추가1) 확대는 손으로 굳힌 것만 다시 읽는다 — 안 굳은 확대는 따라가기가 정한 값일 뿐이라 처음 값(r.start_zoom — 기본 확대를 바꾸면 바로 따름)
   if (s.zoom_locked && isNum(saved.zoom) && saved.zoom >= r.min_zoom && saved.zoom <= r.max_zoom) s.zoom = saved.zoom;
+  // (11/27 묘성 ②) 손으로 옮겨 따라가기를 끈 채 꺼졌으면 그 가운데로 다시 연다(따라가는 중이면 가운데는 다음 위치가 정함)
+  if (!s.follow && okCenter(saved.center, r)) s.center = [saved.center[0], saved.center[1]];
   return s;
 }
 
-// 저장할 것만(진행 방향은 그때그때 오므로 뺌)
+// 저장할 것만(진행 방향은 그때그때 오므로 뺌). 가운데는 따라가기를 끈 때만(따라가면 위치가 정함)
 export function saved(s) {
-  return { follow: s.follow, bearing_locked: s.bearing_locked, zoom_locked: s.zoom_locked, bearing: s.bearing, zoom: s.zoom, only3: s.only3 };
+  return { follow: s.follow, bearing_locked: s.bearing_locked, zoom_locked: s.zoom_locked, bearing: s.bearing, zoom: s.zoom, only3: s.only3, center: !s.follow && s.center ? s.center : null };
 }
 
-// 손으로 한 일 ev = {moved, rotated, zoomed, bearing, zoom} (손을 뗀 뒤 지도의 지금 값)
+// 손으로 한 일 ev = {moved, rotated, zoomed, bearing, zoom, center?} (손을 뗀 뒤 지도의 지금 값 — center = [경도, 위도])
 export function onUser(s, ev, r) {
   if (!ev || typeof ev !== 'object') throw new TypeError(r.user_event);
   const n = { ...s };
@@ -49,6 +57,8 @@ export function onUser(s, ev, r) {
     n.zoom_locked = true;
     n.zoom = ev.zoom;
   }
+  // (11/27) 손을 뗀 뒤 지도 가운데(있으면) — 따라가기를 끈 채 꺼지면 다시 열 때 이 자리
+  if (okCenter(ev.center, r)) n.center = [ev.center[0], ev.center[1]];
   return n;
 }
 

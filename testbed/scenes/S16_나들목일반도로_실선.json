@@ -1,0 +1,717 @@
+{
+  "schema_version": 1,
+  "name": "S16_나들목일반도로_실선",
+  "title": "나들목 나가 일반 도로(고속도로만 실제 도로 모양)",
+  "description": "경부고속도로 부산 방향 선 km 55→60.6 을 달려 안성 나들목(선 km 60.6)으로 나간 뒤, 일반 도로(국도 38호선 쪽, 손으로 찍은 좌표 9.6 km)로 공도읍을 지나 안성 시내까지 간다. 일반 도로 앞 0.8 km 는 나들목 길(제한 40), 0.8~5 km 는 제한 60 자료가 있는 길, 5 km 부터 끝까지는 제한 속도 자료가 없는 길(null). 일반 도로 둘레에는 고속도로 밖 실제 충전소 여섯 곳(kind around). 시험하는 것: 고속도로를 벗어나면 앞쪽 휴게소 대신 '주변' 세 곳으로 바뀜(C8), 제한속도 자료 없는 길에서 속도판 비움. — 실자료판: 고속도로 조각만 오픈스트리트맵 실제 도로 모양 선(gyeongbu_down_osm). 손으로 찍은 일반 도로는 그대로이고, 그 처음 점(옛 직선 km 60.6)이 새 선에서 떨어져 있어 새 선 끝 점에서 곧게 잇는 이음 길을 앞에 더함(그만큼 일반 도로 조각 km 가 밀림). 위 설명의 km 는 옛 값 — 새 km 는 route·speeds·limits",
+  "data_source": {
+    "real": false,
+    "from": "선: scenes/lines/gyeongbu_down_osm.json(오픈스트리트맵 실제 도로 모양 — © OpenStreetMap contributors, ODbL). 휴게소·충전소: 옛 장면과 같음 — 고속도로 조각: scenes/lines/gyeongbu_down.json. 휴게소·주변 충전소·충전기 id·처음 상태: 중계 자료 사본 90_임시/중계자료_사본_2026-11-25 의 routes.json · stations/41550.json · status/41550.json — tools/pick_stations.py 로 뽑음",
+    "taken_at": "2026-11-25 10:17 (중계 자료 사본, 한국 시각)",
+    "note": "일반 도로 조각은 손으로 찍은 좌표다(지도 위 국도 38호선 쪽을 눈으로 따라 찍음 — 실제 도로 모양과 다름). 그래서 real 은 false. 나들목 자리(선 km 60.6)는 T1 S5 설명의 안성 나들목 km. 휴게소·주변 충전소와 처음 상태는 실제 자료다. 시속·제한 속도(40·60·자료 없음 구간)는 시험용 값이다. [실자료판] 길(선)은 실제 도로 모양이고, 선 조각·속도·제한 구간의 km 는 옛 직선 km 자리를 새 선에 내려 옮긴 값, 휴게소 km 는 휴게소 좌표를 새 선에 내려 다시 셈한 값이다. 단 고속도로 조각만 새 선이고, 손으로 찍은 좌표 조각은 그대로라 real 은 false 다."
+  },
+  "route": {
+    "legs": [
+      {
+        "kind": "line",
+        "line": "gyeongbu_down_osm",
+        "from_km": 56.76,
+        "to_km": 62.55,
+        "note": "고속도로 — 안성휴게소(부산) 지나 안성 나들목까지 (이 글의 km 는 옛 직선 km — 새 선 km 는 from_km·to_km)"
+      },
+      {
+        "kind": "points",
+        "handmade": true,
+        "road": "국도 38호선(손으로 찍음)",
+        "note": "손으로 찍은 일반 도로: 안성 나들목(선 km 60.6 의 점) → 공도읍 → 대덕면 → 안성 시내 [실자료판 이음] 새 선 끝이 옛 선 위의 처음 점에서 1170 m 떨어져, 새 선 끝 점 하나를 맨 앞에 더해 곧게 이음(원래 점은 그대로 — 이음 길도 손으로 만든 것). 이 조각의 km 는 이음 길만큼 밀림",
+        "points": [
+          [
+            36.998334,
+            127.152557
+          ],
+          [
+            37.001355,
+            127.165177
+          ],
+          [
+            37.004,
+            127.185
+          ],
+          [
+            37.008,
+            127.215
+          ],
+          [
+            37.01,
+            127.245
+          ],
+          [
+            37.007,
+            127.272
+          ]
+        ]
+      }
+    ]
+  },
+  "speeds": [
+    {
+      "leg": 0,
+      "from_km": 56.76,
+      "to_km": 62.55,
+      "kmh": 95
+    },
+    {
+      "leg": 1,
+      "from_km": 0.0,
+      "to_km": 1.97,
+      "kmh": 40,
+      "note": "나들목 길"
+    },
+    {
+      "leg": 1,
+      "from_km": 1.97,
+      "to_km": 10.749105208156099,
+      "kmh": 60,
+      "note": "일반 도로"
+    }
+  ],
+  "stops": [],
+  "emit": {
+    "fields": [
+      "t",
+      "lat",
+      "lng",
+      "speed_kmh",
+      "heading_deg",
+      "accuracy_m"
+    ],
+    "accuracy_m": 8,
+    "heading": "from_path",
+    "speed": "device",
+    "note": "일반 도로라 정확도를 조금 낮춤(시험용 8 m)"
+  },
+  "limits": [
+    {
+      "leg": 0,
+      "from_km": 56.76,
+      "to_km": 62.55,
+      "limit_kmh": 100,
+      "note": "시험용 값"
+    },
+    {
+      "leg": 1,
+      "from_km": 0.0,
+      "to_km": 1.97,
+      "limit_kmh": 40,
+      "note": "나들목 길 — 시험용 값"
+    },
+    {
+      "leg": 1,
+      "from_km": 1.97,
+      "to_km": 6.17,
+      "limit_kmh": 60,
+      "note": "자료 있는 일반 도로 — 시험용 값"
+    },
+    {
+      "leg": 1,
+      "from_km": 6.17,
+      "to_km": 10.749105208156099,
+      "limit_kmh": null,
+      "note": "제한속도 자료 없는 길"
+    }
+  ],
+  "stations": [
+    {
+      "id": "live-gb-down-3",
+      "name": "안성휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down_osm",
+      "km": 60.75,
+      "loc": [
+        37.01329,
+        127.14488
+      ],
+      "operators": [
+        {
+          "station_id": "HD000003",
+          "operator": "현대자동차",
+          "maker": "채비",
+          "loc": [
+            37.0129,
+            127.14522
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "HY001966",
+          "operator": "현대엔지니어링",
+          "maker": "이브이시스",
+          "loc": [
+            37.0129,
+            127.14522
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 260.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "comm_error"
+            }
+          ],
+          "name": "안성휴게소 (부산방향) E-pit",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ME18B303",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            37.01341,
+            127.1448
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "11",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "12",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "안성(부산) 휴게소",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST601529",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            37.01437,
+            127.14392
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "comm_error"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 350.0,
+              "status": "charging"
+            }
+          ],
+          "name": "안성휴게소 (부산)",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "live-gb-down-4",
+      "name": "망향휴게소",
+      "kind": "rest",
+      "direction": "부산 방향",
+      "line": "gyeongbu_down_osm",
+      "km": 79.61,
+      "loc": [
+        36.85422,
+        127.18044
+      ],
+      "operators": [
+        {
+          "station_id": "SGMAC044",
+          "operator": "SK시그넷",
+          "maker": "시그넷",
+          "loc": [
+            36.85431,
+            127.18047
+          ],
+          "chargers": [
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "망향휴게소(부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        },
+        {
+          "station_id": "ST441324",
+          "operator": "SK일렉링크",
+          "maker": "시그넷",
+          "loc": [
+            36.85418,
+            127.18043
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 200.0,
+              "status": "available"
+            }
+          ],
+          "name": "망향휴게소 (부산)",
+          "zscode": "44130",
+          "zcodes": [
+            "44"
+          ],
+          "rest": true
+        }
+      ]
+    },
+    {
+      "id": "ME21B220",
+      "name": "공도읍행정복지센터 지상주차장",
+      "kind": "around",
+      "line": null,
+      "km": null,
+      "loc": [
+        37.00139,
+        127.17275
+      ],
+      "operators": [
+        {
+          "station_id": "ME21B220",
+          "operator": "기후에너지환경부",
+          "maker": "채비",
+          "loc": [
+            37.00139,
+            127.17275
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "공도읍행정복지센터 지상주차장",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "EP312400",
+      "name": "안성 공도 에스엠스틸건설부문 급속",
+      "kind": "around",
+      "line": null,
+      "km": null,
+      "loc": [
+        37.00663,
+        127.2002
+      ],
+      "operators": [
+        {
+          "station_id": "EP312400",
+          "operator": "이카플러그",
+          "maker": "이카플러그",
+          "loc": [
+            37.00663,
+            127.2002
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 50.0,
+              "status": "unknown"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 50.0,
+              "status": "unknown"
+            }
+          ],
+          "name": "안성 공도 에스엠스틸건설부문 급속",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "JA410023",
+      "name": "롯데마트 안성점",
+      "kind": "around",
+      "line": null,
+      "km": null,
+      "loc": [
+        37.00812,
+        127.20073
+      ],
+      "operators": [
+        {
+          "station_id": "JA410023",
+          "operator": "이브이시스",
+          "maker": "중앙제어",
+          "loc": [
+            37.00812,
+            127.20073
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "02",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "05",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "06",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "07",
+              "type": "fast",
+              "kw": 25.0,
+              "status": "available"
+            },
+            {
+              "id": "08",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "charging"
+            },
+            {
+              "id": "09",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "10",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "11",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "12",
+              "type": "fast",
+              "kw": 30.0,
+              "status": "available"
+            }
+          ],
+          "name": "롯데마트 안성점",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "EO000138",
+      "name": "대덕농협",
+      "kind": "around",
+      "line": null,
+      "km": null,
+      "loc": [
+        37.0101,
+        127.22084
+      ],
+      "operators": [
+        {
+          "station_id": "EO000138",
+          "operator": "E1",
+          "maker": "한국알박·KLIN ELEX",
+          "loc": [
+            37.0101,
+            127.22084
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "slow",
+              "kw": 7.0,
+              "status": "unknown"
+            },
+            {
+              "id": "02",
+              "type": "slow",
+              "kw": 7.0,
+              "status": "charging"
+            },
+            {
+              "id": "03",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            },
+            {
+              "id": "04",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "대덕농협",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ME20A168",
+      "name": "아양택지지구공영주차장",
+      "kind": "around",
+      "line": null,
+      "km": null,
+      "loc": [
+        37.00807,
+        127.25788
+      ],
+      "operators": [
+        {
+          "station_id": "ME20A168",
+          "operator": "기후에너지환경부",
+          "maker": "시그넷",
+          "loc": [
+            37.00807,
+            127.25788
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 100.0,
+              "status": "available"
+            }
+          ],
+          "name": "아양택지지구공영주차장",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KP008034",
+      "name": "안성지사(공용)",
+      "kind": "around",
+      "line": null,
+      "km": null,
+      "loc": [
+        37.00785,
+        127.26471
+      ],
+      "operators": [
+        {
+          "station_id": "KP008034",
+          "operator": "한국전력",
+          "maker": "대경엔지니어링",
+          "loc": [
+            37.00785,
+            127.26471
+          ],
+          "chargers": [
+            {
+              "id": "01",
+              "type": "fast",
+              "kw": 50.0,
+              "status": "charging"
+            }
+          ],
+          "name": "안성지사(공용)",
+          "zscode": "41550",
+          "zcodes": [
+            "41"
+          ]
+        }
+      ]
+    }
+  ],
+  "timeline": []
+}

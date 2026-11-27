@@ -103,8 +103,10 @@ async function runPage(outDir, ms) {
   const lib = fakeMapLib(MAP.tile_source_id);
   const timers = [];
   let closed = false;
+  // (정한것반영 ⑦, 11/27) 화면 깨움 유지(wake.js) 흉내 — lib_apprun 의 가짜 창과 같게(지원되는 폰). 없으면 상태 자리에 '화면 켜 두기 안 됨' 줄이 떠 ⑧ 의 '상태 글 빔'이 깨짐
+  const wakeLock = { request: async (kind) => { const s = { kind, released: false, addEventListener() {}, release: async () => { s.released = true; } }; return s; } };
   const ctx = {
-    document: doc, navigator: { storage: opfs.storage, geolocation: null }, maplibregl: lib,
+    document: doc, navigator: { storage: opfs.storage, geolocation: null, wakeLock }, maplibregl: lib,
     console: { error: (...x) => pageConsole.push(x.map(String).join(' ')), log: (...x) => pageConsole.push(x.map(String).join(' ')) },
     fetch: (u, init) => (closed ? Promise.reject(new Error('closed')) : FETCH(u, init)), TextDecoder, AbortController, URL, Blob, Response,
     setTimeout: (f, t) => { if (closed) return null; const h = setTimeout(f, t); timers.push(h); return h; }, clearTimeout,
