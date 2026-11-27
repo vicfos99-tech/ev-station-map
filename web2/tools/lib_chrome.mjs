@@ -58,7 +58,7 @@ function ready(doc) {
 async function one(fr) {
   const f = document.createElement('iframe');
   f.style.cssText = 'display:block;border:0;width:' + fr.w + 'px;height:' + fr.h + 'px';
-  f.src = '/?frame=' + encodeURIComponent(fr.name);
+  f.src = '/?frame=' + encodeURIComponent(fr.name) + (P.hash || '');
   document.body.appendChild(f);
   const t0 = Date.now();
   let ok = false;
@@ -94,7 +94,7 @@ async function one(fr) {
   return '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0">\n<script>' + js + '</script></body></html>';
 }
 
-// opts = {scene, tick, frames, sel, ready, actions, log} → {frames:[…], ua} | {error}
+// opts = {scene, tick, frames, sel, ready, actions, log, hash?, overrides?, build_app?} → {frames:[…], ua} | {error}
 export async function measureInChrome(tc, app, opts) {
   const C = tc.chrome;
   const V = tc.view_s1;
@@ -125,7 +125,8 @@ export async function measureInChrome(tc, app, opts) {
     bridge = await startBridge(tc, info, C.bridge_seconds, secret);
     await selectScene(info, opts.scene, false);
     if (opts.tick) await seekScene(info, opts.tick);
-    const P = { frames: opts.frames, sel: opts.sel, ready: opts.ready, actions: opts.actions || [], wait_ms: C.ready_wait_ms, poll_ms: C.poll_ms, settle_ms: C.settle_ms, hit_inset_px: C.hit_inset_px, result_path: C.result_path, status_q: C.status_q };
+    // (추가3 앞) opts.hash = 앱 주소 꼬리(예: 제목 '#topic=toilet' — 그 제목으로 켜서 잼)
+    const P = { hash: opts.hash || '', frames: opts.frames, sel: opts.sel, ready: opts.ready, actions: opts.actions || [], wait_ms: C.ready_wait_ms, poll_ms: C.poll_ms, settle_ms: C.settle_ms, hit_inset_px: C.hit_inset_px, result_path: C.result_path, status_q: C.status_q };
     const measureHtml = measurePage(P);
     let resolveResult;
     const result = new Promise((res) => { resolveResult = res; });

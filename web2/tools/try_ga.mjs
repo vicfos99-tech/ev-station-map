@@ -17,8 +17,10 @@ const APP = appDir(tc);
 const log = toolLog(tc, 'try_ga');
 const cfgOf = (name) => JSON.parse(fs.readFileSync(path.join(APP, tc.build.config_dir, name + tc.build.config_ext), 'utf8'));
 const srcOf = async (name) => import(pathToFileURL(path.join(APP, tc.build.src_dir, name + tc.build.module_ext)).href);
-const HC = cfgOf('config_health');
-const US = cfgOf('config_ui_status');
+// (추가3 앞) 등급 표·이름 글은 꾸러미가 더한 것(adds — cfg.js)까지 합친 것으로 본다(앱이 보는 것과 같게)
+const MERGED = (await srcOf('cfg')).createConfig(loadAppConfig(APP, tc.build, {}).raw);
+const HC = MERGED.section('config_health');
+const US = MERGED.section('config_ui_status');
 const LG = cfgOf('config_log');
 const SC = cfgOf('config_statecalc');
 // (정비 나 ①) 충전소 줄(ahead·plan)은 충전소 꾸러미 설정에 — 조립과 같게 꽂는 자리에 끼운 표 전체로 본다

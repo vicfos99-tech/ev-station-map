@@ -21,5 +21,6 @@
   "where": {"t": "str", "min": 1, "max": 40},
   "word_mounted": {"t": "str", "min": 1, "max": 40},
   "word_mount_failed": {"t": "str", "min": 1, "max": 40},
+  "word_skipped": {"t": "str", "min": 1, "max": 40},
   "word_show_failed": {"t": "str", "min": 1, "max": 40}
 }}

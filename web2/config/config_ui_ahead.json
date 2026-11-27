@@ -8,6 +8,8 @@
   "health_piece": "health.ahead",
   "interval_ms": 1000,
   "slot": "right",
+  "topic": "station",
+  "topic_note": "(추가3 앞) 이 판이 딸린 제목(충전소 꾸러미 topic_station 의 이름). 그 제목이 켜졌을 때만 판 틀이 꽂는다",
   "around_mode": "around",
   "route_mode": "route",
   "ids": {"root": "ev-ahead", "head": "ev-ahead-head", "list": "ev-ahead-list"},

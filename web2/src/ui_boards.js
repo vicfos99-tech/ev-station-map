@@ -3,7 +3,7 @@
 //   needs 의 간격(아래 한도 있음)마다, 바뀐 것이 있을 때만 show(data) 를 부른다.
 // 판들의 요구(조각 → 가장 짧은 간격)는 board.needs 로 한 번 알린다(클라이언트가 받기 간격을 맞춤).
 // **어떤 판이 있는지 코드에 적지 않는다** — 판을 더하거나 빼도 이 파일·조립·ui_drive 는 그대로다. 판이 던지면 잡아 로그(같은 오류는 한 번만).
-export const NEEDS = ['cfg', 'log', 'state', 'doc', 'clock', 'timefmt', 'board', 'boards'];
+export const NEEDS = ['cfg', 'log', 'state', 'doc', 'clock', 'timefmt', 'board', 'boards', 'topic_on'];
 
 export function createBoardHost(deps) {
   const c = deps.cfg.section('config_ui_boards');
@@ -24,6 +24,11 @@ export function createBoardHost(deps) {
     const made = entry.module[c.factory]({ cfg: deps.cfg, log, doc, timefmt: deps.timefmt, board: deps.board, send });
     if (!made || typeof made.needs !== 'function' || typeof made.show !== 'function') throw new TypeError(entry.name);
     const n = deps.board.checkNeeds(made.needs(), c.rule);
+    // (추가3 앞) 제목에 딸린 판(needs().topic)은 그 제목이 켜졌을 때만 — 켠 제목 이름은 조립이 넘긴다(topic_on, 없으면 null)
+    if (n.topic !== undefined && n.topic !== (deps.topic_on || null)) {
+      log.info(c.where, c.word_skipped, { name: entry.name, topic: n.topic, on: deps.topic_on || null });
+      return;
+    }
     if (n.sends && n.sends.length) sendPub = state.claim(c.board_owner_prefix + entry.name, n.sends);
     const slot = doc.getElementById(c.slots[n.slot]);
     if (!slot) throw new Error(c.slots[n.slot]);

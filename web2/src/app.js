@@ -58,6 +58,7 @@ export const NEEDS = ['platform'];
 // topics = 빌드가 KIND 'topic' 으로 주운 제목 꾸러미 목록(정비 나 ①) — 한 번에 하나만 켠다(topicpick: 주소의 제목 표시 → 없으면 첫 꾸러미).
 //   켠 꾸러미가 밝힌 받기·계산 줄·셈 모듈·화면을 정해 둔 자리(받기 = 충전소 목록 다음, 계산 = 계산 표의 꽂는 자리, 화면 = '이상해' 단추 다음)에 꽂을 뿐 제목 이름을 모른다.
 //   꾸러미 만들기가 던지면(설정이 깨짐) 그 제목만 꺼지고 기본 기능은 돈다(격리).
+//   (추가3 앞) 판 틀에는 켠 제목 이름(제목에 딸린 판 — needs().topic — 은 그 제목일 때만), 지도에는 켠 제목의 점 층·누름 조각(꾸러미의 map — 없으면 지도 설정의 것)을 넘긴다.
 // (시험 때는 disk·fetch·doc·clock·boards 를 가짜로 바꿔 끼운다)
 export function main(platform) {
   const p = platform;
@@ -137,8 +138,8 @@ export function main(platform) {
   const screen = { ...s, doc: p.doc, win: p.win, timefmt };
   make('ui_status', () => createStatusBar(screen));
   make('ui_drive', () => createDriveScreen(screen));
-  make('ui_map', () => createMapScreen({ ...screen, maplibre: p.maplibre, mapcam }));
-  make('ui_boards', () => createBoardHost({ ...screen, board, boards: p.boards || [] }));
+  make('ui_map', () => createMapScreen({ ...screen, maplibre: p.maplibre, mapcam, topic_map: topic && topic.map ? topic.map : null }));
+  make('ui_boards', () => createBoardHost({ ...screen, board, boards: p.boards || [], topic_on: topic ? topic.name : null }));
   make('ui_log', () => createLogScreen(screen));
   make('ui_locate', () => createLocateGuide(screen));
   make('ui_odd', () => createOddButton({ ...screen, formcheck }));

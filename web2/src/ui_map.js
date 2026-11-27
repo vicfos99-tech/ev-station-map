@@ -15,7 +15,7 @@ import { createMapView } from './mapview.js';
 //   · (추가1) 지도가 화면 전체를 깔고 판이 그 위에 있으므로 지도의 보이는 가운데를 '비어 보이는 지도 자리'(c.over.open_id)로 옮긴다(mapview.setPadding):
 //     가로는 그 자리 가운데, 세로는 그 자리 위에서 c.over.dot_y_ratio(아래쪽 — 앞이 더 보이게). 자리 크기가 바뀔 때·위치가 올 때 다시 재고 바뀌면 로그 한 줄.
 //     지도 저작권 조각은 정해 둔 자리(c.over.attrib_id)로 옮겨 꽂는다(mapview)
-export const NEEDS = ['cfg', 'log', 'state', 'store', 'doc', 'win', 'clock', 'maplibre', 'mapcam'];
+export const NEEDS = ['cfg', 'log', 'state', 'store', 'doc', 'win', 'clock', 'maplibre', 'mapcam', 'topic_map'];
 
 export function createMapScreen(deps) {
   const c = deps.cfg.section('config_ui_map');
@@ -25,7 +25,9 @@ export function createMapScreen(deps) {
   const log = deps.log;
   const doc = deps.doc;
   const clock = deps.clock;
-  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, c.select_piece, c.tap.piece, c.vector.piece]);
+  // (추가3 앞) 다른 점 층·누름 요청은 켠 제목이 밝힌 것(topic_map = {dots_piece, list_key, select_piece} — 꾸러미 설정 map). 안 밝히면 이 설정의 것(충전소)
+  const tm = deps.topic_map || { dots_piece: c.stations_piece, list_key: c.stations_list_key, select_piece: c.select_piece };
+  const pub = deps.state.claim(c.owner, [c.tiles_piece, c.cam_piece, tm.select_piece, c.tap.piece, c.vector.piece]);
   let taps = 0;
   let lastPin = null;
   let view = null;
@@ -135,7 +137,7 @@ export function createMapScreen(deps) {
 
   function drawStations(st) {
     if (!view) return;
-    const list = st && Array.isArray(st[c.stations_list_key]) ? st[c.stations_list_key].filter((x) => x && typeof x.lat === 'number' && typeof x.lng === 'number') : [];
+    const list = st && Array.isArray(st[tm.list_key]) ? st[tm.list_key].filter((x) => x && typeof x.lat === 'number' && typeof x.lng === 'number') : [];
     view.setStations(list.map((x) => ({ id: x.id, lat: x.lat, lng: x.lng })));
   }
 
@@ -147,12 +149,12 @@ export function createMapScreen(deps) {
         const it = lastAhead && Array.isArray(lastAhead.items) ? lastAhead.items.find((x) => String(x.key) === p.key) : null;
         if (it) sel = { key: it.key, ids: Array.isArray(it.ids) ? it.ids.slice() : [it.key], name: it.name, dir: it.dir || null, line: it.dir ? lastAhead.line : null, lat: it.lat, lng: it.lng, rest: !!it.rest };
       } else {
-        const list = lastStations && Array.isArray(lastStations[c.stations_list_key]) ? lastStations[c.stations_list_key] : [];
+        const list = lastStations && Array.isArray(lastStations[tm.list_key]) ? lastStations[tm.list_key] : [];
         const st = list.find((x) => x && String(x.id) === p.key);
         if (st) sel = { key: st.id, ids: [st.id], name: st.name, dir: null, line: null, lat: st.lat, lng: st.lng, rest: !!st.rest };
       }
       log.info(c.where, c.word_pick, { kind: p.kind, key: p.key, found: !!sel });
-      if (sel) pub(c.select_piece, sel);
+      if (sel) pub(tm.select_piece, sel);
     } catch (e) {
       log.error(e, { where: c.where, params: { act: c.act_pick, key: p && p.key } });
     }
@@ -331,7 +333,7 @@ export function createMapScreen(deps) {
     lastAhead = a;
     try { drawAhead(a); } catch (e) { log.error(e, { where: c.where, params: { act: c.act_marks } }); }
   });
-  deps.state.subscribe(c.stations_piece, (st) => {
+  deps.state.subscribe(tm.dots_piece, (st) => {
     lastStations = st;
     try { drawStations(st); } catch (e) { log.error(e, { where: c.where, params: { act: c.act_stations } }); }
   });

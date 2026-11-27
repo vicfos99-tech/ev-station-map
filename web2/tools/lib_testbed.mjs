@@ -104,6 +104,19 @@ export function linesShim(tc, info, secret) {
   for (const [name, line] of Object.entries(tc.testbed.lines_shim)) {
     files[name] = fs.readFileSync(path.join(dir, line + info.tb.scenes.line_suffix), 'utf8');
   }
+  // (추가3 앞) 중계가 아직 안 만드는 자료(예: 화장실 목록)를 테스트 베드 폴더의 extra_shim.dir 에서 — 상대 경로 = 자료 길 이름
+  const X = tc.testbed.extra_shim;
+  const xdir = X ? path.join(info.dir, X.dir) : null;
+  if (xdir && fs.existsSync(xdir)) {
+    const walk = (d) => {
+      for (const n of fs.readdirSync(d)) {
+        const p = path.join(d, n);
+        if (fs.statSync(p).isDirectory()) walk(p);
+        else files[path.relative(xdir, p).split(path.sep).join('/')] = fs.readFileSync(p, 'utf8');
+      }
+    };
+    walk(xdir);
+  }
   const S = tc.testbed.limit_shim;
   return {
     files,

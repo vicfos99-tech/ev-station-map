@@ -125,8 +125,17 @@ function main() {
     } else if (fs.existsSync(html)) views[s] = fs.readFileSync(html, 'utf8');
     else if (!b.views_optional.includes(s)) throw new Error('빠진 조각: ' + path.basename(html));
   }
-  for (const s of Object.keys(views)) if (!b.views_order.includes(s)) throw new Error('화면 차례(views_order)에 없는 조각: ' + s);
-  const viewsHtml = b.views_order.filter((s) => views[s]).map((s) => views[s]).join('\n');
+  // (추가3 앞) 꾸러미가 밝힌 화면 조각(config_topic_*.views)은 views_order 에 없어도 된다 — topic_views_after 조각 바로 뒤에 꾸러미 이름 차례·적은 차례로
+  const topicViews = [];
+  for (const name of Object.keys(raw.files).filter((n) => n.startsWith(b.topic_config_prefix)).sort()) {
+    const list = raw.files[name] && raw.files[name][b.topic_views_key];
+    if (Array.isArray(list)) for (const s of list) if (typeof s === 'string' && !b.views_order.includes(s) && !topicViews.includes(s)) topicViews.push(s);
+  }
+  for (const s of Object.keys(views)) if (!b.views_order.includes(s) && !topicViews.includes(s)) throw new Error('화면 차례(views_order·꾸러미 views)에 없는 조각: ' + s);
+  const at = b.views_order.indexOf(b.topic_views_after);
+  if (at < 0) throw new Error('꾸러미 화면을 넣을 자리(topic_views_after)가 views_order 에 없음: ' + b.topic_views_after);
+  const viewOrder = [...b.views_order.slice(0, at + 1), ...topicViews, ...b.views_order.slice(at + 1)];
+  const viewsHtml = viewOrder.filter((s) => views[s]).map((s) => views[s]).join('\n');
   // (정비 나 ①) 제목 꾸러미: 머리에 KIND 'topic' 이 있는 모듈 → 제목 목록(이름 = 모듈 이름에서 topic_prefix 를 뗀 것). 조립은 목록만 받는다
   const topicRx = new RegExp(b.topic_decl, 'm');
   const topicNames = Object.keys(mods).filter((n) => topicRx.test(fs.readFileSync(path.join(srcDir, n + b.module_ext), 'utf8'))).sort();

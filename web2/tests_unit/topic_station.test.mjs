@@ -41,6 +41,10 @@ export default async function (t) {
   // (11/27) 단추 글 = 설정 texts.open 의 자리에 제목 글(예: '충전소 ▾')
   const openText = UT.texts.open.split(UT.slot).join(TS.label);
   t.check('⑨', '제목 단추: 켠 제목 = station, 단추 글 = ' + openText, 'station · ' + openText, (a.made.ui_topic ? a.made.ui_topic.active() : '-') + ' · ' + (a.el(UT.ids.open) ? a.el(UT.ids.open).textContent : '-'), a.made.ui_topic && a.made.ui_topic.active() === 'station' && a.el(UT.ids.open) && a.el(UT.ids.open).textContent === openText);
+  // (추가3 앞) 제목에 딸린 판: 충전소판(ui_ahead — topic station)은 충전소가 켜졌을 때 꽂힘
+  const UA = t.cfg('config_ui_ahead');
+  const mountedA = a.made.ui_boards ? a.made.ui_boards.mounted() : [];
+  t.check('⑪', '제목에 딸린 판: 충전소가 켜지면 충전소판(topic ' + UA.topic + ')이 꽂힘 · 속도판(기본)도', 'ui_ahead·ui_speed 있음', mountedA.join(','), mountedA.includes('ui_ahead') && mountedA.includes('ui_speed'));
   a.stop();
   const b = startApp({ app: t.app, tc: t.tc, main, boards }, { fetchFn, stamp: 'unit-topic', overrides: { config_topic_station: { label: TS.label } } });
   const off = !b.made.topic_station && !b.made.relay_status && !b.made.ui_station && !b.made.ui_route;
@@ -48,5 +52,7 @@ export default async function (t) {
   const io2 = b.made.calcrunner ? b.made.calcrunner.io().outputs.join(',') : '-';
   t.check('⑩', '격리: 충전소 꾸러미 설정을 깸(calc_rows 빠짐) → 충전소만 꺼지고(상태 받기·정보 칸·목록 칸 없음) 기본 기능(지도·검색·판·계산 기본 줄)은 만들어짐', '꺼짐 · 기본 있음 · pos,limit,speed,route,tap',
     (off ? '꺼짐' : '안 꺼짐') + ' · ' + (basic ? '기본 있음' : '기본 빠짐') + ' · ' + io2, off && basic && io2 === 'pos,limit,speed,route,tap');
+  const mountedB = b.made.ui_boards ? b.made.ui_boards.mounted() : [];
+  t.check('⑫', '켠 제목이 없으면(충전소 꾸러미 깨짐) 충전소판은 안 꽂히고 속도판(기본)은 꽂힘', 'ui_ahead 없음 · ui_speed 있음', mountedB.join(','), !mountedB.includes('ui_ahead') && mountedB.includes('ui_speed'));
   b.stop();
 }

@@ -36,6 +36,10 @@
     "topic_decl": "^\\s*export\\s+const\\s+KIND\\s*=\\s*['\"]topic['\"]",
     "topic_prefix": "topic_",
     "topic_config_prefix": "config_topic_",
+    "adds_key": "adds",
+    "topic_views_key": "views",
+    "topic_views_after": "ui_route",
+    "adds_note": "(추가3 앞 기본 걸음) 꾸러미가 자기 것을 밝힘: ① 설정 파일의 adds_key 칸({다른 설정: {칸: 값}})을 앱 Config 가 그 설정에 더한다(cfg.js — 등급 config_health.grades·features·conn_source, 이름 글 config_ui_status.texts…). ② 꾸러미 설정(config_topic_*)의 topic_views_key 칸(화면 조각 이름 목록)은 views_order 에 없어도 되고, 빌드가 topic_views_after 조각 바로 뒤에 꾸러미 이름 차례·적은 차례로 넣는다. 그래서 새 제목은 남의 설정 파일을 고치지 않는다",
     "topic_note": "(정비 나 ①) 제목 꾸러미: 파일 머리에 KIND 'topic' 이 있는 모듈을 판처럼 주워 제목 목록(@@TOPICS@@ — 이름(모듈 이름에서 topic_prefix 를 뗀 것)·모듈)을 만든다. 조립은 목록을 읽을 뿐 제목 이름을 모른다. 옛 앱 사본(뼈대에 @@TOPICS@@ 가 없고 꾸러미도 없음)은 그대로 짓는다",
     "vendor_js": ["vendor/maplibre-gl.js"],
     "vendor_css": ["vendor/maplibre-gl.css"],
@@ -249,7 +253,7 @@
       "mine": "mine",
       "topicpick": "topicpick"
     },
-    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send", "topic_rows", "topic_list"],
+    "platform_deps": ["platform", "doc", "win", "fetch", "clock", "console", "geo", "maplibre", "storage", "boards", "parts", "send", "topic_rows", "topic_list", "topic_on", "topic_map"],
     "banned_everywhere": [
       "\\bnew\\s+(Logger|Store|Config|State)\\b",
       "\\bgetInstance\\b",
@@ -301,6 +305,7 @@
     "poll_ms": 200,
     "lines_note": "R0(중계가 만드는 고속도로 선 파일) 전이라 시험 다리가 선을 내주지 않는다. 시험·보기 도구만 다리 자료 길의 이 선 파일 이름을 테스트 베드 선 파일로 대신 답한다(앱 코드는 그대로 다리 자료 길에 묻는다). 비밀 값 머리가 틀리면 다리처럼 lock",
     "lines_shim": {"lines/gyeongbu_down.json": "gyeongbu_down"},
+    "extra_shim": {"dir": "scenes/relay_extra", "note": "(추가3 앞) 중계가 아직 안 만드는 자료 파일을 시험·보기 도구가 대신 답할 자리(테스트 베드 폴더 기준). 이 폴더 안의 파일은 그 상대 경로(예: toilets/list.json)를 다리 자료 길 이름으로 삼아 그대로 답한다. 폴더가 없으면 아무것도 안 함. 비밀 값 머리는 선 파일과 같이 봄"},
     "json_type": "application/json; charset=utf-8",
     "lock_status": 401,
     "lock_body": {"v": 1, "ok": false, "code": "lock", "src": "gate"},

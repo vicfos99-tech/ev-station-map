@@ -82,5 +82,6 @@ export function loadAppConfig(app, b, opts) {
   }
   if (opts.buildInfo) files[b.build_name] = opts.buildInfo;
   for (const [k, v] of Object.entries(opts.overrides || {})) files[k] = v;
-  return { raw: { files, shapes, broken }, errors };
+  // (추가3 앞) 더하기 칸 이름(cfg.js 가 꾸러미 설정의 이 칸을 다른 설정에 더함 — 꾸러미가 자기 등급·이름 글을 밝힘)
+  return { raw: { files, shapes, broken, adds_key: b.adds_key }, errors };
 }

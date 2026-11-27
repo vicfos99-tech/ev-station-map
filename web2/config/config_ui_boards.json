@@ -19,5 +19,6 @@
   "where": "ui_boards",
   "word_mounted": "board_mounted",
   "word_mount_failed": "board_mount_failed",
+  "word_skipped": "board_skipped",
   "word_show_failed": "board_show_failed"
 }

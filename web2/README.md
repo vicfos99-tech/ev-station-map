@@ -77,6 +77,16 @@ node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_*
 - `engine.js` 는 일 단위로 나눔: 검사·만들기 `engine_model` · 거리 `engine_range` · 상태 `engine_status` · 요금 `engine_price` · 목록 `engine_list` · 추천 `engine_pick` · 차례 묶기(`plan`)와 옛 이름 내주기 `engine`.
 - 제목 바꾸기 단추(`ui_topic`, 설정 `config_ui_topic`): 아래 띠 더 보기 자리 맨 앞(48px) + 가운데 기둥의 제목 목록 칸. 고르면 Store `topic` 에 '마지막에 쓴 제목'을 남기고 주소 꼬리를 바꿔 다시 켬. 켤 때 남긴 것이 지금 것과 다르면 그 제목으로 다시 켬. **제목이 `min_show`(2) 개보다 적으면 단추를 숨김** — 좁은 세로 창(360)의 아래 띠에 폭이 없음(갈림길 3 — 11/27 아래 띠 그림 글자로 폭 문제는 풂, 아래 '11/27').
 
+## 추가3 앞 기본 걸음 (2026-11-27) — 꾸러미가 자기 것을 밝힘
+새 제목이 **남의 파일을 고치지 않고** 붙게(위 '아직 꾸러미 파일만으로 안 되는 것'을 풂):
+- **더하기(`adds`)**: 설정 파일의 `adds` 칸 `{다른 설정: {칸: 값}}` 을 Config(`cfg.js`)가 그 설정에 더한다 — 꾸러미 설정이 `config_health.grades·features·conn_source`, `config_ui_status.texts.feature_names·src_names` 에 자기 줄을 밝힘. 없는 칸만 더하고, 이미 있는 칸이 다른 값이면 바꾸지 않고 문제(`adds_clash`). 더하는 쪽 꼴이 틀려도 더함(등급을 알아야 '그 기능만 꺼짐'). 칸 이름은 `tools/config_tools.json` 의 `build.adds_key`.
+- **꾸러미 화면 조각**: `config_topic_<제목>.views`(화면 조각 이름 목록)는 `views_order` 에 없어도 되고, 빌드가 `build.topic_views_after`(지금 `ui_route`) 바로 뒤에 넣는다.
+- **제목에 딸린 판**: 판의 `needs().topic` 에 제목 이름을 밝히면 그 제목이 켜졌을 때만 판 틀이 꽂는다(충전소판 `config_ui_ahead.topic` = `station`). 조립이 켠 제목 이름(`topic_on`)을 판 틀에 넘김.
+- **지도의 다른 점·누름**: 꾸러미가 `createTopic` 결과에 `map: {dots_piece, list_key, select_piece}` 를 밝히면 지도가 그 조각으로 회색 점을 그리고 누름을 그 이름으로 낸다(안 밝히면 `config_ui_map` 의 충전소 것 — 충전소는 그대로).
+- 아래 띠 그림 글자: 꾸러미 단추는 자기 모듈이 자기 단추에 `data-glyph`·`aria-label` 을 단다(`ui_bar` 목록을 고치지 않음 — 모양은 `[data-glyph]` 로 같음).
+- 시험 도구: `startApp(…, {hash})`(주소 꼬리로 제목 켜기) · `stop()` 이 멈추기가 있는 것을 모두 멈춤 · 크롬 재기 `measureInChrome(…, {hash})` · 시험 서버가 테스트 베드 `scenes/relay_extra/` 의 파일을 자료 길 이름(상대 경로)으로 대신 답함(`testbed.extra_shim`) · `try_ga` ⑤ 등급 표는 더한 것까지 합쳐 봄.
+- 단위 시험: `tests_unit/cfg.test.mjs`(더하기 ①~⑤), `topic_station.test.mjs` ⑪⑫(딸린 판).
+
 ## 11/27 — 제목 단추 자리 · 아래 띠 그림 글자 · 꺼지지 않게
 - 제목 단추(`ui_topic`): 글 '지금 제목 ▾'(`config_ui_topic.texts.open`), 자리 = `button_slot`(아래 단추 줄 묶음 `ev-more`/`ev-map-bar` 의 몇째 — 처음 값 `ev-more` 맨 앞). 보일 조건 `min_show`(처음 값 2 — 제목이 하나면 숨김, 1 이면 늘 보임).
 - 아래 띠 그림 글자(`ui_bar`, `config_ui_bar`): `mode` narrow(560px 이하에서만 — 처음 값)·always·never. 그림 글자일 때 단추 48×48, 화면 읽기 글(aria-label)은 글. 좁은 세로(360) 아래 띠 한 줄 344px — 판이 밀리지 않음.

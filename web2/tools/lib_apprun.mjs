@@ -233,6 +233,8 @@ export function startApp(ctx, opts) {
     config: raw, doc, win: fakeWin(), disk, console: con, clock, geo: opts.geo || null, maplibre: lib, boards: ctx.boards || [], topics: ctx.topics || (ctx.boards && ctx.boards.topics) || [],
     fetch: (url, init) => { fetchCalls.push({ url: String(url), headers: { ...((init && init.headers) || {}) } }); return realFetch(url, init); },
   };
+  // (추가3 앞) opts.hash = 주소 꼬리(예: '#topic=toilet' — 그 제목으로 켬). 다시 켜기(reload)는 횟수만 센다
+  if (opts.hash !== undefined) platform.win.location = { hash: opts.hash, reloads: 0, reload() { this.reloads += 1; } };
   const made = main(platform);
   const win = platform.win;
   const seen = { app: [], fixes: [], speed: [], pos: [], stations: [], ahead: [], limit: [], route: [], place: [], progress: [], odd: [], conn: [] };
@@ -262,6 +264,8 @@ export function startApp(ctx, opts) {
       if (made.relay_status) made.relay_status.halt();
       if (made.relay_limit) made.relay_limit.halt();
       if (made.net_route) made.net_route.halt();
+      // (추가3 앞) 제목 꾸러미의 받기도(이름을 모름 — 멈추기(halt)가 있는 것은 모두)
+      for (const v of Object.values(made)) if (v && typeof v.halt === 'function') v.halt();
       for (const h of timers) clearTimeout(h);
       for (const h of intervals) clearInterval(h);
     },

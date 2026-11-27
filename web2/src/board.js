@@ -8,7 +8,7 @@ export function define(impl) {
   return Object.freeze({ needs: impl.needs, show: impl.show });
 }
 
-// needs() 의 꼴: {topics: [State 조각 이름…], interval_ms: 갱신 간격, slot: 들어갈 자리 이름, sends?: [누름으로 내는 요청 조각 이름…]}
+// needs() 의 꼴: {topics: [State 조각 이름…], interval_ms: 갱신 간격, slot: 들어갈 자리 이름, sends?: [누름으로 내는 요청 조각 이름…], topic?: 딸린 제목}
 // sends(A4) = 판이 누름을 State 에 요청으로만 낼 조각(예: station.select.ahead). 판 틀이 그 이름의 주인을 판으로 잡아 send 함수로 넘긴다
 export function checkNeeds(n, r) {
   if (!n || !Array.isArray(n.topics) || n.topics.length < 1 || n.topics.length > r.max_topics) throw new TypeError('topics');
@@ -19,5 +19,7 @@ export function checkNeeds(n, r) {
     if (!Array.isArray(n.sends) || n.sends.length > r.max_sends) throw new TypeError('sends');
     for (const s of n.sends) if (typeof s !== 'string' || !s) throw new TypeError('send');
   }
+  // (추가3 앞) topic? = 이 판이 딸린 제목(꾸러미 이름). 밝히면 그 제목이 켜졌을 때만 판 틀이 꽂는다. 안 밝히면 늘(기본 기능 판)
+  if (n.topic !== undefined && (typeof n.topic !== 'string' || !n.topic)) throw new TypeError('topic');
   return n;
 }

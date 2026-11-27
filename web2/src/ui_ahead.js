@@ -61,7 +61,7 @@ export function create(deps) {
   }
 
   return deps.board.define({
-    needs: () => ({ topics: [c.ahead_piece, c.health_piece], interval_ms: c.interval_ms, slot: c.slot, sends: [c.select_piece] }),
+    needs: () => ({ topics: [c.ahead_piece, c.health_piece], interval_ms: c.interval_ms, slot: c.slot, sends: [c.select_piece], topic: c.topic }),
     show(data) {
       const a = data[c.ahead_piece];
       const h = data[c.health_piece];
