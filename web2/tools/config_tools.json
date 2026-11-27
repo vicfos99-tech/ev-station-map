@@ -107,6 +107,10 @@
     "needs_decl": "export\\s+const\\s+NEEDS\\s*=\\s*\\[([^\\]]*)\\]",
     "kind_decl": "export\\s+const\\s+KIND\\s*=\\s*['\"]([a-z_]+)['\"]",
     "kind_layer": {"board": "screen", "topic": "topic"},
+    "layer_decl": "export\\s+const\\s+LAYER\\s*=\\s*['\"]([a-z_]+)['\"]",
+    "declarable_layers": ["pure", "client", "screen"],
+    "layer_extra_needs": {"client": ["relay_base"]},
+    "layer_decl_note": "(추가3 앞 기본 걸음 3) 제목 꾸러미의 모듈이 층 표(module_layer)·받는 것 표(dep_module)를 고치지 않게: ① 층 표에 없고 KIND 도 없으면 파일 머리의 LAYER 선언(declarable_layers 만 — app·topic 처럼 '*' 인 층은 밝힐 수 없음)이 그 모듈의 층 ② NEEDS 의 이름이 모듈 이름과 같으면 그 모듈(층 규칙은 그대로 봄) ③ layer_extra_needs = 그 층이면 더 기대도 되는 모듈(받기 층은 중계 받기 바탕 relay_base — relay_stations 등의 extra_needs 와 같은 뜻)",
     "kind_imports_allowed": {"topic": "*"},
     "kind_note": "(정비 나 ①) 제목 꾸러미(KIND topic)는 조립처럼 그 제목의 받기·계산·화면 모듈을 불러 묶는다(import 허용 *, 층 topic) — 아무도 꾸러미를 import 하지 않는다(조립은 빌드가 준 목록으로만 받음)",
     "plug": {

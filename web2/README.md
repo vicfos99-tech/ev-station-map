@@ -85,7 +85,9 @@ node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_*
 - **지도의 다른 점·누름**: 꾸러미가 `createTopic` 결과에 `map: {dots_piece, list_key, select_piece}` 를 밝히면 지도가 그 조각으로 회색 점을 그리고 누름을 그 이름으로 낸다(안 밝히면 `config_ui_map` 의 충전소 것 — 충전소는 그대로).
 - 아래 띠 그림 글자: 꾸러미 단추는 자기 모듈이 자기 단추에 `data-glyph`·`aria-label` 을 단다(`ui_bar` 목록을 고치지 않음 — 모양은 `[data-glyph]` 로 같음).
 - 시험 도구: `startApp(…, {hash})`(주소 꼬리로 제목 켜기) · `stop()` 이 멈추기가 있는 것을 모두 멈춤 · 크롬 재기 `measureInChrome(…, {hash})` · 시험 서버가 테스트 베드 `scenes/relay_extra/` 의 파일을 자료 길 이름(상대 경로)으로 대신 답함(`testbed.extra_shim`) · `try_ga` ⑤ 등급 표는 더한 것까지 합쳐 봄.
-- 단위 시험: `tests_unit/cfg.test.mjs`(더하기 ①~⑤), `topic_station.test.mjs` ⑪⑫(딸린 판).
+- 단위 시험: `tests_unit/cfg.test.mjs`(더하기 ①~⑥), `topic_station.test.mjs` ⑪⑫(딸린 판), `check4.test.mjs` ⑨⑩(층 선언).
+- (기본 걸음 2) 더하기가 목록끼리는 없는 것만 뒤에 덧붙인다(예: `config_relay_base.file_res` 에 꾸러미 파일 무늬).
+- (기본 걸음 3) 기계 검사 ④: 층 표(`check4.module_layer`)에 없고 KIND 도 없는 모듈은 머리의 `export const LAYER = 'pure'|'client'|'screen'`(`declarable_layers`)이 층. NEEDS 이름이 모듈 이름과 같으면 그 모듈(층 규칙은 그대로). 받기 층(client)은 `relay_base` 에 기댈 수 있음(`layer_extra_needs`). 꾸러미 모듈이 층 표·받는 것 표를 고치지 않게.
 
 ## 11/27 — 제목 단추 자리 · 아래 띠 그림 글자 · 꺼지지 않게
 - 제목 단추(`ui_topic`): 글 '지금 제목 ▾'(`config_ui_topic.texts.open`), 자리 = `button_slot`(아래 단추 줄 묶음 `ev-more`/`ev-map-bar` 의 몇째 — 처음 값 `ev-more` 맨 앞). 보일 조건 `min_show`(처음 값 2 — 제목이 하나면 숨김, 1 이면 늘 보임).

@@ -30,4 +30,20 @@ export default async function (t) {
   t.check('⑦', '갈림길 — 첫 꾸러미(꾸러미가 하나도 없던 때): 틀을 만드는 걸음 → 꽂는 자리를 고쳐도 막지 않음', '기본 기능 · 걸림 0', (g.step ? '판·제목' : '기본 기능') + ' · 걸림 ' + g.bad.length, !g.step && g.bad.length === 0);
   const h = judgePlug([{ path: 'src/topic_toilet.js', state: N }, { path: 'src/app.js', state: M }], kindOf, P, had);
   t.check('⑧', '갈림길 — 둘째 꾸러미(충전소가 이미 있음): 같은 꼴인데 이번엔 제목 걸음 → 실패', '제목 걸음 · 걸림 app.js', (h.step ? '제목 걸음' : '기본') + ' · ' + h.bad.join(','), h.step && h.bad.length === 1);
+
+  // (추가3 앞 3) ④ 층 선언(LAYER)·모듈 이름 받기 — 꾸러미 모듈이 층 표를 고치지 않게
+  const { checkDirect } = await import(pathToFileURL(path.join(t.tools, 'check4.mjs')).href);
+  const mod = (name, src) => ({ name, path: path.join(t.app, 'src', name + '.js'), src });
+  const base = [mod('cfg', 'export const NEEDS = [];'), mod('relay_base', "export const NEEDS = ['cfg', 'log', 'netcore'];")];
+  const okSet = checkDirect([...base,
+    mod('x_pure', ["export const LAYER = 'pure';", 'export const NEEDS = [];'].join('\n')),
+    mod('x_client', ["export const LAYER = 'client';", "export const NEEDS = ['cfg', 'relay_base', 'x_pure'];", 'export function f(deps) { return [deps.cfg, deps.relay_base, deps.x_pure]; }'].join('\n'))]);
+  t.check('⑨', '층 선언 pure·client + 이름이 모듈인 받는 것(x_pure) + 받기 층의 relay_base → 걸림 0', '걸림 0', okSet.bad.length + (okSet.bad.length ? ' — ' + okSet.bad.join(' / ') : ''), okSet.bad.length === 0);
+  const badSet = checkDirect([...base,
+    mod('x_app', ["export const LAYER = 'app';", 'export const NEEDS = [];'].join('\n')),
+    mod('x_screen', ["export const LAYER = 'screen';", "export const NEEDS = ['relay_base'];"].join('\n')),
+    mod('x_pure2', ["export const LAYER = 'pure';", "export const NEEDS = ['cfg'];"].join('\n'))]);
+  const has = (w) => badSet.bad.some((b) => b.includes(w));
+  t.check('⑩', '밝힐 수 없는 층(app) → 층 없음 · 화면이 relay_base · 순수가 cfg → 층 어김', '걸림 3(x_app 층 · x_screen 어김 · x_pure2 어김)', badSet.bad.length + ' — ' + badSet.bad.join(' / '),
+    badSet.bad.length === 3 && has('x_app.js: 층 표') && has("'x_screen'(screen)") && has("'x_pure2'(pure)"));
 }

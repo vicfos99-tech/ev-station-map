@@ -149,7 +149,8 @@ function checkCycles(mods) {
     const to = new Set();
     for (const im of e[m.name].imports) if (names.has(im.from)) to.add(im.from);
     for (const d of e[m.name].needs || []) {
-      const t = c4.dep_module[d];
+      // (추가3 앞 3) 받는 것 이름이 모듈 이름과 같으면 그 모듈(꾸러미 모듈을 dep_module 표에 적지 않게)
+      const t = c4.dep_module[d] || (names.has(d) ? d : null);
       if (t && names.has(t) && t !== m.name) to.add(t);
     }
     graph[m.name] = [...to].sort();
@@ -176,21 +177,31 @@ function checkCycles(mods) {
 }
 
 // ---------- ④ 직접 불러 쓰기 ----------
-function checkDirect(mods) {
+// (추가3 앞 3) 단위 시험이 층 선언을 볼 수 있게 내보냄 — mods = [{name, path, src}]
+export function checkDirect(mods) {
   const e = edgesOf(mods);
   const names = new Set(mods.map((m) => m.name));
   const bad = [];
   const usesRx = new RegExp(c4.deps_use, 'g');
   const everywhere = c4.banned_everywhere.map((p) => new RegExp(p));
   const kindRx = new RegExp(c4.kind_decl);
+  const layerRx = new RegExp(c4.layer_decl);
+  // 층: 층 표 → 종류 선언(KIND) → (추가3 앞 3) 파일 머리의 층 선언(LAYER — 밝혀도 되는 층 declarable_layers 만). 새 꾸러미 모듈이 층 표를 고치지 않게
+  const layerOf = (mm) => {
+    const kd = (mm.src.match(kindRx) || [])[1];
+    const decl = (mm.src.match(layerRx) || [])[1];
+    return c4.module_layer[mm.name] || (kd && c4.kind_layer[kd]) || (decl && c4.declarable_layers.includes(decl) ? decl : null);
+  };
+  const layers = {};
+  for (const mm of mods) layers[mm.name] = layerOf(mm);
   let looked = 0;
   for (const m of mods) {
     const where = rel(m.path);
     const info = e[m.name];
     // 층: 층 표에 적힌 것, 없으면 파일 머리의 종류 선언(KIND — 예: 판은 화면 층)으로. 판을 더할 때 층 표를 고치지 않게(설계 5-1-다)
     const kind = (m.src.match(kindRx) || [])[1];
-    const layer = c4.module_layer[m.name] || (kind && c4.kind_layer[kind]);
-    if (!layer) bad.push(where + ': 층 표(module_layer)에 없는 모듈');
+    const layer = layers[m.name];
+    if (!layer) bad.push(where + ': 층 표(module_layer)에 없는 모듈(층 선언 LAYER 도 없음 — 밝혀도 되는 층: ' + c4.declarable_layers.join('·') + ')');
     for (const b of info.badImports) bad.push(where + ':' + b.line + ': 허용하지 않는 import 꼴 — ' + b.text);
     // (정비 나 ①) 허용 목록에 없으면 종류 선언으로(제목 꾸러미 = 그 제목의 모듈을 묶는 자리라 import *)
     const allowed = c4.imports_allowed[m.name] || (kind && c4.kind_imports_allowed && c4.kind_imports_allowed[kind]);
@@ -203,14 +214,16 @@ function checkDirect(mods) {
     if (!info.needs) bad.push(where + ': 받는 것 목록(export const NEEDS = [...])이 없음');
     const needs = info.needs || [];
     const may = layer ? c4.layer_may_need[layer] || [] : [];
-    const extra = c4.extra_needs[m.name] || [];
+    // (추가3 앞 3) 층마다 더 기대도 되는 모듈(layer_extra_needs — 받기 층은 중계 받기 바탕 relay_base)
+    const extra = [...(c4.extra_needs[m.name] || []), ...((layer && c4.layer_extra_needs[layer]) || [])];
     for (const d of needs) {
       looked++;
       let depLayer;
       let depMod = null;
       if (c4.platform_deps.includes(d)) depLayer = 'platform';
-      else if (c4.dep_module[d]) { depMod = c4.dep_module[d]; depLayer = c4.module_layer[depMod]; }
-      else { bad.push(where + ": NEEDS 의 '" + d + "' 은(는) 모르는 이름(dep_module·platform_deps 에 없음)"); continue; }
+      else if (c4.dep_module[d]) { depMod = c4.dep_module[d]; depLayer = layers[depMod] || c4.module_layer[depMod]; }
+      else if (names.has(d) && d !== m.name) { depMod = d; depLayer = layers[d]; }
+      else { bad.push(where + ": NEEDS 의 '" + d + "' 은(는) 모르는 이름(dep_module·platform_deps·모듈 이름에 없음)"); continue; }
       if (may.includes('*') || may.includes(depLayer) || (depMod && extra.includes(depMod))) continue;
       bad.push(where + ": 층 어김 — '" + m.name + "'(" + layer + ") 이(가) '" + d + "'(" + depLayer + ') 에 기댐');
     }
