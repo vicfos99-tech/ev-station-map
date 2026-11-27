@@ -33,6 +33,10 @@ export default async function (t) {
   t.check('④', '받는 쪽 틀림 → 안 더함 · 더하기 칸이 글이면 type 문제', 'a 못 씀 · b ' + K + ' type', (c4.has('a') ? 'a 씀' : 'a 못 씀') + ' · ' + c4b.problems().map((p) => p.file + ' ' + p.key + ' ' + p.why).join('/'),
     !c4.has('a') && c4.has('b') && c4b.problems().length === 1 && c4b.problems()[0].key === K && c4b.problems()[0].why === 'type');
 
+  // ⑥ 목록끼리는 없는 것만 뒤에 덧붙임(중계 파일 이름 허용 무늬 등)
+  const c6 = createConfig({ adds_key: K, shapes, files: { a: { grades: {}, res: ['^a$', '^b$'] }, b: { label: 'B', [K]: { a: { res: ['^b$', '^c$'] } } } } });
+  t.check('⑥', '목록 더하기: 없는 것만 뒤에 덧붙임', '^a$,^b$,^c$ · 문제 0', c6.section('a').res.join(',') + ' · 문제 ' + c6.problems().length, c6.section('a').res.join(',') === '^a$,^b$,^c$' && c6.problems().length === 0);
+
   // ⑤ 더하기 칸 이름을 안 주면 아무것도 안 더함(옛 꼴) · 결과는 얼어 있음
   const c5 = createConfig({ shapes, files: { ...base(), b: { label: 'B', [K]: { a: { grades: { y: 'yy' } } } } } });
   t.check('⑤', '더하기 칸 이름 없음 → 안 더함 · 설정은 얼어 있음', '없음 · 얼음', (c5.section('a').grades.y === undefined ? '없음' : '있음') + ' · ' + (Object.isFrozen(c1.section('a').grades) ? '얼음' : '안 얼음'),

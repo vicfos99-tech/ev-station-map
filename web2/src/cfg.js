@@ -106,7 +106,7 @@ function isObj(v) {
 
 // (추가3 앞 기본 걸음) 더하기: 설정 파일이 칸 raw.adds_key(빌드 설정 build.adds_key)에 {다른 설정 이름: {칸: 값}} 을 적으면 그 설정에 더한다.
 // 제목 꾸러미가 자기 설정의 등급(config_health.grades·features)·이름 글(config_ui_status.texts.feature_names)을 자기 파일에서 밝히게 — 남의 파일을 고치지 않고.
-// 객체끼리는 안으로 들어가 더하고, 없는 칸만 새로 둔다. 이미 있는 칸이 다른 값이면 바꾸지 않고 문제(adds_clash — 더한 쪽 파일)로 적는다(같은 값이면 그냥 둠).
+// 객체끼리는 안으로 들어가 더하고, 목록끼리는 없는 것만 뒤에 덧붙이고, 없는 칸만 새로 둔다. 이미 있는 칸이 다른 값이면 바꾸지 않고 문제(adds_clash — 더한 쪽 파일)로 적는다(같은 값이면 그냥 둠).
 // 더하는 쪽 파일이 꼴 검사에서 틀려도 그 더하기 칸이 객체면 더한다 — 꾸러미 설정이 깨져도 그 설정들의 등급은 알아야 '그 기능만 꺼짐'이 된다(모르면 앱 전체 점검 중).
 // 받는 쪽 설정이 꼴에서 틀렸으면 더하지 않는다(그 설정은 어차피 못 씀).
 function addInto(target, add, file, path, problems) {
@@ -114,6 +114,11 @@ function addInto(target, add, file, path, problems) {
     const at = path + '.' + k;
     if (!(k in target)) { target[k] = JSON.parse(JSON.stringify(v)); continue; }
     if (isObj(target[k]) && isObj(v)) { addInto(target[k], v, file, at, problems); continue; }
+    // 목록끼리는 없는 것만 뒤에 덧붙인다(예: 중계 파일 이름 허용 무늬 file_res 에 꾸러미 파일 무늬 한 줄)
+    if (Array.isArray(target[k]) && Array.isArray(v)) {
+      for (const item of v) if (!target[k].some((x) => JSON.stringify(x) === JSON.stringify(item))) target[k].push(JSON.parse(JSON.stringify(item)));
+      continue;
+    }
     if (JSON.stringify(target[k]) !== JSON.stringify(v)) problems.push({ file, key: at, why: 'adds_clash' });
   }
 }
