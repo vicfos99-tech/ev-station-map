@@ -1,0 +1,14 @@
+{"keys": {
+  "base_rule": {"t": "str", "min": 1, "max": 60, "re": "^config_[a-z0-9_]+$"},
+  "ahead_part": {"t": "str", "min": 1, "max": 40},
+  "list_piece": {"t": "str", "min": 1, "max": 40},
+  "count": {"t": "num", "int": true, "min": 1, "max": 10},
+  "list_count": {"t": "num", "int": true, "min": 1, "max": 50},
+  "over.items_input": {"t": "str", "min": 1, "max": 40},
+  "over.fields.key": {"t": "str", "min": 1, "max": 30},
+  "over.fields.name": {"t": "str", "min": 1, "max": 30},
+  "over.fields.tag": {"t": "str", "min": 1, "max": 30},
+  "over.fields.on_line": {"t": "str", "min": 1, "max": 30},
+  "over.fields.lat": {"t": "str", "min": 1, "max": 30},
+  "over.fields.lng": {"t": "str", "min": 1, "max": 30}
+}}

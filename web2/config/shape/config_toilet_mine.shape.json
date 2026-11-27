@@ -1,0 +1,4 @@
+{"keys": {
+  "rows": {"t": "arr", "max": 5000},
+  "example": {"t": "obj"}
+}}

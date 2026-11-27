@@ -1,0 +1,6 @@
+/* 화장실 정보 칸(추가3): 칸 틀(.ev-panel*)은 목록 칸과 같다. 이름표 · 값 두 칸 줄, 구분선 */
+.ev-tcard-body { display: flex; flex-direction: column; margin-top: 8px; border-top: 1px solid #4b5563; }
+.ev-tcard-line { display: flex; gap: 8px; padding: 8px 0; font-size: 15px; }
+.ev-tcard-line + .ev-tcard-line { border-top: 1px solid #374151; }
+.ev-tcard-label { flex: 0 0 auto; min-width: 72px; color: #9ca3af; }
+.ev-tcard-value { flex: 1 1 auto; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }

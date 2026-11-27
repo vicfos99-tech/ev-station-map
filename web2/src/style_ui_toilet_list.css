@@ -1,0 +1,11 @@
+/* 화장실 목록 칸(추가3): 칸 틀(.ev-panel*)은 목록·내 차 칸과 같다(가운데 기둥 — 지도 아래, 흐름). 구분선 목록, 누르는 곳 48px 이상, 남은 거리 크게 */
+.ev-tl-rows { display: flex; flex-direction: column; border-top: 1px solid #4b5563; margin-top: 8px; }
+.ev-tl-row { padding: 8px 0; min-height: 48px; cursor: pointer; }
+.ev-tl-row + .ev-tl-row { border-top: 1px solid #4b5563; }
+.ev-tl-head { display: flex; align-items: baseline; gap: 8px; }
+.ev-tl-no { flex: 0 0 auto; font-size: 20px; font-weight: 700; color: #a78bfa; }
+.ev-tl-name { flex: 1 1 auto; min-width: 0; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+.ev-tl-dist { flex: 0 0 auto; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-tl-facts { font-size: 14px; color: #d1d5db; padding: 4px 0 0; overflow-wrap: anywhere; }
+.ev-tl-memo { font-size: 13px; color: #fde68a; padding: 2px 0 0; overflow-wrap: anywhere; }
+.ev-tl-empty { font-size: 15px; color: #d1d5db; padding: 8px 0; }

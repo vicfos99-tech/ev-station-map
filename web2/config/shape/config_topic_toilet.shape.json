@@ -1,0 +1,9 @@
+{"keys": {
+  "label": {"t": "str", "min": 1, "max": 20},
+  "calc_rows": {"t": "arr", "min": 1, "max": 20, "of": {"t": "obj"}},
+  "views": {"t": "arr", "max": 20, "of": {"t": "str", "min": 1, "max": 60, "re": "^ui_[a-z0-9_]+$"}},
+  "map.dots_piece": {"t": "str", "min": 1, "max": 40},
+  "map.list_key": {"t": "str", "min": 1, "max": 20},
+  "map.select_piece": {"t": "str", "min": 1, "max": 40},
+  "adds": {"t": "obj"}
+}}

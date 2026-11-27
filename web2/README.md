@@ -89,6 +89,15 @@ node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_*
 - (기본 걸음 2) 더하기가 목록끼리는 없는 것만 뒤에 덧붙인다(예: `config_relay_base.file_res` 에 꾸러미 파일 무늬).
 - (기본 걸음 3) 기계 검사 ④: 층 표(`check4.module_layer`)에 없고 KIND 도 없는 모듈은 머리의 `export const LAYER = 'pure'|'client'|'screen'`(`declarable_layers`)이 층. NEEDS 이름이 모듈 이름과 같으면 그 모듈(층 규칙은 그대로). 받기 층(client)은 `relay_base` 에 기댈 수 있음(`layer_extra_needs`). 꾸러미 모듈이 층 표·받는 것 표를 고치지 않게.
 
+## 추가3 (2026-11-27) — 두 번째 제목 '화장실' (새 파일만)
+- 꾸러미 `src/topic_toilet.js` + `config/config_topic_toilet.json`(label·calc_rows·views·map·adds) — 꽂는 자리 밖 기존 파일은 고치지 않았다(기계 검사 ⑤ '판·제목 걸음' 통과).
+- 받기 `relay_toilets`(설정 `config_relay_toilets`): 앱이 '좋음'이 된 뒤 다리 자료 길 `toilets/list.json`(중계 공공 자료 — 아직 중계가 안 만듦, 꼴 `{v:1, at, items:[{id, name, lat, lng, open, all_day, truck, memo}]}`)을 받고, **묘성 자료**(`config/config_toilet_mine.json` 의 `rows`)·**휴게소 화장실**(충전소 목록의 휴게소 줄 — 24시간, 트럭 모름)과 합쳐 `toilets` 로 낸다. 합치기는 순수 `toiletmerge`(규칙 `config_toilet_merge`): 틀린 줄은 버리고 기록장에 몇째·까닭, **같은 id 이거나 60 m(`same_m`) 안이면 묘성 줄이 이김**(직접 가 보고 적은 것이 더 새롭고 정확). 공공 자료를 못 받아도(없음·끊김·꼴 틀림) 묘성·휴게소 화장실은 그대로 보이고 상태 자리에 '화장실 자료 — 끊김' 한 줄.
+- 계산 `toiletcalc`(설정 `config_toilet_calc`): '앞의 ○○'(`ahead.aheadOf`)을 그대로 — 규칙은 충전소의 `config_ahead` 에 화장실 칸(받는 조각·점 칸 이름)만 덮음(값 한 벌). 목록 `toilet.list`(8곳)를 셈하고 `ahead`(지도 번호·판)는 그 앞 3곳. 고속도로 위 = 휴게소 화장실(진행 방향 앞), 밖 = 곧은 거리 주변(휴게소 뺌), 경로가 있으면 경로 따라.
+- 화면: 화장실판 `ui_toilet_board`(KIND board, `topic: toilet` — 화장실일 때만), 목록 칸 `ui_toilet_list`(아래 띠 '화장실 목록' — 좁은 창 그림 글자 🚻, 목록 칸 알림은 충전소 목록 칸과 같은 `route.panel` 이라 제목·내 차 칸이 그대로 닫힘), 정보 칸 `ui_toilet_card`(판·목록·지도 번호/점을 누르면).
+- **묘성 자료 쓰는 법**: `config/config_toilet_mine.json` 의 `rows` 에 한 곳 한 줄 — 꼴은 같은 파일 `example`. 고친 뒤 앱을 다시 빌드해 올린다. 이 파일 꼴이 깨지면 묘성 자료만 꺼짐(상태 자리 '화장실 — 묘성 자료 설정이 이상해 꺼 둠').
+- 시험: 단위 `tests_unit/toiletmerge.test.mjs`(합치기·셈 ①~⑥)·`topic_toilet.test.mjs`(두 제목·격리·받기 ①~⑪) · 진짜 크롬 `node web2/tools/try_add3.mjs`(화장실로 켜서 네 창 — 판·겹침 0·목록·정보 칸) · `node web2/tools/try_add3.mjs around`(고속도로 밖 주변). 공공 시험 자료는 `testbed/scenes/relay_extra/toilets/list.json`(지어낸 점, 이름 앞 [시험]).
+- 보기: `node web2/tools/view_s1.mjs 600` → 크롬 `http://127.0.0.1:5173/#topic=toilet`(또는 아래 띠 '충전소 ▾' → 화장실).
+
 ## 11/27 — 제목 단추 자리 · 아래 띠 그림 글자 · 꺼지지 않게
 - 제목 단추(`ui_topic`): 글 '지금 제목 ▾'(`config_ui_topic.texts.open`), 자리 = `button_slot`(아래 단추 줄 묶음 `ev-more`/`ev-map-bar` 의 몇째 — 처음 값 `ev-more` 맨 앞). 보일 조건 `min_show`(처음 값 2 — 제목이 하나면 숨김, 1 이면 늘 보임).
 - 아래 띠 그림 글자(`ui_bar`, `config_ui_bar`): `mode` narrow(560px 이하에서만 — 처음 값)·always·never. 그림 글자일 때 단추 48×48, 화면 읽기 글(aria-label)은 글. 좁은 세로(360) 아래 띠 한 줄 344px — 판이 밀리지 않음.

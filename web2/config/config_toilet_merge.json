@@ -1,0 +1,16 @@
+{
+  "note": "(추가3) 화장실 자료 합치기 규칙(toiletmerge — 화장실 꾸러미). fields = 줄의 칸 이름(공공 자료·묘성 자료 같은 꼴). 위도·경도가 bounds 밖이면 버림(한국 땅 넓이 — 좌표 틀림 거르기). 줄 수가 max_rows 를 넘으면 뒤는 버리고 한 줄 기록. 묘성 줄은 같은 id 이거나 same_m 안의 공공·휴게소 줄을 이긴다(묘성이 그 자리에 가 보고 적은 것이라 더 새롭고 정확). rest = 휴게소 화장실: 충전소 목록(stations)의 휴게소 표시(rest) 줄을 화장실로 — 고속도로 휴게소 화장실은 24시간 여는 곳이라 all_day 참, 트럭 댈 수 있는지는 목록에 없어 null(모름 — 지어내지 않음). 같은 휴게소의 충전소 여럿은 '앞의 ○○' 셈이 한 자리로 묶는다. file = 중계 화장실 목록 파일 꼴({v, at, items})",
+  "fields": {"id": "id", "name": "name", "lat": "lat", "lng": "lng", "open": "open", "all_day": "all_day", "truck": "truck", "memo": "memo"},
+  "file": {"v_key": "v", "v": 1, "items_key": "items", "at_key": "at"},
+  "bounds": {"lat_min": 33, "lat_max": 38.7, "lng_min": 124.5, "lng_max": 131.9},
+  "id_min": 1,
+  "id_max": 60,
+  "name_max": 60,
+  "open_max": 40,
+  "memo_max": 120,
+  "max_rows": 20000,
+  "same_m": 60,
+  "src_words": {"public": "public", "mine": "mine", "rest": "rest"},
+  "rest": {"list_key": "list", "on_key": "rest", "id_key": "id", "name_key": "name", "lat_key": "lat", "lng_key": "lng", "id_prefix": "rest:", "all_day": true, "truck": null},
+  "why": {"type": "type", "id": "id", "name": "name", "pos": "pos", "open": "open", "all_day": "all_day", "truck": "truck", "memo": "memo", "dup": "dup", "too_many": "too_many"}
+}

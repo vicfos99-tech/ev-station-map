@@ -1,0 +1,40 @@
+{
+  "note": "(추가3) 제목 꾸러미 '화장실'(src/topic_toilet.js)의 밝힘. 제목 키 = 파일 이름(topic_toilet 의 toilet — 주소 꼬리 #topic=toilet, 마지막에 쓴 제목으로 Store 에 남는 값), label = 제목 바꾸기 목록·단추에 보일 글. calc_rows = 이 제목만의 계산 줄(계산 표의 꽂는 자리에 차례대로): 화장실 목록(toilet.list)을 먼저 셈하고, 앞의 화장실(ahead — 지도 번호·화장실판)은 그 앞 몇 곳. views = 이 꾸러미의 화면 조각(빌드가 views_order 의 정한 자리 뒤에 넣음). map = 지도의 다른 점 층·누름 이름. adds = 남의 설정에 더할 줄(cfg.js 가 더함 — 남의 파일을 고치지 않음): 등급 표·기능 묶음·연결 출처(config_health), 상태 자리 이름 글(config_ui_status), 중계 파일 이름 무늬(config_relay_base.file_res). 묘성 자료(config_toilet_mine)는 따로 기능 toilet_mine — 그 파일만 깨지면 묘성 자료만 꺼지고 화장실은 돈다. 기능 toilet 의 sources 가 빈 까닭: 공공 자료를 못 받아도 묘성·휴게소 화장실은 그대로 보여야 함(상태 자리 '화장실 자료 — 끊김' 한 줄만)",
+  "label": "화장실",
+  "calc_rows": [
+    {"inputs": ["fix", "toilets", "route.answer", "route.clear"], "part": "toiletcalc", "fn": "listOf", "piece": "toilet.list", "rule": "config_toilet_calc", "uses": ["config_ahead", "config_geo", "config_locate", "config_navi"]},
+    {"inputs": ["fix", "toilets", "route.answer", "route.clear"], "part": "toiletcalc", "fn": "aheadOf", "piece": "ahead", "rule": "config_toilet_calc", "uses": []}
+  ],
+  "views": ["ui_toilet_list", "ui_toilet_card"],
+  "map": {"dots_piece": "toilets", "list_key": "list", "select_piece": "toilet.select.map"},
+  "adds": {
+    "config_health": {
+      "grades": {
+        "config_topic_toilet": "toilet",
+        "config_relay_toilets": "toilet",
+        "config_toilet_merge": "toilet",
+        "config_toilet_calc": "toilet",
+        "config_ui_toilet_board": "toilet",
+        "config_ui_toilet_list": "toilet",
+        "config_ui_toilet_card": "toilet",
+        "config_toilet_mine": "toilet_mine"
+      },
+      "conn_source": {"conn.relay.toilet": "toilet"},
+      "features": {
+        "toilet": {
+          "configs": ["config_topic_toilet", "config_relay_toilets", "config_toilet_merge", "config_toilet_calc", "config_ui_toilet_board", "config_ui_toilet_list", "config_ui_toilet_card", "config_ahead"],
+          "sources": []
+        },
+        "toilet_mine": {"configs": ["config_toilet_mine"], "sources": []}
+      }
+    },
+    "config_ui_status": {
+      "texts": {
+        "feature_names": {"toilet": "화장실", "toilet_mine": "화장실 — 묘성 자료"},
+        "src_names": {"toilet": "화장실 자료"},
+        "why_by_src": {"toilet": {"none": "중계에 아직 없음 — 휴게소·묘성 자료만"}}
+      }
+    },
+    "config_relay_base": {"file_res": ["^toilets/list\\.json$"]}
+  }
+}

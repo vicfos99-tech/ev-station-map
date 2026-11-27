@@ -1,0 +1,12 @@
+{
+  "note": "(추가3) '앞의 화장실'·화장실 목록 셈(toiletcalc — 화장실 꾸러미). 셈은 '앞의 ○○'(ahead.aheadOf)을 그대로: 규칙은 base_rule(충전소 꾸러미의 config_ahead — 휴게소 묶기·방향·지나침 여유·주변 거리·경로 따라 값을 한 벌만 둠)에 over(받는 조각 toilets, 점 칸 이름 — tag 는 출처 src, 선 위 자리 표시는 휴게소 rest)를 덮은 것. 목록 줄(list_piece)이 list_count 곳을 셈하고, ahead 줄은 그 앞 count 곳(지도 번호·화장실판)만 — 한 번 셈해 둘이 어긋나지 않음. 고속도로 위에서는 휴게소 화장실(선 위 자리)이 '앞', 고속도로 밖이면 곧은 거리 '주변'(휴게소는 뺌 — 일반 도로에서 못 들어감), 경로가 있으면 경로 따라",
+  "base_rule": "config_ahead",
+  "ahead_part": "ahead",
+  "list_piece": "toilet.list",
+  "count": 3,
+  "list_count": 8,
+  "over": {
+    "items_input": "toilets",
+    "fields": {"key": "id", "name": "name", "tag": "src", "on_line": "rest", "lat": "lat", "lng": "lng"}
+  }
+}

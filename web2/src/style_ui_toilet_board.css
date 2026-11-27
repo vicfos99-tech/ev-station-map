@@ -1,0 +1,29 @@
+/* 화장실판(추가3): 충전소판과 같은 꼴 — 카드가 아니라 구분선 있는 목록. 줄마다 번호 · 이름 · 종류 · 알림(24시간·개방 시간·트럭) · 남은 거리(크게).
+   자리 폭이 좁으면(@container) 글자 크기 단계를 낮추고 이름은 줄을 바꾼다. 배치(오른편)는 판 틀이 정한다. */
+.ev-toilet { display: flex; flex-direction: column; gap: 4px; color: #f9fafb; font-family: system-ui, sans-serif; box-sizing: border-box; max-width: 100%; min-width: 0; }
+.ev-toilet-head { font-size: 14px; color: #9ca3af; padding: 0 4px 4px; }
+.ev-toilet-list { display: flex; flex-direction: column; }
+.ev-toilet-row { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "no name" "no kind" "no facts" "dist dist"; column-gap: 8px; padding: 8px 4px; min-height: 48px; min-width: 0; cursor: pointer; }
+.ev-toilet-row + .ev-toilet-row { border-top: 1px solid #4b5563; }
+.ev-toilet-no { grid-area: no; font-size: 24px; font-weight: 700; color: #a78bfa; align-self: start; }
+.ev-toilet-name { grid-area: name; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-toilet-kind { grid-area: kind; font-size: 12px; color: #9ca3af; }
+.ev-toilet-facts { grid-area: facts; font-size: 13px; color: #d1d5db; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-toilet-facts:empty { display: none; }
+.ev-toilet-dist { grid-area: dist; font-size: 28px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-toilet[data-mode="around"] .ev-toilet-kind, .ev-toilet[data-mode="around"] .ev-toilet-no { color: #93c5fd; }
+@container (max-width: 200px) {
+  .ev-toilet-row { column-gap: 4px; padding: 6px 2px; }
+  .ev-toilet-no { font-size: 18px; }
+  .ev-toilet-name { font-size: 15px; white-space: normal; word-break: break-all; }
+  .ev-toilet-facts { font-size: 12px; white-space: normal; word-break: break-all; }
+  .ev-toilet-dist { font-size: 22px; }
+}
+@container (max-width: 140px) {
+  .ev-toilet-head { font-size: 12px; }
+  .ev-toilet-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "no" "name" "kind" "facts" "dist"; }
+  .ev-toilet-no { font-size: 16px; }
+  .ev-toilet-name { font-size: 13px; }
+  .ev-toilet-kind, .ev-toilet-facts { font-size: 11px; }
+  .ev-toilet-dist { font-size: 18px; text-align: left; }
+}
