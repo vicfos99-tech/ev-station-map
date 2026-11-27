@@ -46,7 +46,9 @@ export default async function (t) {
   const mountedA = a.made.ui_boards ? a.made.ui_boards.mounted() : [];
   t.check('⑪', '제목에 딸린 판: 충전소가 켜지면 충전소판(topic ' + UA.topic + ')이 꽂힘 · 속도판(기본)도', 'ui_ahead·ui_speed 있음', mountedA.join(','), mountedA.includes('ui_ahead') && mountedA.includes('ui_speed'));
   a.stop();
-  const b = startApp({ app: t.app, tc: t.tc, main, boards }, { fetchFn, stamp: 'unit-topic', overrides: { config_topic_station: { label: TS.label } } });
+  // (추가3 앞 기본 걸음 4) 꾸러미가 둘 이상이면 충전소가 깨질 때 다음 꾸러미가 켜진다 — 이 시험은 '충전소만 있을 때 충전소가 깨지면'을 보므로 충전소 꾸러미만 넘긴다
+  const onlyStation = (boards.topics || []).filter((x) => x.name === 'station');
+  const b = startApp({ app: t.app, tc: t.tc, main, boards, topics: onlyStation }, { fetchFn, stamp: 'unit-topic', overrides: { config_topic_station: { label: TS.label } } });
   const off = !b.made.topic_station && !b.made.relay_status && !b.made.ui_station && !b.made.ui_route;
   const basic = !!(b.made.calcrunner && b.made.ui_map && b.made.ui_navi && b.made.relay_stations && b.made.ui_boards);
   const io2 = b.made.calcrunner ? b.made.calcrunner.io().outputs.join(',') : '-';
