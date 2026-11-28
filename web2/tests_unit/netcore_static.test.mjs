@@ -78,11 +78,15 @@ export default async function (t) {
     const log = { warn: (w, what) => logs.push(what), info() {}, error() {} };
     const core = createNetCore({ cfg: C, log, fetch, clock });
     const rb = createRelayBase({ cfg: C, log, netcore: core });
-    const ok = await rb.get(RT.file);
+    const regionName = RT.region_file.prefix + '41550' + RT.region_file.suffix;
+    const ok = await rb.get(RT.index_file);
+    const ok2 = await rb.get(regionName);
     const bad = await rb.get('toilets/other.json');
-    t.check('⑧', '고정 파일 판 — 화장실 목록 파일을 고정 자리에서 받음(허용 무늬 통과) · 다른 이름은 묻지 않음', C.section('config_gateway').static_base + RT.file + ' · 나쁜 이름 · 물음 1',
-      calls[0] + ' · ' + (bad.ok ? '받음' : '나쁜 이름') + ' · 물음 ' + calls.length,
-      ok.ok === true && calls.length === 1 && calls[0] === C.section('config_gateway').static_base + RT.file && bad.ok === false);
+    const bad2 = await rb.get('toilets/list.json');
+    const sb = C.section('config_gateway').static_base;
+    t.check('⑧', '고정 파일 판 — 화장실 색인·시군구 파일을 고정 자리에서 받음(허용 무늬 통과) · 옛 list.json·다른 이름은 묻지 않음', sb + RT.index_file + ' · ' + sb + regionName + ' · 나쁜 이름 2 · 물음 2',
+      calls.join(' · ') + ' · ' + (bad.ok || bad2.ok ? '받음' : '나쁜 이름 2') + ' · 물음 ' + calls.length,
+      ok.ok === true && ok2.ok === true && calls.length === 2 && calls[0] === sb + RT.index_file && calls[1] === sb + regionName && bad.ok === false && bad2.ok === false);
   }
 
   // ---------- 통합: 시험 서버(relay-data 꼴, 지어낸 자료) ----------

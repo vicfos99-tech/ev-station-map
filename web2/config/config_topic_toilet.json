@@ -35,6 +35,6 @@
         "why_by_src": {"toilet": {"none": "중계에 아직 없음 — 휴게소·묘성 자료만"}}
       }
     },
-    "config_relay_base": {"file_res": ["^toilets/list\\.json$"]}
+    "config_relay_base": {"file_res": ["^toilets/index\\.json$", "^toilets/[0-9]{5}\\.json$"]}
   }
 }

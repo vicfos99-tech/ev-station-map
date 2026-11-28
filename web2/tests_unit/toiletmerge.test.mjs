@@ -10,7 +10,7 @@ export default async function (t) {
   const navi = await t.src('navi');
   const R = t.cfg('config_toilet_merge');
   const G = t.cfg('config_geo');
-  const sample = JSON.parse(fs.readFileSync(path.join(t.app, t.tc.testbed.dir, t.tc.testbed.extra_shim.dir, 'toilets', 'list.json'), 'utf8'));
+  const sample = JSON.parse(fs.readFileSync(path.join(t.app, t.tc.testbed.dir, t.tc.testbed.extra_shim.dir, 'toilets', '41550.json'), 'utf8'));
 
   // ① 줄 검사: 좋은 줄 / 위치 틀림 / 이름 빔 / id 겹침 → 버리고 까닭
   const rows = [

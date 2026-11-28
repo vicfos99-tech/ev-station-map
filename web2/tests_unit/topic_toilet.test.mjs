@@ -60,7 +60,7 @@ export default async function (t) {
   const US = C.section('config_ui_status');
   const RB = C.section('config_relay_base');
   const okAdds = H.grades.config_toilet_calc === 'toilet' && H.grades.config_toilet_mine === 'toilet_mine' && !!H.features.toilet && H.conn_source[RT.conn_piece] === 'toilet'
-    && US.texts.feature_names.toilet === TT.adds.config_ui_status.texts.feature_names.toilet && RB.file_res.some((p) => new RegExp(p).test(RT.file));
+    && US.texts.feature_names.toilet === TT.adds.config_ui_status.texts.feature_names.toilet && RB.file_res.some((p) => new RegExp(p).test(RT.index_file)) && RB.file_res.some((p) => new RegExp(p).test(RT.region_file.prefix + '41550' + RT.region_file.suffix)) && !RB.file_res.some((p) => new RegExp(p).test('toilets/list.json'));
   // (시험은 앱 비밀 값·빌드 기록 없이 읽어 그 둘의 문제는 늘 있음 — 더하기 부딪힘·화장실 설정 문제만 셈)
   const addProbs = C.problems().filter((p) => p.why === 'adds_clash' || /toilet/.test(p.file));
   t.check('⑤', '꾸러미 adds 가 등급 표·기능·연결 출처·이름 글·중계 파일 무늬에 더해짐 · 부딪힘·화장실 설정 문제 0', '더해짐 · 문제 0', (okAdds ? '더해짐' : '빠짐') + ' · 문제 ' + addProbs.length + (addProbs.length ? ' ' + JSON.stringify(addProbs) : ''), okAdds && addProbs.length === 0);
@@ -100,35 +100,60 @@ export default async function (t) {
   const { createRelayToilets } = await t.src('relay_toilets');
   const tm = await t.src('toiletmerge');
   const geo = await t.src('geo');
-  const sample = JSON.parse(fs.readFileSync(path.join(t.app, t.tc.testbed.dir, t.tc.testbed.extra_shim.dir, 'toilets', 'list.json'), 'utf8'));
+  const sample = JSON.parse(fs.readFileSync(path.join(t.app, t.tc.testbed.dir, t.tc.testbed.extra_shim.dir, 'toilets', '41550.json'), 'utf8'));
+  const indexSample = JSON.parse(fs.readFileSync(path.join(t.app, t.tc.testbed.dir, t.tc.testbed.extra_shim.dir, 'toilets', 'index.json'), 'utf8'));
   const mineRow = { id: 'mine-x', name: '묘성 공도', lat: sample.items[0].lat + 0.0001, lng: sample.items[0].lng, open: null, all_day: true, truck: true, memo: null };
   const cfg2 = createConfig({ ...raw, files: { ...raw.files, config_toilet_mine: { ...raw.files.config_toilet_mine, rows: [mineRow, { id: 'bad', name: 'x', lat: 0, lng: 0 }] } } });
-  async function run(answer) {
+  // 중계 가짜: 물은 파일 이름마다 route(file) 로 답하고, 물은 이름을 asked 에 쌓음
+  const sgOf = (f) => (/^toilets\/([0-9]{5})\.json$/.exec(f) || [])[1];
+  const okRoute = (over) => (f) => {
+    if (f === RT.index_file) return { ok: true, data: indexSample };
+    const sg = sgOf(f);
+    if (sg === '41550') return { ok: true, data: sample };
+    return { ok: false, code: 'none', src: 'data' };
+  };
+  async function run(routeOrAnswer) {
+    const route = typeof routeOrAnswer === 'function' ? routeOrAnswer : () => routeOrAnswer;
+    const asked = [];
     const pubs = {};
     const subs = {};
     const warns = [];
     const state = { claim: () => (name, v) => { (pubs[name] = pubs[name] || []).push(v); }, subscribe: (name, fn) => { subs[name] = fn; } };
     const logs = { info() {}, warn: (w, word, p) => warns.push(word), error: (e) => warns.push(String(e)) };
     const clock = { now: () => 1, setTimeout: () => 1, clearTimeout() {} };
-    const relay = createRelayToilets({ cfg: cfg2, log: logs, state, clock, relay_base: { get: async () => answer }, toiletmerge: tm, geomath: geo });
+    const relay = createRelayToilets({ cfg: cfg2, log: logs, state, clock, relay_base: { get: async (f) => { asked.push(f); return route(f); } }, toiletmerge: tm, geomath: geo });
     subs[RT.stations_piece]({ list: [{ id: 'R1', name: '안성휴게소', lat: 37.0133, lng: 127.1449, rest: true }], lines: [{ name: 'L', points: [] }] });
     subs[RT.app_piece]({ stage: cfg2.section('config_health').stages.good });
     await new Promise((res) => setTimeout(res, 20));
     relay.halt();
     const last = (pubs[RT.piece] || []).slice(-1)[0] || null;
-    return { conn: (pubs[RT.conn_piece] || []).slice(-1)[0] || null, last, warns, mine: relay.mine().length };
+    return { conn: (pubs[RT.conn_piece] || []).slice(-1)[0] || null, last, warns, asked, mine: relay.mine().length };
   }
   const none = await run({ ok: false, code: 'none', src: 'data' });
   t.check('⑨', '공공 자료 없음(none): 끊김 알림 · 그래도 휴게소 1 + 묘성 1 줄을 냄(틀린 묘성 줄 1 은 버리고 기록)', 'conn 거짓 none · 줄 2(mine,rest) · 선 실음 · 기록 ' + RT.word_bad_mine,
     'conn ' + (none.conn && none.conn.ok) + ' ' + (none.conn && none.conn.code) + ' · 줄 ' + (none.last ? none.last.list.length + '(' + none.last.list.map((x) => x.src).join(',') + ')' : '없음') + ' · 선 ' + (none.last && none.last.lines.length) + ' · 기록 ' + none.warns.join(','),
     none.conn && none.conn.ok === false && none.conn.code === 'none' && none.last && none.last.list.length === 2 && none.last.lines.length === 1 && none.warns.includes(RT.word_bad_mine));
-  const broken = await run({ ok: true, data: { ...sample, v: 99 } });
-  t.check('⑩', '공공 자료 깨짐(판 번호 다름): 끊김(bad) 알림 · 기록 bad_file · 휴게소·묘성 줄은 그대로', 'conn 거짓 ' + RT.codes.bad + ' · 기록 ' + RT.word_bad_file + ' · 줄 2',
+  const broken = await run((f) => (f === RT.index_file ? { ok: true, data: { ...indexSample, v: 99 } } : okRoute()(f)));
+  t.check('⑩', '공공 색인 깨짐(판 번호 다름): 끊김(bad) 알림 · 기록 bad_file · 휴게소·묘성 줄은 그대로', 'conn 거짓 ' + RT.codes.bad + ' · 기록 ' + RT.word_bad_file + ' · 줄 2',
     'conn ' + (broken.conn && broken.conn.ok) + ' ' + (broken.conn && broken.conn.code) + ' · 기록 ' + broken.warns.join(',') + ' · 줄 ' + (broken.last ? broken.last.list.length : '없음'),
     broken.conn && broken.conn.ok === false && broken.conn.code === RT.codes.bad && broken.warns.includes(RT.word_bad_file) && broken.last && broken.last.list.length === 2);
-  const good = await run({ ok: true, data: sample });
+  const good = await run(okRoute());
   const ids = good.last ? good.last.list.map((x) => x.id) : [];
   t.check('⑪', '공공 자료 좋음: conn 참 · 틀린 공공 줄 1 버리고 기록 · 묘성 줄이 같은 자리(공도읍) 공공 줄을 이김 · 합 = 묘성 1 + 공공 3 + 휴게소 1', 'conn 참 · 기록 bad_items · mine-x 있음·pub-t-001 없음 · 5',
     'conn ' + (good.conn && good.conn.ok) + ' · 기록 ' + good.warns.join(',') + ' · ' + ids.join(','),
     good.conn && good.conn.ok === true && good.warns.includes(RT.word_bad_items) && ids.includes('mine-x') && !ids.includes('pub-t-001') && ids.length === 5);
+  // ⑫ 색인에 있어도 보이는 지역(충전소 시군구 목록)이 아니면 안 묻고, 색인에 없는 보이는 지역도 안 물음 — 물은 것 = 색인 + 41550 만
+  t.check('⑫', '받기는 색인 먼저 · 고른 지역(41550)만 받음 · 색인에 있지만 안 보이는 11110·색인에 없는 다른 보이는 지역은 안 물음', 'toilets/index.json, toilets/41550.json',
+    good.asked.join(', '), good.asked.length === 2 && good.asked[0] === RT.index_file && good.asked[1] === 'toilets/41550.json');
+  // ⑬ 꼴 틀린 시군구 파일(sg 다름)은 버림: 끊김(bad) · 기록 bad_region · 그 파일의 줄은 0
+  const wrongSg = await run((f) => (sgOf(f) === '41550' ? { ok: true, data: { ...sample, sg: '11110' } } : okRoute()(f)));
+  const ids13 = wrongSg.last ? wrongSg.last.list.map((x) => x.id) : [];
+  t.check('⑬', '시군구 파일의 sg 가 다르면 버림: conn 거짓 bad · 기록 ' + RT.word_bad_region + ' · 공공 줄 0(묘성 1 + 휴게소 1)', 'conn 거짓 bad · bad_region · 줄 2',
+    'conn ' + (wrongSg.conn && wrongSg.conn.ok) + ' ' + (wrongSg.conn && wrongSg.conn.code) + ' · ' + wrongSg.warns.join(',') + ' · 줄 ' + ids13.length,
+    wrongSg.conn && wrongSg.conn.ok === false && wrongSg.conn.code === RT.codes.bad && wrongSg.warns.includes(RT.word_bad_region) && ids13.length === 2 && !ids13.some((x) => x.startsWith('pub-')));
+  // ⑭ 색인의 regions 가 목록 모양이 아니면(배열) 색인 깨짐으로 버림
+  const badIdx = await run((f) => (f === RT.index_file ? { ok: true, data: { ...indexSample, regions: [] } } : okRoute()(f)));
+  t.check('⑭', '색인 regions 꼴 틀림: conn 거짓 bad · 시군구 파일은 안 물음', 'conn 거짓 bad · 물음 1',
+    'conn ' + (badIdx.conn && badIdx.conn.ok) + ' ' + (badIdx.conn && badIdx.conn.code) + ' · 물음 ' + badIdx.asked.length,
+    badIdx.conn && badIdx.conn.ok === false && badIdx.conn.code === RT.codes.bad && badIdx.asked.length === 1);
 }

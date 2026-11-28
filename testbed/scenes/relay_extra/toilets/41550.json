@@ -1,0 +1,13 @@
+{
+  "note": "(11/29) 시험용 화장실 시군구 파일(안성 41550) — 실제 자료가 아니다. 중계가 내는 꼴({v, sg, at, items})을 따른 지어낸 점이고 이름 앞에 [시험]. 마지막 줄은 일부러 틀린 줄(위도가 한국 밖) — 앱이 버리고 기록장에 남기는지 본다. 시험·보기 도구가 다리 자료 길 toilets/41550.json 으로 대신 답한다(web2/tools/config_tools.json testbed.extra_shim)",
+  "v": 1,
+  "sg": "41550",
+  "at": "20261129010000",
+  "items": [
+    {"id": "pub-t-001", "name": "[시험] 공도읍 공중화장실", "lat": 37.0058, "lng": 127.2005, "open": "06:00~22:00", "all_day": false, "truck": false, "memo": null, "parking": true},
+    {"id": "pub-t-002", "name": "[시험] 대덕면 쉼터 화장실", "lat": 37.0093, "lng": 127.2352, "open": null, "all_day": true, "truck": true, "memo": null, "parking": false},
+    {"id": "pub-t-003", "name": "[시험] 안성 시내 공원 화장실", "lat": 37.0079, "lng": 127.2688, "open": "05:00~23:00", "all_day": false, "truck": null, "memo": null, "parking": null},
+    {"id": "pub-t-004", "name": "[시험] 안성 나들목 옆 화장실", "lat": 37.0021, "lng": 127.1689, "open": null, "all_day": null, "truck": null, "memo": null, "parking": null},
+    {"id": "pub-t-bad", "name": "[시험] 틀린 줄", "lat": 99.9, "lng": 127.2, "open": null, "all_day": null, "truck": null, "memo": null, "parking": null}
+  ]
+}

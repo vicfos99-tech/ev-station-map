@@ -1,4 +1,4 @@
-// RelayClient 의 조각 — 화장실 목록 받기(바깥 연결, 보통 객체 — 추가3 화장실 꾸러미). 다리의 자료 길로 중계 화장실 목록(공공 자료)을 받고(relay_base),
+// RelayClient 의 조각 — 화장실 목록 받기(바깥 연결, 보통 객체 — 추가3 화장실 꾸러미). 다리의 자료 길로 중계 화장실 색인(toilets/index.json)을 먼저 받고 보이는 시군구(충전소와 같은 목록)의 시군구 파일(toilets/<5자리>.json)만 받아(relay_base),
 // 묘성이 직접 채운 자료(config_toilet_mine — 앱 설정)·휴게소 화장실(충전소 목록 stations 의 휴게소)과 합쳐(toiletmerge — 묘성 것이 이김) toilets 로 낸다.
 // '앞의 화장실' 셈이 선을 같이 쓰게 toilets 에 stations 의 선(lines)을 그대로 싣는다. 켜기에 꼭 필요한 자료가 아니다 — 앱이 '좋음'이 된 뒤에 받기 시작하고,
 // 못 받아도(없음·끊김·꼴이 틀림) 들고 있는 공공 줄(처음엔 빈 목록)로 묘성·휴게소 화장실은 그대로 낸다. 받기 결과는 conn.relay.toilet(상태 자리 한 줄은 HealthRunner·StatusBar).
@@ -17,6 +17,21 @@ export function createRelayToilets(deps) {
   const pub = deps.state.claim(c.owner, [c.piece, c.conn_piece]);
   let mine = [];
   let held = [];
+  const bySg = {};
+  // 보이는 지역 = 충전소가 받는 시군구 목록과 같은 기준(설정에서 5자리를 뽑음)
+  const sgRe = new RegExp(c.regions_from.re);
+  const visible = [];
+  for (const f of deps.cfg.section(c.regions_from.cfg)[c.regions_from.key] || []) {
+    const m = sgRe.exec(f);
+    if (m && !visible.includes(m[1])) visible.push(m[1]);
+  }
+  const regionFile = (sg) => c.region_file.prefix + sg + c.region_file.suffix;
+  function indexRegions(d) {
+    const S = c.index_shape;
+    if (!d || typeof d !== 'object' || Array.isArray(d) || d[S.v_key] !== S.v) return null;
+    const rg = d[S.regions_key];
+    return rg && typeof rg === 'object' && !Array.isArray(rg) ? rg : null;
+  }
   let stations = null;
   let begun = false;
   let stopped = false;
@@ -66,25 +81,50 @@ export function createRelayToilets(deps) {
     if (busy || stopped) return;
     busy = true;
     try {
-      const got = await deps.relay_base.get(c.file);
+      const got = await deps.relay_base.get(c.index_file);
       if (stopped) return;
       if (!got.ok) {
         log.warn(c.where, c.word_fail, { code: got.code, src: got.src, kept: held.length });
         conn(false, got.code, got.src);
         return;
       }
-      let p;
-      try {
-        p = tm.checkPublic(got.data, r);
-      } catch (e) {
-        log.warn(c.where, c.word_bad_file, { file: c.file, why: e && e.message, kept: held.length });
+      const regions = indexRegions(got.data);
+      if (!regions) {
+        log.warn(c.where, c.word_bad_file, { file: c.index_file, kept: held.length });
         conn(false, c.codes.bad, c.src_data);
         return;
       }
-      if (p.bad.length) log.warn(c.where, c.word_bad_items, { file: c.file, bad: p.bad.length, kept: p.good.length, first: p.bad.slice(0, c.log_bad_max) });
-      held = p.good;
-      conn(true, null, null);
-      log.info(c.where, c.word_loaded, { rows: held.length });
+      // 보이는 지역 중 색인에 있는 것만 묻는다 — 색인에 없는 지역은 묻지 않음
+      const want = visible.filter((sg) => Object.prototype.hasOwnProperty.call(regions, sg));
+      const answers = await Promise.all(want.map((sg) => deps.relay_base.get(regionFile(sg)).then((g) => ({ sg, g }))));
+      if (stopped) return;
+      let failed = null;
+      for (const sg of Object.keys(bySg)) if (!want.includes(sg)) delete bySg[sg];
+      for (const { sg, g } of answers) {
+        const file = regionFile(sg);
+        if (!g.ok) {
+          log.warn(c.where, c.word_fail_region, { file, code: g.code, src: g.src, kept: (bySg[sg] || []).length });
+          if (!failed) failed = { code: g.code, src: g.src };
+          continue;
+        }
+        let p;
+        try {
+          p = tm.checkPublic(g.data, r);
+          if (!g.data || g.data[c.region_shape.sg_key] !== sg) throw new TypeError(c.region_shape.sg_key);
+        } catch (e) {
+          log.warn(c.where, c.word_bad_region, { file, why: e && e.message, kept: (bySg[sg] || []).length });
+          if (!failed) failed = { code: c.codes.bad, src: c.src_data };
+          continue;
+        }
+        if (p.bad.length) log.warn(c.where, c.word_bad_items, { file, bad: p.bad.length, kept: p.good.length, first: p.bad.slice(0, c.log_bad_max) });
+        bySg[sg] = p.good;
+      }
+      const seen = new Set();
+      held = [];
+      for (const sg of want) for (const x of bySg[sg] || []) if (!seen.has(x.id)) { seen.add(x.id); held.push(x); }
+      if (failed) conn(false, failed.code, failed.src);
+      else conn(true, null, null);
+      log.info(c.where, c.word_loaded, { regions: want.length, rows: held.length });
       send();
     } catch (e) {
       log.error(e, { where: c.where, params: { act: c.act_refresh, held: held.length } });
