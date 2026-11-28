@@ -51,6 +51,12 @@ async function main() {
       '준비 · 줄 ≥ 1 · ' + T.board_head + ' · 충전소판 0 · 단추 ' + T.topic_label + ' · 번호 ≥ 1',
       (fr.ready ? '준비' : '준비 안 됨(' + (fr.status_text || '') + ')') + ' · 줄 ' + br.length + '(' + br.map((e) => e.text.slice(0, 16)).join(' / ') + ') · ' + head + ' · 충전소판 ' + shown(g, 'station_board').length + ' · 단추 ' + topic + ' · 번호 ' + shown(g, 'marks').length,
       fr.ready && br.length >= 1 && head.startsWith(T.board_head) && shown(g, 'station_board').length === 0 && topic.includes(T.topic_label) && shown(g, 'marks').length >= 1);
+    // 줄마다 주차 글(있음·없음·모름 중 하나)이 거리와 함께 있음 — 판·목록 둘 다
+    const hasPark = (e) => T.parking_words.some((w) => e.text.includes(w));
+    const tlRows = (fr.steps && fr.steps[0]) ? shown(fr.steps[0].got, 'tlist_rows') : [];
+    row('①-주차 ' + fr.name, '화장실판·목록 줄마다 주차 글(' + T.parking_words.join('·') + ' 중 하나)', '판 줄 모두 · 목록 줄 모두',
+      '판 ' + br.filter(hasPark).length + '/' + br.length + ' · 목록 ' + tlRows.filter(hasPark).length + '/' + tlRows.length,
+      (AROUND || (br.length >= 1 && br.every(hasPark))) && (tlRows.length === 0 || tlRows.every(hasPark)));
     if (AROUND) {
       const names = br.map((e) => e.text);
       row('⑥ ' + fr.name, '고속도로 밖: 화장실판 머리 ' + T.board_head + ' · 줄이 시험용 공공 화장실(' + T.name_mark + ')만 · 휴게소 없음 · 겹침 0', T.board_head + ' · 줄 ≥ 1 · 모두 ' + T.name_mark + ' · 겹침 0',

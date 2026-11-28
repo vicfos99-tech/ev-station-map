@@ -7,6 +7,7 @@
   "touch_min_px": 48,
   "narrow_max_w": 560,
   "board_head": "앞의 화장실",
+  "parking_words": ["주차 있음", "주차 없음", "주차 모름"],
   "topic_label": "화장실",
   "sel": {
     "page": {"q": "html"},

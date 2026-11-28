@@ -15,6 +15,8 @@ export function createToiletList(deps) {
   const x = c.texts;
   // 종류 글(휴게소·공중화장실·내가 적은 곳)은 화장실판 설정 한 곳에서(설정 중복 없이)
   const kinds = cfg.section(c.kinds_cfg).texts.kinds;
+  // 주차 상태 낱말(yes·no·unknown)도 화장실판 설정 한 곳에서
+  const parkingStates = cfg.section(c.kinds_cfg).parking_states;
   const pub = deps.state.claim(c.owner, [c.select_piece, c.panel_piece]);
   let open = false;
   let list = null;
@@ -48,13 +50,17 @@ export function createToiletList(deps) {
     head.appendChild(make(c.part_tag, c.classes.name, String(it.name)));
     head.appendChild(make(c.part_tag, c.classes.dist, (around ? x.straight + ' ' : '') + dist(it.dist_km) + ' ' + x.km_unit));
     li.appendChild(head);
+    // 주차(트럭 댈 칸): 거리 다음으로 중요 — 따로 크게. 상태 글·색은 data-state(설정의 낱말)로
+    const pk = t ? t.parking : null;
+    const ps = pk === true ? parkingStates.yes : pk === false ? parkingStates.no : parkingStates.unknown;
+    const pel = make(c.block_tag, c.classes.parking, x['parking_' + ps]);
+    pel.setAttribute(c.attrs.state, ps);
+    li.appendChild(pel);
     const facts = [];
     facts.push(around ? x.around_tag : (it.rest ? kinds.rest : (t && kinds[t.src]) || ''));
     if (t && t.all_day === true) facts.push(x.all_day);
     else if (t && t.open) facts.push(x.open_prefix + t.open);
     else facts.push(x.open_unknown);
-    if (t && t.truck === true) facts.push(x.truck_yes);
-    else if (t && t.truck === false) facts.push(x.truck_no);
     li.appendChild(make(c.block_tag, c.classes.facts, facts.filter(Boolean).join(x.join)));
     if (t && t.memo) li.appendChild(make(c.block_tag, c.classes.memo, t.memo));
     li.addEventListener(c.click_event, () => {

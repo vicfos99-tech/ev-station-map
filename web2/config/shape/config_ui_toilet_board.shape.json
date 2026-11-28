@@ -18,7 +18,7 @@
   "row_tag": {"t": "str", "one_of": ["div", "li"]},
   "part_tag": {"t": "str", "one_of": ["span", "div"]},
   "classes": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
-  "classes.row": {"t": "str"}, "classes.no": {"t": "str"}, "classes.name": {"t": "str"}, "classes.kind": {"t": "str"}, "classes.facts": {"t": "str"}, "classes.dist": {"t": "str"},
+  "classes.row": {"t": "str"}, "classes.no": {"t": "str"}, "classes.name": {"t": "str"}, "classes.kind": {"t": "str"}, "classes.facts": {"t": "str"}, "classes.parking": {"t": "str"},"classes.dist": {"t": "str"},
   "key_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
   "mode_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
   "mode_empty": {"t": "str", "min": 1, "max": 20},
@@ -32,7 +32,12 @@
   "texts.km_unit": {"t": "str", "min": 1, "max": 10},
   "texts.kinds": {"t": "map", "of": {"t": "str", "min": 1, "max": 20}},
   "texts.all_day": {"t": "str", "min": 1, "max": 20},
-  "texts.truck_yes": {"t": "str", "min": 1, "max": 20},
-  "texts.truck_no": {"t": "str", "min": 1, "max": 20},
+  "texts.parking_yes": {"t": "str", "min": 1, "max": 20},
+  "texts.parking_no": {"t": "str", "min": 1, "max": 20},
+  "texts.parking_unknown": {"t": "str", "min": 1, "max": 20},
+  "state_attr": {"t": "str", "min": 1, "max": 40, "re": "^data-[a-z-]+$"},
+  "parking_states.yes": {"t": "str", "min": 1, "max": 20},
+  "parking_states.no": {"t": "str", "min": 1, "max": 20},
+  "parking_states.unknown": {"t": "str", "min": 1, "max": 20},
   "texts.join": {"t": "str", "min": 1, "max": 10}
 }}

@@ -71,4 +71,28 @@ export default async function (t) {
   const first = list2.items[0];
   t.check('⑥', '고속도로 위: 앞의 휴게소 화장실 · 남은 거리 ≈ 5 km', 'ahead · 안성휴게소 · 5.0', list2.mode + ' · ' + (first ? first.name + ' · ' + first.dist_km : '없음'),
     list2.mode === 'ahead' && !!first && first.name.includes('안성휴게소') && Math.abs(first.dist_km - 5) < 0.2);
+
+  // ⑦ 주차 칸(묘성 11/28): 휴게소 = 트럭 true → 주차 있음(규칙은 설정) · 규칙을 끄거나 트럭 모름이면 모름 · 줄의 parking 세 값 · 틀린 값은 버림 · 묘성 줄 parking · 칸이 없으면 모름
+  const off = { ...R, parking: { ...R.parking, rest_by_truck: false } };
+  const unk = { ...R, rest: { ...R.rest, truck: null } };
+  const p3 = tm.checkRows([
+    { id: 'p1', name: '있음', lat: 37, lng: 127, parking: true },
+    { id: 'p2', name: '없음', lat: 37.1, lng: 127, parking: false },
+    { id: 'p3', name: '모름', lat: 37.2, lng: 127, parking: null },
+    { id: 'p4', name: '칸없음', lat: 37.3, lng: 127 },
+    { id: 'p5', name: '틀림', lat: 37.4, lng: 127, parking: 'yes' },
+  ], R, R.src_words.mine);
+  const pk = p3.good.map((x) => String(x.parking)).join(',');
+  t.check('⑦', '주차: 휴게소 트럭 ' + R.rest.truck + ' → 주차 있음 · 규칙 끔/트럭 모름 → 모름 · 줄 세 값 true,false,null,null · 틀린 값 1 버림(parking)', '휴게소 true true · 끔 null · 모름 null,null · true,false,null,null · parking',
+    '휴게소 ' + rest[0].truck + ' ' + rest[0].parking + ' · 끔 ' + tm.restOf(st, off)[0].parking + ' · 모름 ' + tm.restOf(st, unk)[0].truck + ',' + tm.restOf(st, unk)[0].parking + ' · ' + pk + ' · ' + p3.bad.map((b) => b.why).join(','),
+    rest[0].truck === true && rest[0].parking === true && tm.restOf(st, off)[0].parking === null && tm.restOf(st, unk)[0].truck === null && tm.restOf(st, unk)[0].parking === null
+      && pk === 'true,false,null,null' && p3.bad.length === 1 && p3.bad[0].why === R.why.parking);
+  // 가까운 차례로 다 나오고(주차 있음·없음·모름이 섞여도 거르지 않음) 줄마다 parking 이 실림
+  const mixed = { list: tm.merge([{ ...pub[0], parking: false }, { ...pub[1], parking: null }, { ...pub[2], parking: true }], [], rest, R, geo, G).list, lines: [] };
+  const list3 = tcalc.listOf({ fix, toilets: mixed }, { pos: done.pos }, C, lib, null);
+  const byKey = new Map(mixed.list.map((x) => [x.id, x.parking]));
+  const ds = list3.items.map((x) => x.dist_km);
+  t.check('⑧', '목록: 주차 있음·없음·모름이 섞여도 다 나오고 가까운 차례(거리 오름차순) · 줄마다 parking 이 toilets 에 있음', '3곳 이상 · 오름차순 · parking 값 3종',
+    list3.items.length + '곳 · ' + ds.join('<') + ' · ' + [...new Set(list3.items.map((x) => String(byKey.get(x.key))))].sort().join(','),
+    list3.items.length >= 3 && ds.every((d, i) => i === 0 || d >= ds[i - 1]) && new Set(list3.items.map((x) => byKey.get(x.key))).size === 3);
 }

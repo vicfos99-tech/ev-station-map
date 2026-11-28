@@ -43,9 +43,13 @@ export function create(deps) {
     const out = [];
     if (t.all_day === true) out.push(x.all_day);
     else if (t.open) out.push(t.open);
-    if (t.truck === true) out.push(x.truck_yes);
-    else if (t.truck === false) out.push(x.truck_no);
     return out.join(x.join);
+  }
+
+  // 주차(트럭 댈 칸) 상태 낱말(설정) — 글과 색은 이 낱말로
+  function parkState(t) {
+    const p = t ? t.parking : null;
+    return p === true ? c.parking_states.yes : p === false ? c.parking_states.no : c.parking_states.unknown;
   }
 
   function row(item, around) {
@@ -58,7 +62,11 @@ export function create(deps) {
     r.appendChild(part(c.classes.name, String(item.name)));
     r.appendChild(part(c.classes.kind, kind));
     r.appendChild(part(c.classes.facts, facts(t)));
-    r.appendChild(part(c.classes.dist, (around ? x.straight + ' ' : '') + distText(item.dist_km) + ' ' + x.km_unit));
+    const ps = parkState(t);
+    const pe = part(c.classes.parking, x['parking_' + ps]);
+    pe.setAttribute(c.state_attr, ps);
+    r.appendChild(pe);
+    r.appendChild(part(c.classes.dist,(around ? x.straight + ' ' : '') + distText(item.dist_km) + ' ' + x.km_unit));
     r.setAttribute(c.role_attr, c.role_button);
     r.addEventListener(c.click_event, () => deps.send(c.select_piece, { key: item.key, ids: Array.isArray(item.ids) ? item.ids.slice() : [item.key], name: item.name, lat: item.lat, lng: item.lng, dist_km: item.dist_km, straight: !!item.straight }));
     return r;

@@ -52,6 +52,7 @@ export function createToiletCard(deps) {
     lines.push(line(x.kind, t ? (t.rest ? kinds.rest : kinds[t.src] || '') : x.unknown));
     if (typeof shown.dist_km === 'number') lines.push(line(x.dist, (shown.straight ? x.straight + ' ' : '') + shown.dist_km.toFixed(c.decimals) + ' ' + x.km_unit));
     lines.push(line(x.open, t && t.all_day === true ? x.all_day : (t && t.open) || x.unknown));
+    lines.push(line(x.parking, tri(t && t.parking, x.parking_yes, x.parking_no)));
     lines.push(line(x.truck, tri(t && t.truck, x.yes, x.no)));
     if (t && t.memo) lines.push(line(x.memo, t.memo));
     lines.push(line(x.source, t ? x.sources[t.src] || '' : x.unknown));

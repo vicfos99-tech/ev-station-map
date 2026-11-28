@@ -96,6 +96,7 @@ node web2/tools/try_all.mjs [--only 이름[,이름:부분]] [--append]   # try_*
 - 화면: 화장실판 `ui_toilet_board`(KIND board, `topic: toilet` — 화장실일 때만), 목록 칸 `ui_toilet_list`(아래 띠 '화장실 목록' — 좁은 창 그림 글자 🚻, 목록 칸 알림은 충전소 목록 칸과 같은 `route.panel` 이라 제목·내 차 칸이 그대로 닫힘), 정보 칸 `ui_toilet_card`(판·목록·지도 번호/점을 누르면).
 - **묘성 자료 쓰는 법**: `config/config_toilet_mine.json` 의 `rows` 에 한 곳 한 줄 — 꼴은 같은 파일 `example`. 고친 뒤 앱을 다시 빌드해 올린다. 이 파일 꼴이 깨지면 묘성 자료만 꺼짐(상태 자리 '화장실 — 묘성 자료 설정이 이상해 꺼 둠').
 - 시험: 단위 `tests_unit/toiletmerge.test.mjs`(합치기·셈 ①~⑥)·`topic_toilet.test.mjs`(두 제목·격리·받기 ①~⑪) · 진짜 크롬 `node web2/tools/try_add3.mjs`(화장실로 켜서 네 창 — 판·겹침 0·목록·정보 칸) · `node web2/tools/try_add3.mjs around`(고속도로 밖 주변). 공공 시험 자료는 `testbed/scenes/relay_extra/toilets/list.json`(지어낸 점, 이름 앞 [시험]).
+- **주차 칸(11/28 손질)**: 줄마다 `parking`(true 있음·false 없음·null 모름 — 중계 목록·묘성 자료의 칸, 안 적으면 모름). 휴게소 화장실은 트럭 가능(`config_toilet_merge.rest.truck` true)이고 `parking.rest_by_truck` 가 참이면 주차 있음. 화장실판·목록·정보 칸 모두 줄마다 거리(크게) 아래 '주차 있음/없음/모름'(초록·빨강·회색) — 켜고 끄는 옵션 없이 가까운 차례 그대로. 고정 파일 판은 `toilets/list.json` 을 raw 사본(`variants/static.patch.json` 의 static_base)에서 받음(허용 무늬는 꾸러미 adds, 시험 `netcore_static ⑧`). 시험: `toiletmerge ⑦⑧`·`try_add3 ①-주차`.
 - 보기: `node web2/tools/view_s1.mjs 600` → 크롬 `http://127.0.0.1:5173/#topic=toilet`(또는 아래 띠 '충전소 ▾' → 화장실).
 
 ## 11/27 — 제목 단추 자리 · 아래 띠 그림 글자 · 꺼지지 않게

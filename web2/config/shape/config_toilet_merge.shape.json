@@ -7,7 +7,9 @@
   "fields.open": {"t": "str", "min": 1, "max": 30},
   "fields.all_day": {"t": "str", "min": 1, "max": 30},
   "fields.truck": {"t": "str", "min": 1, "max": 30},
+  "fields.parking": {"t": "str", "min": 1, "max": 30},
   "fields.memo": {"t": "str", "min": 1, "max": 30},
+  "parking.rest_by_truck": {"t": "bool"},
   "file.v_key": {"t": "str", "min": 1, "max": 20},
   "file.v": {"t": "num", "int": true, "min": 1, "max": 100},
   "file.items_key": {"t": "str", "min": 1, "max": 20},
@@ -37,5 +39,5 @@
   "rest.truck": {"t": "any"},
   "why": {"t": "map", "of": {"t": "str", "min": 1, "max": 20}},
   "why.type": {"t": "str"}, "why.id": {"t": "str"}, "why.name": {"t": "str"}, "why.pos": {"t": "str"}, "why.open": {"t": "str"},
-  "why.all_day": {"t": "str"}, "why.truck": {"t": "str"}, "why.memo": {"t": "str"}, "why.dup": {"t": "str"}, "why.too_many": {"t": "str"}
+  "why.all_day": {"t": "str"}, "why.truck": {"t": "str"}, "why.parking": {"t": "str"},"why.memo": {"t": "str"}, "why.dup": {"t": "str"}, "why.too_many": {"t": "str"}
 }}

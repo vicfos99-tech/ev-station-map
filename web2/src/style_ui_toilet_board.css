@@ -3,12 +3,15 @@
 .ev-toilet { display: flex; flex-direction: column; gap: 4px; color: #f9fafb; font-family: system-ui, sans-serif; box-sizing: border-box; max-width: 100%; min-width: 0; }
 .ev-toilet-head { font-size: 14px; color: #9ca3af; padding: 0 4px 4px; }
 .ev-toilet-list { display: flex; flex-direction: column; }
-.ev-toilet-row { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "no name" "no kind" "no facts" "dist dist"; column-gap: 8px; padding: 8px 4px; min-height: 48px; min-width: 0; cursor: pointer; }
+.ev-toilet-row { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "no name" "no kind" "no facts" "no parking" "dist dist"; column-gap: 8px; padding: 8px 4px; min-height: 48px; min-width: 0; cursor: pointer; }
 .ev-toilet-row + .ev-toilet-row { border-top: 1px solid #4b5563; }
 .ev-toilet-no { grid-area: no; font-size: 24px; font-weight: 700; color: #a78bfa; align-self: start; }
 .ev-toilet-name { grid-area: name; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .ev-toilet-kind { grid-area: kind; font-size: 12px; color: #9ca3af; }
 .ev-toilet-facts { grid-area: facts; font-size: 13px; color: #d1d5db; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-toilet-parking { grid-area: parking; font-size: 16px; font-weight: 700; color: #9ca3af; }
+.ev-toilet-parking[data-state="yes"] { color: #4ade80; }
+.ev-toilet-parking[data-state="no"] { color: #f87171; }
 .ev-toilet-facts:empty { display: none; }
 .ev-toilet-dist { grid-area: dist; font-size: 28px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ev-toilet[data-mode="around"] .ev-toilet-kind, .ev-toilet[data-mode="around"] .ev-toilet-no { color: #93c5fd; }
@@ -18,10 +21,11 @@
   .ev-toilet-name { font-size: 15px; white-space: normal; word-break: break-all; }
   .ev-toilet-facts { font-size: 12px; white-space: normal; word-break: break-all; }
   .ev-toilet-dist { font-size: 22px; }
+  .ev-toilet-parking { font-size: 14px; }
 }
 @container (max-width: 140px) {
   .ev-toilet-head { font-size: 12px; }
-  .ev-toilet-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "no" "name" "kind" "facts" "dist"; }
+  .ev-toilet-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "no" "name" "kind" "facts" "parking" "dist"; }
   .ev-toilet-no { font-size: 16px; }
   .ev-toilet-name { font-size: 13px; }
   .ev-toilet-kind, .ev-toilet-facts { font-size: 11px; }

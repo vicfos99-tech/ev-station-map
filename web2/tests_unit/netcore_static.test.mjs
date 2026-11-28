@@ -5,6 +5,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -60,6 +61,29 @@ export default async function (t) {
   t.check('④', '다리 판은 그대로 — 주소 앞에 다리 주소 · 비밀 머리 보냄 · 비밀 값 없으면 아무것도 안 보내고 던짐', '다리 주소 · 머리 있음 · NetNotReady · 물음 0',
     (g.calls[0].url.startsWith(gwBase.gateway_url + gwBase.paths.data) ? '다리 주소' : g.calls[0].url) + ' · ' + (hdr ? '머리 있음' : '머리 없음') + ' · ' + (thrown instanceof NetNotReady ? 'NetNotReady' : String(thrown)) + ' · 물음 ' + g2.calls.length,
     g.calls[0].url.startsWith(gwBase.gateway_url + gwBase.paths.data) && hdr === 'unit-test-secret-value' && thrown instanceof NetNotReady && g2.calls.length === 0);
+
+  // ⑧ 고정 파일 판에서 화장실 목록(toilets/list.json)이 허용 무늬를 지나 고정 자리(raw 사본) 주소로 물어짐 — 빌드와 같은 순서로 판 설정을 덮고 꾸러미 더하기를 적용
+  {
+    const { createConfig } = await t.src('cfg');
+    const { createRelayBase } = await t.src('relay_base');
+    const { loadAppConfig } = await import(pathToFileURL(path.join(t.tools, 'lib_appfiles.mjs')).href);
+    const raw = loadAppConfig(t.app, t.tc.build, {}).raw;
+    for (const [name, part] of Object.entries(patch)) raw.files[name] = { ...(raw.files[name] || {}), ...part };
+    const C = createConfig(raw);
+    const RT = t.cfg('config_relay_toilets');
+    const calls = [];
+    const logs = [];
+    const fetch = async (url, init) => { calls.push(url); return { ok: true, status: 200, text: async () => '{"v":1}' }; };
+    const clock = { setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (h) => clearTimeout(h) };
+    const log = { warn: (w, what) => logs.push(what), info() {}, error() {} };
+    const core = createNetCore({ cfg: C, log, fetch, clock });
+    const rb = createRelayBase({ cfg: C, log, netcore: core });
+    const ok = await rb.get(RT.file);
+    const bad = await rb.get('toilets/other.json');
+    t.check('⑧', '고정 파일 판 — 화장실 목록 파일을 고정 자리에서 받음(허용 무늬 통과) · 다른 이름은 묻지 않음', C.section('config_gateway').static_base + RT.file + ' · 나쁜 이름 · 물음 1',
+      calls[0] + ' · ' + (bad.ok ? '받음' : '나쁜 이름') + ' · 물음 ' + calls.length,
+      ok.ok === true && calls.length === 1 && calls[0] === C.section('config_gateway').static_base + RT.file && bad.ok === false);
+  }
 
   // ---------- 통합: 시험 서버(relay-data 꼴, 지어낸 자료) ----------
   const RS0 = t.cfg('config_relay_stations');

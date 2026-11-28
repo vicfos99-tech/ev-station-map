@@ -2,8 +2,9 @@
 //   · checkRows(rows, r) → {good, bad}: 줄마다 칸 검사(r.fields 의 칸 이름 — id·이름·위도·경도·개방 시간·24시간·트럭·메모). 틀린 줄은 버리고 bad 에 {at, why}.
 //   · checkPublic(data, r) → {good, bad}: 중계 화장실 목록 파일 꼴({v, at, items:[…]} — 칸 이름은 r.file) 검사 + 줄 검사. 파일 꼴이 틀리면 던진다(받은 쪽이 '이상함'으로 기록).
 //   · restOf(stations, r) → 휴게소 화장실 줄: 충전소 목록의 휴게소 표시(r.rest.on_key)가 참인 곳을 화장실로(24시간·트럭은 r.rest 의 값 — 모르면 null).
+//     주차(parking) = 줄에 적힌 true/false/null. 휴게소는 트럭이 true 면 주차 있음(r.parking.rest_by_truck 이 참일 때 — 묘성 11/28), 아니면 모름.
 //   · merge(pub, mine, rest, r, geo, g) → {list, counts}: 묘성 줄이 이긴다 — 같은 id 이거나 r.same_m 안의 공공·휴게소 줄은 뺀다(묘성이 직접 가 보고 적은 것이 더 새롭고 정확).
-//     줄 꼴(앱 안): {id, name, lat, lng, open, all_day, truck, memo, rest, src} — src = r.src_words 의 public·mine·rest.
+//     줄 꼴(앱 안): {id, name, lat, lng, open, all_day, truck, parking, memo, rest, src} — src = r.src_words 의 public·mine·rest.
 export const LAYER = 'pure';
 export const NEEDS = [];
 
@@ -31,6 +32,7 @@ function checkOne(raw, r, src) {
   if (!(open === null || open === undefined || (typeof open === 'string' && open.length <= r.open_max))) return { why: W.open };
   if (!triBool(raw[F.all_day])) return { why: W.all_day };
   if (!triBool(raw[F.truck])) return { why: W.truck };
+  if (!triBool(raw[F.parking])) return { why: W.parking };
   const memo = raw[F.memo];
   if (!(memo === null || memo === undefined || (typeof memo === 'string' && memo.length <= r.memo_max))) return { why: W.memo };
   return {
@@ -39,6 +41,7 @@ function checkOne(raw, r, src) {
       open: typeof open === 'string' && open.trim() ? open.trim() : null,
       all_day: raw[F.all_day] === undefined ? null : raw[F.all_day],
       truck: raw[F.truck] === undefined ? null : raw[F.truck],
+      parking: raw[F.parking] === undefined ? null : raw[F.parking],
       memo: typeof memo === 'string' && memo.trim() ? memo.trim() : null,
       rest: false, src,
     },
@@ -76,7 +79,7 @@ export function restOf(stations, r) {
   const out = [];
   for (const s of list) {
     if (!s || s[R.on_key] !== true || !isNum(s[R.lat_key]) || !isNum(s[R.lng_key]) || typeof s[R.name_key] !== 'string') continue;
-    out.push({ id: R.id_prefix + s[R.id_key], name: s[R.name_key], lat: s[R.lat_key], lng: s[R.lng_key], open: null, all_day: R.all_day, truck: R.truck, memo: null, rest: true, src: r.src_words.rest });
+    out.push({ id: R.id_prefix + s[R.id_key], name: s[R.name_key], lat: s[R.lat_key], lng: s[R.lng_key], open: null, all_day: R.all_day, truck: R.truck, parking: R.truck === true && r.parking.rest_by_truck ? true : null, memo: null, rest: true, src: r.src_words.rest });
   }
   return out;
 }

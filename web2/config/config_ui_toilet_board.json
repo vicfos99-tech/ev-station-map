@@ -1,5 +1,5 @@
 {
-  "note": "(추가3) 화장실판(ui_toilet_board — 알림판, 화장실 꾸러미). topic = 이 판이 딸린 제목(화장실 꾸러미 topic_toilet 의 이름) — 그 제목이 켜졌을 때만 판 틀이 꽂는다. ahead_piece = 앞의 화장실(화장실 꾸러미 계산 줄이 같은 조각 이름으로 냄 — 지도 번호도 같은 것을 그림), toilets_piece = 칸 자세히(개방 시간·24시간·트럭·출처). 거리 글: decimals_below_km 보다 가까우면 소수 decimals 자리. around_mode·route_mode = 앞의 ○○ 셈의 모드 이름(config_ahead.modes 와 같게). 종류 글 kinds = 출처(src — config_toilet_merge.src_words)마다. 모르는 값(개방 시간 없음·트럭 모름)은 적지 않는다",
+  "note": "(추가3) 화장실판(ui_toilet_board — 알림판, 화장실 꾸러미). topic = 이 판이 딸린 제목(화장실 꾸러미 topic_toilet 의 이름) — 그 제목이 켜졌을 때만 판 틀이 꽂는다. ahead_piece = 앞의 화장실(화장실 꾸러미 계산 줄이 같은 조각 이름으로 냄 — 지도 번호도 같은 것을 그림), toilets_piece = 칸 자세히(개방 시간·24시간·트럭·출처). 거리 글: decimals_below_km 보다 가까우면 소수 decimals 자리. around_mode·route_mode = 앞의 ○○ 셈의 모드 이름(config_ahead.modes 와 같게). 종류 글 kinds = 출처(src — config_toilet_merge.src_words)마다. 줄마다 거리(크게)와 함께 '주차 있음/없음/모름'(parking — 트럭 댈 칸)을 크게. 모르는 개방 시간은 적지 않는다",
   "ahead_piece": "ahead",
   "toilets_piece": "toilets",
   "list_key": "list",
@@ -16,9 +16,11 @@
   "ids": {"root": "ev-toilet", "head": "ev-toilet-head", "list": "ev-toilet-list"},
   "row_tag": "div",
   "part_tag": "span",
-  "classes": {"row": "ev-toilet-row", "no": "ev-toilet-no", "name": "ev-toilet-name", "kind": "ev-toilet-kind", "facts": "ev-toilet-facts", "dist": "ev-toilet-dist"},
+  "classes": {"row": "ev-toilet-row", "no": "ev-toilet-no", "name": "ev-toilet-name", "kind": "ev-toilet-kind", "facts": "ev-toilet-facts", "parking": "ev-toilet-parking", "dist": "ev-toilet-dist"},
   "key_attr": "data-key",
   "mode_attr": "data-mode",
+  "state_attr": "data-state",
+  "parking_states": {"yes": "yes", "no": "no", "unknown": "unknown"},
   "mode_empty": "empty",
   "decimals_below_km": 10,
   "decimals": 1,
@@ -31,8 +33,9 @@
     "km_unit": "km",
     "kinds": {"rest": "휴게소", "public": "공중화장실", "mine": "내가 적은 곳"},
     "all_day": "24시간",
-    "truck_yes": "트럭 가능",
-    "truck_no": "트럭 안 됨",
+    "parking_yes": "주차 있음",
+    "parking_no": "주차 없음",
+    "parking_unknown": "주차 모름",
     "join": " · "
   }
 }

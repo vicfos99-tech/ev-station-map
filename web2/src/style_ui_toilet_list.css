@@ -6,6 +6,9 @@
 .ev-tl-no { flex: 0 0 auto; font-size: 20px; font-weight: 700; color: #a78bfa; }
 .ev-tl-name { flex: 1 1 auto; min-width: 0; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
 .ev-tl-dist { flex: 0 0 auto; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ev-tl-parking { font-size: 18px; font-weight: 700; padding: 4px 0 0; color: #9ca3af; }
+.ev-tl-parking[data-state="yes"] { color: #4ade80; }
+.ev-tl-parking[data-state="no"] { color: #f87171; }
 .ev-tl-facts { font-size: 14px; color: #d1d5db; padding: 4px 0 0; overflow-wrap: anywhere; }
 .ev-tl-memo { font-size: 13px; color: #fde68a; padding: 2px 0 0; overflow-wrap: anywhere; }
 .ev-tl-empty { font-size: 15px; color: #d1d5db; padding: 8px 0; }

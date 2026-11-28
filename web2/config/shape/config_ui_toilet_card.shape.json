@@ -18,7 +18,7 @@
   "classes.value": {"t": "str", "min": 1, "max": 40},
   "click_event": {"t": "str", "one_of": ["click"]},
   "texts": {"t": "map"},
-  "texts.close": {"t": "str"}, "texts.kind": {"t": "str"}, "texts.dist": {"t": "str"}, "texts.open": {"t": "str"}, "texts.truck": {"t": "str"},
+  "texts.close": {"t": "str"}, "texts.kind": {"t": "str"}, "texts.dist": {"t": "str"}, "texts.open": {"t": "str"}, "texts.truck": {"t": "str"}, "texts.parking": {"t": "str"}, "texts.parking_yes": {"t": "str"}, "texts.parking_no": {"t": "str"},
   "texts.memo": {"t": "str"}, "texts.source": {"t": "str"}, "texts.pos": {"t": "str"}, "texts.pos_sep": {"t": "str"}, "texts.all_day": {"t": "str"},
   "texts.yes": {"t": "str"}, "texts.no": {"t": "str"}, "texts.unknown": {"t": "str"}, "texts.straight": {"t": "str"}, "texts.km_unit": {"t": "str"},
   "texts.sources": {"t": "map", "of": {"t": "str", "min": 1, "max": 40}},
