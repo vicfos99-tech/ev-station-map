@@ -3,6 +3,7 @@
 //   routeFromRelay — 중계 자료(충전소 목록·선·충전기 상태)를 옛 앱의 노선 꼴(휴게소 · 충전소 · 충전기)로. 휴게소 묶음·km·방향은 Ahead.places 와 같은 셈
 //   inputs         — 노선 꼴 + 내 차·할인(my) + 내가 확인한 값(mine) → 엔진 입력(옛 inputs() 와 같은 차례: 나들목 인근 거르기·내 값 덮기·높이 거르기·빈 나들목 빼기)
 //   planOf         — StateCalc 표 한 줄: (입력 조각들, 같은 셈의 앞 결과 done(pos·ahead), 규칙 r = config_planinput, lib, 내 앞 결과) → plan 조각
+// (추가4) '내 차'의 나들목 인근 충전소 포함 칸이 켜져 있으면 routeFromRelay 가 나들목 자료(ramps — 순수 모듈 ramps.attach)를 휴게소 아래 nearby·나들목 항목으로 붙인다(옛 앱 노선 꼴 그대로 — 엔진은 옛 셈 그대로 왕복 거리를 더함).
 // 충전기 상태를 모르는 것('모름')은 빈자리로 세지 않는다(엔진에는 er.status[r.state_status.unknown] 으로 — 상태 이름은 config_engine.status 한 곳 — 아는 척 추천하지 않음), 몇 대인지 따로 돌려준다. 로그 없음, 틀린 입력은 던진다.
 export const NEEDS = [];
 
@@ -31,7 +32,7 @@ function along(km, dir, len, rl) {
   return dir === rl.dir_words.forward ? km : len - km;
 }
 
-// input = {stations, relay, line(선 이름), dir(진행 방향 낱말)} → {route: 옛 노선 꼴, unknown: {충전소 id: 모르는 충전기 수}, at: {id: 상태 시각 ms | null}, known: 상태를 아는 충전기 수, len}
+// input = {stations, relay, line(선 이름), dir(진행 방향 낱말), ramps?(이 선의 나들목 줄 — 있으면 나들목 인근 충전소를 붙임)} → {route: 옛 노선 꼴, unknown: {충전소 id: 모르는 충전기 수}, at: {id: 상태 시각 ms | null}, known: 상태를 아는 충전기 수, len, names: {id: 이름}, ramp_at: {id: 나들목 정보 날짜 ms}, ic_shown: 붙은 나들목 인근 충전소 수}
 export function routeFromRelay(input, r, lib) {
   const ra = lib.rules[r.ahead_rule];
   const rl = lib.rules[ra.locate_rule];
@@ -59,35 +60,62 @@ export function routeFromRelay(input, r, lib) {
     .map((p) => ({ p, d: along(p.km, input.dir, len, rl) }))
     .filter((x) => x.d >= 0)
     .sort((a, b) => a.d - b.d);
-  const rest_areas = picked.map(({ p, d }) => ({
+  const names = {};
+  const mapStation = (s) => {
+    const zone = zones[s.zscode] || null;
+    const rows = P[r.read_part].rows(s, zone, rr);
+    const ms = zone ? P[r.fresh_part].kstMs(zone.at, rf, t, P[r.time_part]) : null;
+    at[s.id] = ms;
+    if (ms !== null && ms > liveAt) liveAt = ms;
+    let n = 0;
+    const chargers = rows.map((row) => {
+      if (row.state === rr.unknown_state) n += 1; else known += 1;
+      return {
+        type: Object.prototype.hasOwnProperty.call(r.type_map, row.type) ? r.type_map[row.type] : r.type_unknown,
+        power_kw: isNum(row.kw) && row.kw > 0 ? row.kw : r.unknown_kw,
+        status: er.status[r.state_status[row.state] || r.state_status[rr.unknown_state]],
+      };
+    });
+    unknown[s.id] = n;
+    names[s.id] = s.name;
+    return { id: s.id, operator: s.operator || r.unknown_operator, name: s.name, indoor: s.indoor === true, price: r.default_price, updated: ms === null ? 0 : ms, chargers };
+  };
+  const base_areas = picked.map(({ p, d }) => ({
     id: p.key,
     name: p.name,
     km: d,
-    stations: p.ids.map((id) => byId.get(id)).filter(Boolean).map((s) => {
-      const zone = zones[s.zscode] || null;
-      const rows = P[r.read_part].rows(s, zone, rr);
-      const ms = zone ? P[r.fresh_part].kstMs(zone.at, rf, t, P[r.time_part]) : null;
-      at[s.id] = ms;
-      if (ms !== null && ms > liveAt) liveAt = ms;
-      let n = 0;
-      const chargers = rows.map((row) => {
-        if (row.state === rr.unknown_state) n += 1; else known += 1;
-        return {
-          type: Object.prototype.hasOwnProperty.call(r.type_map, row.type) ? r.type_map[row.type] : r.type_unknown,
-          power_kw: isNum(row.kw) && row.kw > 0 ? row.kw : r.unknown_kw,
-          status: er.status[r.state_status[row.state] || r.state_status[rr.unknown_state]],
-        };
-      });
-      unknown[s.id] = n;
-      return { id: s.id, operator: s.operator || r.unknown_operator, name: s.name, indoor: s.indoor === true, price: r.default_price, updated: ms === null ? 0 : ms, chargers };
-    }),
+    stations: p.ids.map((id) => byId.get(id)).filter(Boolean).map(mapStation),
     nearby: [],
   })).filter((a) => a.stations.length);
+  // (추가4) 나들목 인근 충전소 — 켜져 있고 자료가 온 때만(input.ramps = 이 선의 검사된 나들목 줄)
+  let rest_areas = base_areas;
+  let icShown = 0;
+  const rampAt = {};
+  if (Array.isArray(input.ramps)) {
+    const RP = P[r.ramps_part];
+    const rrule = lib.rules[r.ramps_rule];
+    if (!RP || !rrule) throw new TypeError(r.ramps_rule);
+    const got = RP.attach(base_areas, input.ramps, {
+      dir: input.dir,
+      ic_kind: r.ic_kind,
+      along: (km) => along(km, input.dir, len, rl),
+      station: (id, when) => {
+        const s = byId.get(id);
+        if (!s) return null;
+        const made = mapStation(s);
+        const ms = typeof when === 'string' ? P[r.fresh_part].kstMs(when, rf, t, P[r.time_part]) : null;
+        if (ms !== null) rampAt[id] = ms;
+        return made;
+      },
+    }, rrule);
+    rest_areas = got.areas;
+    icShown = got.shown;
+  }
   const fwd = input.dir === rl.dir_words.forward;
   const words = ra.line_dir_words[line.name];
   const word = words ? (fwd ? words.forward : words.backward)[0] : null;
   const dirText = word ? word + r.dir_suffix : (fwd ? (line.direction || r.dir_text.forward) : r.dir_text.backward);
-  return { route: { key: line.name, highway: line.highway || line.name, direction: dirText, live_at: liveAt, rest_areas }, unknown, at, known, len };
+  return { route: { key: line.name, highway: line.highway || line.name, direction: dirText, live_at: liveAt, rest_areas }, unknown, at, known, len, names, ramp_at: rampAt, ic_shown: icShown };
 }
 
 // 옛 노선 꼴 + my + mine → 엔진 입력(옛 inputs() 와 같은 차례). my = 내 차·할인(config_ui_my 의 칸 이름), soc = 지금 배터리 %
@@ -160,7 +188,22 @@ export function planOf(inp, done, r, lib, own) {
   const E = lib.parts[r.engine_part];
   const M = lib.parts[r.mine_part];
   const rl = lib.rules[lib.rules[r.ahead_rule].locate_rule];
-  const got = routeFromRelay({ stations: st, relay: inp[r.relay_input], line: pos.line, dir }, r, lib);
+  // (추가4) 나들목 인근 충전소: 켜져 있으면 자료 상태를 보고(아직 받는 중·없음·끊김이면 짐작하지 않고 그 상태만 알림), 자료가 있으면 붙임
+  const icOn = my[r.ic_on_key] === true;
+  const RS = lib.rules[r.ramps_rule] ? lib.rules[r.ramps_rule].states : null;
+  const rp = inp[r.ramps_input];
+  let icState = null;
+  let rampList;
+  if (icOn) {
+    if (!RS) throw new TypeError(r.ramps_rule);
+    if (!rp) icState = RS.wait;
+    else if (rp.state !== RS.ok) icState = rp.state;
+    else {
+      const byLine = rp[lib.rules[r.ramps_rule].lines_key];
+      if (byLine && Array.isArray(byLine[pos.line])) { rampList = byLine[pos.line]; icState = RS.ok; } else icState = RS.none;
+    }
+  }
+  const got = routeFromRelay({ stations: st, relay: inp[r.relay_input], line: pos.line, dir, ramps: rampList }, r, lib);
   const mine = M.normalize({ ops: my.ops, stations: my.stations });
   const fix = inp[r.fix_input];
   const now = fix && isNum(fix.t) ? fix.t : req.at;
@@ -171,7 +214,7 @@ export function planOf(inp, done, r, lib, own) {
   const labels = {};
   const heights = {};
   for (const a of got.route.rest_areas) {
-    for (const s of a.stations) {
+    for (const s of [...a.stations, ...a.nearby.map((n) => n.station)]) {
       labels[s.operator] = M.opLabel(s.operator, mine, mr);
       heights[s.id] = M.heightLimit(s.id, mine);
     }
@@ -194,6 +237,9 @@ export function planOf(inp, done, r, lib, own) {
     unknown: got.unknown,
     known: got.known,
     at: got.at,
+    names: got.names,
+    ramp_at: got.ramp_at,
+    ic: { on: icOn, state: icState, shown: got.ic_shown },
     labels,
     heights,
     blocked: made.blocked,

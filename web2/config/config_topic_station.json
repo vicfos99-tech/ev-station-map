@@ -1,5 +1,5 @@
 {
-  "note": "(정비 나 ①) 제목 꾸러미 '충전소'(src/topic_station.js)의 밝힘. 제목 키 = 파일 이름(topic_station 의 station — 빌드가 줌, 마지막에 쓴 제목으로 Store 에 남는 값), label = 제목 바꾸기 목록에 보일 글. calc_rows = 이 제목만의 계산 줄(꼴은 config_statecalc.table 과 같음 — 계산 표의 꽂는 자리에 차례대로 들어감). 받기(relay_status 상태 받기)·화면(ui_station 정보 칸·ui_route 목록 칸)·계산 모듈(engine·planinput·mine)은 꾸러미 파일이 묶는다. 충전소 목록·고속도로 선 받기(relay_stations)는 아직 기본 기능 — 선이 같은 파일로 와서 내 위치·제한 속도·누른 지점 거리가 기댄다(정비 나 갈림길 1)",
+  "note": "(정비 나 ①) 제목 꾸러미 '충전소'(src/topic_station.js)의 밝힘. 제목 키 = 파일 이름(topic_station 의 station — 빌드가 줌, 마지막에 쓴 제목으로 Store 에 남는 값), label = 제목 바꾸기 목록에 보일 글. calc_rows = 이 제목만의 계산 줄(꼴은 config_statecalc.table 과 같음 — 계산 표의 꽂는 자리에 차례대로 들어감). 받기(relay_status 상태 받기 · relay_ramps 나들목 인근 충전소 자료 받기 — adds 로 중계 파일 이름 허용 무늬 ramps/<선 이름>.json 을 더함)·화면(ui_station 정보 칸·ui_route 목록 칸)·계산 모듈(engine·planinput·mine)은 꾸러미 파일이 묶는다. 충전소 목록·고속도로 선 받기(relay_stations)는 아직 기본 기능 — 선이 같은 파일로 와서 내 위치·제한 속도·누른 지점 거리가 기댄다(정비 나 갈림길 1)",
   "label": "충전소",
   "calc_rows": [
     {
@@ -25,6 +25,7 @@
         "stations",
         "relay",
         "my",
+        "ramps",
         "plan.request"
       ],
       "part": "planinput",
@@ -39,8 +40,12 @@
         "config_geo",
         "config_relay_read",
         "config_relay_fresh",
-        "config_time"
+        "config_time",
+        "config_relay_ramps"
       ]
     }
-  ]
+  ],
+  "adds": {
+    "config_relay_base": {"file_res": ["^ramps/[a-z0-9_]{1,40}\\.json$"]}
+  }
 }

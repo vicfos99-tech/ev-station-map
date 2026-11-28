@@ -2,6 +2,8 @@
 // 아래 띠의 '목록' 단추로 열고 닫는다. 칸은 운전 화면 가운데 칸(지도 아래)에 흐름으로 들어간다(떠 있는 겹이 아님 — 판·지도 저작권·아래 띠를 덮지 않음).
 // **그리기만 한다**: 지금 배터리 %(FormCheck)를 plan.request 로 내고, CalcRunner 가 낸 plan(엔진 결과)을 그린다 — 머리(고속도로·방향·안전 거리), 추천(1순위·예비),
 // 휴게소 줄(남은 거리·도착 %·빈 급속·충전 중·고장·최저 요금·상태 모름·받은 때). 줄을 누르면 station.select.list(정보 칸이 연다).
+// (추가4) '내 차'의 나들목 인근 충전소 포함이 켜져 있으면: 1순위·예비 줄에 '나들목 왕복 +n km'(+자료에 날짜가 있으면 '○일 전 정보·도착 전 다시 확인'), 나들목 항목·나들목 인근이 붙은 휴게소 줄에
+// '나들목 인근 급속 n곳'과 펼치기/접기(펼치면 충전소 줄 — 누르면 정보 칸), 자료가 없거나 받는 중이면 한 줄(짐작하지 않음).
 // 열려 있는 동안 그 노선 충전소 id 들을 route.watch 로 알린다(상태 받기가 그 시군구만 받음). 계산·판단은 하지 않는다. 글·자리는 config_ui_route.
 export const NEEDS = ['cfg', 'log', 'state', 'doc', 'clock', 'formcheck', 'relay_fresh'];
 
@@ -11,6 +13,7 @@ export function createRouteScreen(deps) {
   const fr = cfg.section('config_formcheck').fields;
   const rf = cfg.section('config_relay_fresh');
   const er = cfg.section('config_engine');
+  const rs = cfg.section('config_relay_ramps').states;
   const h = cfg.section('config_health');
   const log = deps.log;
   const doc = deps.doc;
@@ -22,6 +25,7 @@ export function createRouteScreen(deps) {
   let plan = null;
   let watched = '';
   let draws = 0;
+  const openKeys = new Set();
 
   const $ = (id) => {
     const el = doc.getElementById(id);
@@ -107,6 +111,14 @@ export function createRouteScreen(deps) {
     return null;
   }
 
+  // 나들목 자료에 날짜가 있으면 '○일 전 정보 · 도착 전 다시 확인'(정한 일 수 아래면 안 보임). 날짜가 없으면 null
+  function rampChip(id) {
+    const at = plan.ramp_at ? plan.ramp_at[id] : null;
+    if (at === null || at === undefined) return null;
+    const days = Math.floor(Math.max(0, plan.t - at) / c.ramp_day_ms);
+    return days >= c.ramp_age_min_days ? chip(fill(x.ramp_age, { n: days }), c.tones.warn) : null;
+  }
+
   function pickEl(p, role) {
     const s = findEntry(p.station_id);
     const box = make(c.tags.block, c.classes.pick);
@@ -118,8 +130,14 @@ export function createRouteScreen(deps) {
     box.appendChild(head);
     const q = s.quote;
     const price = q.applied !== null && q.final_price !== q.base_price ? fill(x.price_off, { base: won(q.base_price), final: won(q.final_price) }) : fill(x.price, { final: won(q.final_price) });
-    box.appendChild(make(c.tags.part, c.classes.pick_sub, fill(x.pick_sub, { op: plan.labels[p.operator] || p.operator, price })));
+    const opText = plan.labels[p.operator] || p.operator;
+    box.appendChild(make(c.tags.part, c.classes.pick_sub, p.is_nearby
+      ? fill(x.pick_sub_near, { name: (plan.names && plan.names[p.station_id]) || p.station_id, op: opText, price })
+      : fill(x.pick_sub, { op: opText, price })));
     const facts = make(c.tags.block, c.classes.chips);
+    if (p.is_nearby) facts.appendChild(chip(fill(x.detour, { km: km(p.detour_km) }), c.tones.warn));
+    const rc = rampChip(p.station_id);
+    if (rc && p.is_nearby) facts.appendChild(rc);
     facts.appendChild(chip(fill(x.arrive, { pct: pct(p.arrival_soc_pct) }), p.arrival_soc_pct - plan.min_arrival < c.arrive_warn_pct ? c.tones.warn : c.tones.good));
     facts.appendChild(chip(fill(x.free_fast, { n: s.status.usable_fast }), c.tones.good));
     facts.appendChild(chip(fill(x.score, { dots: c.dot_on.repeat(p.score) + c.dot_off.repeat(Math.max(0, c.score_max - p.score)) })));
@@ -138,13 +156,46 @@ export function createRouteScreen(deps) {
     return box;
   }
 
+  // 나들목 인근 충전소 한 줄: 이름 · 왕복 거리 · 빈 급속 · 요금 · (자료 날짜) — 누르면 정보 칸
+  function nearEl(s, e, dir) {
+    const row = make(c.tags.row, c.classes.near_row);
+    row.setAttribute(c.attrs.key, s.station_id);
+    const head = make(c.tags.block, c.classes.stop_head);
+    head.appendChild(make(c.tags.part, c.classes.stop_name, (plan.names && plan.names[s.station_id]) || s.station_id));
+    head.appendChild(make(c.tags.part, c.classes.stop_soc, fill(x.arrive_short, { pct: pct(s.arrival_soc_pct) })));
+    row.appendChild(head);
+    const chips = make(c.tags.block, c.classes.chips);
+    chips.appendChild(chip(fill(x.detour, { km: km(s.detour_km) }), c.tones.warn));
+    const unknown = plan.unknown[s.station_id] || 0;
+    if (s.status.usable_fast > 0) chips.appendChild(chip(fill(x.free_fast, { n: s.status.usable_fast }), c.tones.good));
+    else chips.appendChild(chip(unknown ? x.no_known_free : x.no_fast_short, unknown ? c.tones.warn : c.tones.bad));
+    if (unknown > 0) chips.appendChild(chip(fill(x.unknown, { n: unknown }), c.tones.warn));
+    chips.appendChild(chip(fill(x.lowest, { price: won(s.quote.final_price) })));
+    chips.appendChild(chip(plan.labels[s.operator] || s.operator));
+    const rc = rampChip(s.station_id);
+    if (rc) chips.appendChild(rc);
+    row.appendChild(chips);
+    row.addEventListener(c.click_event, (ev) => {
+      ev.stopPropagation();
+      try {
+        pub(c.select_piece, { key: e.rest_area_id, ids: [s.station_id], name: (plan.names && plan.names[s.station_id]) || e.name, dir });
+        log.info(c.where, c.word_select, { key: e.rest_area_id, near: s.station_id });
+      } catch (err) {
+        log.error(err, { where: c.where, params: { act: c.act_select } });
+      }
+    });
+    return row;
+  }
+
   function stopEl(e, dir) {
     const li = make(c.tags.row, c.classes.stop);
     const all = [...e.stations, ...e.nearby];
+    const isIc = e.stations.length === 0;
     const role = all.some((s) => s.role === er.roles.primary) ? er.roles.primary : all.some((s) => s.role === er.roles.backup) ? er.roles.backup : null;
     if (role) li.setAttribute(c.attrs.role, role);
     li.setAttribute(c.attrs.reach, String(e.reachable));
     li.setAttribute(c.attrs.key, e.rest_area_id);
+    if (isIc) li.setAttribute(c.attrs.ic, c.yes);
     const head = make(c.tags.block, c.classes.stop_head);
     head.appendChild(make(c.tags.part, c.classes.stop_km, km(e.remaining_km)));
     head.appendChild(make(c.tags.part, c.classes.stop_name, e.name));
@@ -153,12 +204,30 @@ export function createRouteScreen(deps) {
     head.appendChild(socEl);
     li.appendChild(head);
     const chips = make(c.tags.block, c.classes.chips);
-    for (const ch of areaChips(e)) chips.appendChild(ch);
+    const open = openKeys.has(e.rest_area_id);
+    if (!isIc) for (const ch of areaChips(e)) chips.appendChild(ch);
+    if (e.nearby.length) chips.appendChild(chip(fill(x.near_count, { n: e.nearby.length }), isIc ? null : c.tones.warn));
+    if (isIc && open) chips.appendChild(chip(x.near_rough));
     li.appendChild(chips);
-    const ops = make(c.tags.block, c.classes.stop_ops, e.operators.map((op) => plan.labels[op] || op).join(x.ops_sep));
-    li.appendChild(ops);
+    if (!isIc) li.appendChild(make(c.tags.block, c.classes.stop_ops, e.operators.map((op) => plan.labels[op] || op).join(x.ops_sep)));
+    const flip = () => {
+      if (openKeys.has(e.rest_area_id)) openKeys.delete(e.rest_area_id); else openKeys.add(e.rest_area_id);
+      log.info(c.where, c.word_flip, { key: e.rest_area_id, open: openKeys.has(e.rest_area_id) });
+      try { draw(); } catch (err) { log.error(err, { where: c.where, params: { act: c.act_draw } }); }
+    };
+    if (e.nearby.length) {
+      const tg = make(c.tags.button, c.classes.toggle, open ? x.near_close : x.near_open);
+      tg.setAttribute(c.attrs.expanded, open ? c.yes : c.no);
+      tg.addEventListener(c.click_event, (ev) => { ev.stopPropagation(); flip(); });
+      li.appendChild(tg);
+      if (open) {
+        li.appendChild(make(c.tags.block, c.classes.near_label, x.near_label));
+        for (const s of e.nearby) li.appendChild(nearEl(s, e, dir));
+      }
+    }
     li.addEventListener(c.click_event, () => {
       try {
+        if (isIc) { flip(); return; }
         pub(c.select_piece, { key: e.rest_area_id, ids: e.stations.map((s) => s.station_id), name: e.name, dir });
         log.info(c.where, c.word_select, { key: e.rest_area_id });
       } catch (err) {
@@ -166,6 +235,14 @@ export function createRouteScreen(deps) {
       }
     });
     return li;
+  }
+
+  // '나들목 인근 충전소 포함'이 켜져 있을 때 자료 상태 한 줄(꺼져 있으면 빈 글 — 칸이 숨음)
+  function icNote() {
+    const ic = plan.ic;
+    if (!ic || !ic.on) return '';
+    if (ic.state === rs.ok) return ic.shown > 0 ? '' : x.ic_zero;
+    return x.ic[ic.state] || x.ic.down;
   }
 
   function draw() {
@@ -177,6 +254,7 @@ export function createRouteScreen(deps) {
     if (!plan || plan.state !== S.ok) {
       $(c.ids.head).textContent = x.title;
       $(c.ids.range).textContent = '';
+      $(c.ids.ic).textContent = '';
       const st = plan ? plan.state : S.wait;
       reco.replaceChildren(noneEl(x.state_head[st] || x.state_head.wait, x.state_body[st] || x.state_body.wait, c.tones.warn));
       list.replaceChildren();
@@ -186,6 +264,7 @@ export function createRouteScreen(deps) {
     $(c.ids.head).textContent = fill(x.head, { highway: plan.highway, direction: plan.direction });
     $(c.ids.range).textContent = fill(x.range, { km: Math.max(0, Math.round(plan.safe_km)), margin: plan.margin, min: plan.min_arrival })
       + (plan.height > 0 ? fill(x.range_height, { h: plan.height, n: plan.blocked.length }) : '');
+    $(c.ids.ic).textContent = icNote();
     const rec = res.recommendation;
     const box = [];
     const known = plan.known > 0;
@@ -203,7 +282,7 @@ export function createRouteScreen(deps) {
     list.replaceChildren(...sorted.map((e) => stopEl(e, plan.dir)));
     // 상태 받기: 이 노선 충전소 id 들(바뀔 때만)
     const ids = [];
-    for (const e of sorted) for (const s of e.stations) ids.push(s.station_id);
+    for (const e of sorted) for (const s of [...e.stations, ...e.nearby]) ids.push(s.station_id);
     const key = ids.join();
     if (key !== watched) { watched = key; pub(c.watch_piece, { ids }); }
   }

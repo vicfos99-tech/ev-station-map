@@ -113,6 +113,27 @@
     "min": 1,
     "max": 20
    }
+  },
+  "ic_on_key": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ramps_input": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ramps_part": {
+   "t": "str",
+   "min": 1,
+   "max": 40
+  },
+  "ramps_rule": {
+   "t": "str",
+   "min": 1,
+   "max": 60,
+   "re": "^config_[a-z0-9_]+$"
   }
  }
 }

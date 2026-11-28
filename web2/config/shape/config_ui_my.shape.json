@@ -94,6 +94,9 @@
     "min": 1,
     "max": 60
    }
+  },
+  "defaults.ic_near": {
+   "t": "bool"
   }
  }
 }

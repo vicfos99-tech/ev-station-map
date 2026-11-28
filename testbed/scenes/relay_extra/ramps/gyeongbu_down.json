@@ -1,0 +1,39 @@
+{
+  "note": "(추가4, 11/29) 시험용 나들목 인근 충전소 자료 — 실제 자료가 아니다. 앱이 받을 꼴({v, line, at, ramps:[{id, name, km, dir, rest_station, nearby:[{id, detour_km, at}]}]})을 따른 지어낸 줄이고 이름 앞에 [시험]. 충전소 id 는 S4 장면의 고속도로 밖 충전소(충전소 목록 41550 에 있음). 안성 나들목은 나들목 항목(rest_station 없음), 둘째 줄은 안성휴게소(충전소 HD000003) 아래에 붙는 인근 충전소. 날짜 at 은 일부러 오래 전(앱이 '○일 전 정보·도착 전 다시 확인'을 내는지 봄). 마지막 줄은 일부러 틀린 줄(km 음수) — 앱이 버리고 기록장에 남기는지 본다. 시험·보기 도구가 다리 자료 길 ramps/gyeongbu_down.json 으로 대신 답한다(web2/tools/config_tools.json testbed.extra_shim)",
+  "v": 1,
+  "line": "gyeongbu_down",
+  "at": "20261129010000",
+  "ramps": [
+    {
+      "id": "test-ic-anseong",
+      "name": "[시험] 안성 나들목",
+      "km": 60.6,
+      "dir": "both",
+      "rest_station": null,
+      "nearby": [
+        {"id": "JA410023", "detour_km": 4.2, "at": "20261101000000"},
+        {"id": "EO000138", "detour_km": 6.1, "at": null}
+      ]
+    },
+    {
+      "id": "test-rest-anseong",
+      "name": "[시험] 안성휴게소 인근",
+      "km": null,
+      "dir": "both",
+      "rest_station": "HD000003",
+      "nearby": [
+        {"id": "ME21B220", "detour_km": 7.4}
+      ]
+    },
+    {
+      "id": "test-ic-bad",
+      "name": "[시험] 틀린 줄",
+      "km": -5,
+      "dir": "both",
+      "rest_station": null,
+      "nearby": [
+        {"id": "KP008034", "detour_km": 3.0}
+      ]
+    }
+  ]
+}
