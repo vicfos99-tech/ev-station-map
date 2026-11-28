@@ -34,7 +34,7 @@
     "src_line": "{src} — {time}부터 끊김({why})",
     "src_line_by_src": {"wake": "{src} 안 됨 — {why}"},
     "off_line": "{feat} 설정이 이상해 꺼 둠",
-    "feature_names": {"loc": "위치", "map": "지도", "log": "기록장", "calc": "계산", "speed": "속도판", "boards": "알림판", "ahead": "앞의 충전소", "locate": "위치 권한 안내", "odd": "이상해 기록", "station": "충전소 정보 칸", "limit": "제한 속도", "navi": "길찾기·검색", "upload": "기록 올리기", "plan": "목록·추천", "my": "내 차·할인", "tap": "누른 지점 거리", "topic": "제목 바꾸기", "bar": "아래 띠 그림 글자", "wake": "화면 켜 두기", "resume": "꺼진 까닭 기록"},
+    "feature_names": {"loc": "위치", "map": "지도", "log": "기록장", "calc": "계산", "speed": "속도판", "boards": "알림판", "ahead": "앞의 충전소", "locate": "위치 권한 안내", "odd": "이상해 기록", "station": "충전소 정보 칸", "limit": "제한 속도", "navi": "길찾기·검색", "upload": "기록 올리기", "plan": "목록·추천", "my": "내 차·할인", "tap": "누른 지점 거리", "topic": "제목 바꾸기", "bar": "아래 띠 그림 글자", "wake": "화면 켜 두기", "voice": "음성 검색", "resume": "꺼진 까닭 기록"},
     "why_words": {
       "none": "위치가 안 옴", "offline": "연결 끊김", "timeout": "답 없음", "closed": "흐름 닫힘", "parse": "받은 것이 이상함",
       "bad_fix": "위치 값이 이상함", "denied": "권한 꺼짐", "log_write": "쓰지 못함", "store_write": "쓰지 못함",

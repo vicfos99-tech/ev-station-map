@@ -65,6 +65,7 @@
     "config_ui_topic": "topic",
     "config_ui_bar": "bar",
     "config_wake": "wake",
+    "config_ui_voice": "voice",
     "config_resume": "resume"
   },
   "reason_of_file": {
@@ -265,6 +266,12 @@
     "bar": {
       "configs": [
         "config_ui_bar"
+      ],
+      "sources": []
+    },
+    "voice": {
+      "configs": [
+        "config_ui_voice"
       ],
       "sources": []
     },

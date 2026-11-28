@@ -1,0 +1,24 @@
+{
+  "note": "추가5 스스로 시험(try_add5.mjs) 값 — 음성 검색 단추. 진짜 크롬(창 없이)에서 앱 글이 돌기 전에 가짜 음성 인식(try_add5.mjs 의 fake)을 끼워(lib_chrome head_script) ① 마이크 단추가 검색 칸 줄에 보이고 48px 이상·화면 읽기 글 있음 ② 단추를 누르면 가짜 인식이 시작(언어 설정대로)돼 말한 글(spoken)이 칸에 들어가고 찾기 단추가 눌려 찾기가 나감(찾기 누름 때의 칸 글을 기록). 가짜는 html 의 attr_name 에 {starts, lang, clickedWith} 를 JSON 으로 적는다. 소리·마이크·서버는 쓰지 않는다",
+  "scene": "S9_주소검색경로",
+  "tick": 10,
+  "frames": ["넓은 가로 1280×720", "폰 세로 360×740"],
+  "tol_px": 1,
+  "touch_min_px": 48,
+  "spoken": "수원신갈",
+  "fake_delay_ms": 200,
+  "attr_name": "data-voice-test",
+  "ready": {"ahead_rows": {"min": 1, "text": true}},
+  "sel": {
+    "page": {"q": "html", "attrs": ["data-voice-test"]},
+    "ahead_rows": {"q": "#ev-ahead-list > *"},
+    "bar": {"q": ".ev-navi-bar"},
+    "mic": {"q": ".ev-voice-btn", "attrs": ["aria-label", "data-state"], "hit": true},
+    "go": {"q": "#ev-navi-go"},
+    "note": {"q": "#ev-navi-note"},
+    "list": {"q": "#ev-navi-list > *"}
+  },
+  "actions": [{"name": "마이크 단추 누름", "q": ".ev-voice-btn", "wait_ms": 2500}],
+  "report_file": "try_add5_last.md",
+  "json_file": "try_add5_chrome.json"
+}

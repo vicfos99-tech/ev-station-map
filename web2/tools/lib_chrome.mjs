@@ -118,7 +118,13 @@ export async function measureInChrome(tc, app, opts) {
     // opts.build_app = 다른 폴더의 앱 사본을 지어 잰다(시험이 옛 화면에서 실패하는지 볼 때)
     const r = spawnSync(process.execPath, [path.join(TOOLS_DIR, 'build.mjs'), '--out', out, '--secret', sec.file, '--override', overFile, ...(opts.build_app ? ['--app', opts.build_app] : [])], { encoding: 'utf8' });
     if (r.status !== tc.exit.ok) throw new Error('빌드 실패: ' + (r.stderr || '').trim());
-    const page = fs.readFileSync(path.join(out, tc.build.out_file));
+    // (추가5) opts.head_script = 앱 글이 돌기 전에 끼울 글(가짜 음성 인식 주입 등 — 시험 전용, 만든 앱 파일은 그대로)
+    let page = fs.readFileSync(path.join(out, tc.build.out_file));
+    if (opts.head_script) {
+      const text = page.toString('utf8');
+      if (!text.includes(C.head_marker)) throw new Error('head 표시를 못 찾음: ' + C.head_marker);
+      page = Buffer.from(text.replace(C.head_marker, C.head_marker + '<script>' + opts.head_script + '</script>'), 'utf8');
+    }
     const info = testbedInfo(tc, app);
     const shim = linesShim(tc, info, secret);
     const guard = strayGuard(tc, info, secret, log);

@@ -37,6 +37,12 @@ ramps/<선 이름>.json = {
 - 시험: 단위 `tests_unit/ramps.test.mjs`(검사·붙이기·켜기/끄기/자료 상태·옛 엔진과 같은 셈 12개) · `node web2/tools/try_add4.mjs pure`(옛 실제 자료 32개 노선의 나들목 548곳·인근 1,540개를 새 자료 꼴로 바꿔 붙인 노선이 옛 노선과 엔진 입력·결과가 같은지 128경우) · `node web2/tools/try_add4.mjs chrome`(진짜 크롬 — S4 장면에 시험용 나들목 자료 `testbed/scenes/relay_extra/ramps/gyeongbu_down.json`([시험], 지어낸 줄): 꺼짐 → 켜고 저장 → 항목·인근·펼치기/접기, 두 창, 자료 없음 한 줄).
 - **자료가 들어오면**(중계 R0 '꼭 넣을 것'): 위 꼴 파일이 raw 에 올라오면 앱 고칠 것 없이 켠 사람 목록에 나온다(파일이 없으면 위 한 줄).
 
+## 음성 검색 (추가5, 2026-11-29)
+- 검색 칸 줄의 찾기 단추 앞에 마이크 단추(`ui_voice`, 48×48, 🎤 글자 + 화면 읽기 글 '음성으로 찾기'). 누르면 듣기 → 글자를 칸에 넣고 **찾기 단추를 눌러 바로 찾음**(검사·요청은 검색 칸의 길 그대로). 듣는 중은 빨강 테두리·알림 줄 '듣는 중', 다시 누르면 멈춤. 못 알아들음·말소리 없음·마이크 권한 없음(안내 한 줄)·시간 한도 넘음은 알림 줄 한 줄.
+- 방식: 브라우저 음성 인식(Web Speech API, `SpeechRecognition`/`webkitSpeechRecognition`). 크롬은 소리를 구글 서버로 보내 글자로 받음 — 키·계정·돈 없음. 지원 안 하는 브라우저면 단추를 만들지 않고 기록장 `voice_unsupported` 한 줄.
+- 한 곳에 둠: `config_ui_voice.targets` 한 줄 = 칸·찾기 단추·알림 줄 id 를 읽어 올 설정(`config_ui_navi` 의 `ids`). 나중에 장소(화장실 등) 찾기 칸이 생기면 줄 하나만 더한다. 언어 `lang`(ko-KR)·듣기 한도 `listen_ms`·글은 설정.
+- 시험: 단위 `tests_unit/ui_voice.test.mjs`(12개 — 가짜 인식) · `node web2/tools/try_add5.mjs`(진짜 크롬에 가짜 인식 주입: 단추 → 칸 글 → 찾기, 창 둘; `lib_chrome` 의 `head_script`).
+
 ## 지도 바탕 — 벡터 지도 ↔ 그림 타일 (추가2, 2026-11-27)
 - `config_ui_map.base` 한 줄: `vector`(처음 값 — 글자가 지도를 돌려도 바로 섬, 한국어 이름 먼저) 또는 `raster`(그림 타일 — 돌리면 글자도 같이 돎).
 - 벡터 지도 꼴은 우리 밤 운전 스타일 `config/config_mapstyle_night.json`(길은 밝은 회색, 고속도로가 가장 밝고 굵게, 나머지 어두운 회색). 타일 출처 OpenFreeMap(가입·키·돈 없음) — **묘성 확인 전까지 시험·보기용**.

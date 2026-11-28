@@ -1,0 +1,4 @@
+/* 음성 검색 단추(ui_voice): 검색 칸 줄 안 — 누르는 곳 48×48(48dp 이상). 듣는 중이면 빨강 테두리·빛(상태색: 빨강=듣는 중). 글자는 설정(config_ui_voice) */
+.ev-voice-btn { flex: 0 0 auto; box-sizing: border-box; min-width: 48px; min-height: 48px; padding: 0; font-size: 22px; line-height: 1; border: 2px solid #4b5563; border-radius: 8px; background: #1f2937; color: #f9fafb; cursor: pointer; }
+.ev-voice-btn[data-state="listening"] { border-color: #ef4444; background: #7f1d1d; box-shadow: 0 0 0 3px rgba(239, 68, 68, .45); }
+.ev-voice-btn:disabled { opacity: .4; }

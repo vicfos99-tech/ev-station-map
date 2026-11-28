@@ -48,6 +48,7 @@ import { createTapLabel } from './ui_tap.js';
 import { createTopicButton } from './ui_topic.js';
 import * as topicpick from './topicpick.js';
 import { createBarGlyph } from './ui_bar.js';
+import { createVoiceButton } from './ui_voice.js';
 import { createWakeKeeper } from './wake.js';
 import { createSessionMark } from './resume.js';
 
@@ -145,6 +146,7 @@ export function main(platform) {
   make('ui_odd', () => createOddButton({ ...screen, formcheck }));
   if (topic) for (const [name, fn] of topic.screens(screen)) make(name, fn);
   make('ui_navi', () => createSearchScreen({ ...screen, formcheck }));
+  make('ui_voice', () => createVoiceButton(screen));
   make('ui_my', () => createMyScreen({ ...screen, formcheck }));
   make('ui_tap', () => createTapLabel(screen));
   make('ui_topic', () => createTopicButton({ ...screen, topicpick, topic_list: topics.map((t) => ({ name: t.name, label: t.label, on: t === topic })) }));
