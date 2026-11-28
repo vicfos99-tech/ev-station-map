@@ -1,0 +1,14 @@
+{
+  "config_gateway": {
+    "mode": "static",
+    "static_base": "../relay/",
+    "static_routes": {"health": "meta.json", "data": ""}
+  },
+  "config_relay_stations": {
+    "line_files": [],
+    "lines_optional": true
+  },
+  "config_app_secret": {
+    "app_secret": "static-mode-no-secret-here"
+  }
+}

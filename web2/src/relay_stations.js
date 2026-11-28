@@ -67,7 +67,8 @@ export function createRelayStations(deps) {
       if (!g.ok) return fail(need, g);
       try { lines.push(parse.line(g.data, pr)); } catch (e) { return badFile(f, e, need); }
     }
-    if (!lines.length) return fail(need, null, c.codes.empty);
+    // 고정 파일 판처럼 선 파일이 없는 자리(c.lines_optional)는 선 없이 뜬다 — 선이 필요한 기능은 그 자리의 '없음'으로 보인다
+    if (!lines.length && !c.lines_optional) return fail(need, null, c.codes.empty);
     return { ok: true, lines };
   }
 

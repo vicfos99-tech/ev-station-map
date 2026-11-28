@@ -10,8 +10,10 @@
     "route": {"timeout_ms": 10000, "retries": 0, "backoff_ms": 0, "backoff_factor": 1, "max_chars": 2000000},
     "home_check": {"timeout_ms": 5000, "retries": 0, "backoff_ms": 0, "backoff_factor": 1, "max_chars": 100000}
   },
-  "codes": {"timeout": "timeout", "offline": "offline", "parse": "parse", "too_big": "too_big", "status": "status_fail", "not_ready": "not_ready", "closed": "closed"},
-  "no_retry_codes": ["lock", "bad", "none", "busy", "too_big"],
+  "codes": {"timeout": "timeout", "offline": "offline", "parse": "parse", "too_big": "too_big", "status": "status_fail", "not_ready": "not_ready", "closed": "closed", "no_static": "no_static"},
+  "static_mode": "static",
+  "word_no_static": "no_static_route",
+  "no_retry_codes": ["lock", "bad", "none", "busy", "too_big", "no_static"],
   "code_field": "code",
   "src_field": "src",
   "default_method": "GET",

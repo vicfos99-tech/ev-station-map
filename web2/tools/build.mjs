@@ -1,6 +1,7 @@
 // 빌드: shell.html + view_*.html + style_*.css + src 모듈 + config/*.json(+꼴 표) + 지도 라이브러리를 한 파일(index.html)로.
 // build.json(판·시각·커밋)도 함께. 출력 자리는 인자(설계 5-1 ⑧) — 프로젝트 안에 만들지 않는다.
-//   node web2/tools/build.mjs --out <출력 폴더> [--secret <저장소 밖 config_app_secret.json>] [--override <설정 바꿈 JSON>] [--app <앱 폴더>]
+//   node web2/tools/build.mjs --out <출력 폴더> [--secret <저장소 밖 config_app_secret.json>] [--override <설정 바꿈 JSON>] [--patch <판 설정 JSON>] [--app <앱 폴더>]
+// --patch: {설정 이름: {칸: 값}} — 그 칸만 바꿈(고정 파일 판: web2/variants/static.patch.json). 앱 비밀 값 파일을 안 줘도 되는 판은 자리 채움 값을 이 파일에 둔다.
 // 앱 비밀 값 파일을 안 주면 넣지 않는다 → 앱은 '앱 점검 중 — 앱 비밀 값 설정'(설계 F2).
 // --override: {설정 이름: 통째로 바꿀 객체} — 보기 도구가 다리 주소를 자기 중계 자리로 바꿀 때만 쓴다(저장소 설정은 그대로).
 // --app: 다른 폴더의 앱 사본을 짓는다(판 하나를 뺀 사본으로 E4 시험).
@@ -25,6 +26,7 @@ function args(argv) {
     if (argv[i] === '--out') out.out = argv[++i];
     else if (argv[i] === '--secret') out.secret = argv[++i];
     else if (argv[i] === '--override') out.override = argv[++i];
+    else if (argv[i] === '--patch') out.patch = argv[++i];
     else if (argv[i] === '--app') out.app = argv[++i];
     else throw new Error('모르는 인자: ' + argv[i]);
   }
@@ -91,6 +93,12 @@ function main() {
   // 설정
   const overrides = a.override ? JSON.parse(fs.readFileSync(a.override, 'utf8')) : undefined;
   const { raw, errors } = loadAppConfig(APP, b, { secretPath: a.secret, buildInfo, overrides });
+  // --patch(판 설정): {설정 이름: {칸: 값}} — 저장소 설정의 그 칸만 바꾸거나(없는 설정이면 새로) 만든다. 고정 파일 판(variants/static.patch.json)이 쓴다
+  if (a.patch) {
+    const patch = JSON.parse(fs.readFileSync(a.patch, 'utf8'));
+    for (const [name, part] of Object.entries(patch)) raw.files[name] = { ...(raw.files[name] || {}), ...part };
+    log.write('판 설정', { patch: path.basename(a.patch), names: Object.keys(patch) });
+  }
   if (errors.length) throw new Error('설정 읽기 실패 — ' + errors.map((e) => path.basename(e.file) + ': ' + e.why).join(' / '));
   const st = raw.files[b.status_config];
   const hc = raw.files[b.health_config];

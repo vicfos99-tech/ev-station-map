@@ -14,9 +14,14 @@ export function createNetCore(deps) {
   const n = cfg.section('config_netcore');
   const codes = n.codes;
 
+  // 고정 파일 판(g.mode 가 n.static_mode): 다리 없이 같은 사이트의 고정 파일 자리(g.static_base)에서 읽는다.
+  // 앱 비밀 값 머리를 보내지 않는다(앱에 비밀을 넣지 않음). 고정 파일에 없는 길(g.static_routes 에 없는 길)은 묻지 않고 codes.no_static
   function gateway() {
-    if (!cfg.has(n.gateway_file) || !cfg.has(n.secret_file)) throw new NetNotReady(codes.not_ready);
-    return { g: cfg.section(n.gateway_file), secret: cfg.section(n.secret_file)[n.secret_key] };
+    if (!cfg.has(n.gateway_file)) throw new NetNotReady(codes.not_ready);
+    const g = cfg.section(n.gateway_file);
+    if (g.mode === n.static_mode) return { g, secret: null, fixed: true };
+    if (!cfg.has(n.secret_file)) throw new NetNotReady(codes.not_ready);
+    return { g, secret: cfg.section(n.secret_file)[n.secret_key], fixed: false };
   }
 
   function limitsOf(client) {
@@ -25,14 +30,18 @@ export function createNetCore(deps) {
     return l;
   }
 
-  function urlOf(g, route, sub) {
+  function urlOf(g, route, sub, fixed) {
+    if (fixed) {
+      const f = g.static_routes[route];
+      return f === undefined ? null : g.static_base + f + (sub || '');
+    }
     const p = g.paths[route];
     if (p === undefined) throw new Error(route);
     return g.gateway_url + p + (sub || '');
   }
 
-  function headers(g, secret, withBody) {
-    const h = { [g.secret_header]: secret };
+  function headers(g, secret, withBody, fixed) {
+    const h = fixed ? {} : { [g.secret_header]: secret };
     if (withBody) h[n.content_type_header] = n.json_type;
     return h;
   }
@@ -65,16 +74,21 @@ export function createNetCore(deps) {
   return {
     // 다리 주소·앱 비밀 값 설정이 있나(gateway() 가 던지는 조건과 같음 — 예외를 삼키지 않게 조건을 직접 본다)
     ready() {
-      return cfg.has(n.gateway_file) && cfg.has(n.secret_file);
+      if (!cfg.has(n.gateway_file)) return false;
+      return cfg.section(n.gateway_file).mode === n.static_mode || cfg.has(n.secret_file);
     },
     // 길 하나에 묻기. 결과 {ok, data | code, src, status} — 다시 받기를 다 쓰면 마지막 실패를 돌려준다
     async ask(client, route, opt) {
-      const { g, secret } = gateway();
+      const { g, secret, fixed } = gateway();
       const l = limitsOf(client);
       const o = opt || {};
       const body = o.body === undefined ? undefined : JSON.stringify(o.body);
-      const init = { method: o.method || n.default_method, headers: headers(g, secret, body !== undefined), body, cache: n.cache_mode };
-      const url = urlOf(g, route, o.sub);
+      const init = { method: o.method || n.default_method, headers: headers(g, secret, body !== undefined, fixed), body, cache: n.cache_mode };
+      const url = urlOf(g, route, o.sub, fixed);
+      if (url === null) {
+        log.warn(n.where_ask, n.word_no_static, { client, route });
+        return { ok: false, code: codes.no_static };
+      }
       let last = null;
       for (let attempt = 0; attempt <= l.retries; attempt += 1) {
         if (attempt > 0) await wait(l.backoff_ms * l.backoff_factor ** (attempt - 1));
@@ -86,8 +100,14 @@ export function createNetCore(deps) {
     },
     // 서버 보냄 이벤트(시험 흐름 등) 열기. on.event(이름, 글) · on.open() · on.down(까닭 코드). 돌려받은 함수로 닫는다
     stream(client, route, on) {
-      const { g, secret } = gateway();
+      const { g, secret, fixed } = gateway();
       const l = limitsOf(client);
+      const url = urlOf(g, route, '', fixed);
+      if (url === null) {
+        log.warn(n.where_stream, n.word_no_static, { client, route });
+        Promise.resolve().then(() => on.down(codes.no_static));
+        return () => {};
+      }
       const ctrl = new AbortController();
       let closed = false;
       let opened = false;
@@ -96,7 +116,7 @@ export function createNetCore(deps) {
         let why = codes.closed;
         let detail;
         try {
-          const resp = await fetchFn(urlOf(g, route, ''), { method: n.default_method, headers: headers(g, secret, false), signal: ctrl.signal, cache: n.cache_mode });
+          const resp = await fetchFn(url, { method: n.default_method, headers: headers(g, secret, false, fixed), signal: ctrl.signal, cache: n.cache_mode });
           opened = true;
           clock.clearTimeout(openTimer);
           if (!resp.ok || !resp.body) {

@@ -10,6 +10,7 @@
   "meta_file": "meta.json",
   "station_files": ["stations/41460.json", "stations/41550.json", "stations/44130.json", "stations/43110.json", "stations/43730.json", "stations/30230.json"],
   "line_files": ["lines/gyeongbu_down.json"],
+  "lines_optional": false,
   "skip_codes": ["none"],
   "codes": {"bad": "bad", "empty": "empty", "internal": "internal"},
   "list_key": "list",

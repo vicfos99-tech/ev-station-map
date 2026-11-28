@@ -45,6 +45,10 @@ jobs:
           else
             echo "relay-data 브랜치가 아직 없음 — relay/ 없이 올림"
           fi
+      # 새 앱(web2)을 '고정 파일 판'으로 지어 _site/web2/ 에 더한다(6-2). 위의 옛 앱 단계·relay/ 는 그대로.
+      # 이 판은 다리·앱 비밀 값 없이 같은 사이트의 ../relay/ 자료를 읽는다(web2/variants/static.patch.json).
+      - name: 새 앱(web2) 고정 파일 판 지어 web2/ 에 넣기
+        run: node web2/tools/build.mjs --out _site/web2 --patch web2/variants/static.patch.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
