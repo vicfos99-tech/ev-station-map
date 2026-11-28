@@ -1,8 +1,8 @@
 {
-  "note": "web2 도구(check4·vendor_get·install_hook …)의 값. 경로는 web2 폴더(app_dir) 기준. 시각 차이는 work.env 의 KST_OFFSET_HOURS 를 읽는다(설계 5-6)",
+  "note": "web2 도구(check4·vendor_get·install_hook …)의 값. 경로는 web2 폴더(app_dir) 기준. 시각 차이는 저장소의 config/config_time.json 에서 읽는다(work.env 는 집 PC 에서만 도는 원칙 점검 도구만 씀)",
   "app_dir": "..",
   "work_env": {"file": "work.env", "kst_key": "KST_OFFSET_HOURS", "root_key": "CLAUDE_WORK_ROOT"},
-  "time": {"ms_per_hour": 3600000, "format": "YYYY-MM-DD hh:mm:ss"},
+  "time": {"ms_per_hour": 3600000, "format": "YYYY-MM-DD hh:mm:ss", "kst_config": "config/config_time.json", "kst_field": "kst_offset_hours"},
   "log": {"dir": "tools/logs", "suffix": ".log", "sep": " · "},
   "tmp_dir": "tools/tmp",
   "pass_word": "통과",

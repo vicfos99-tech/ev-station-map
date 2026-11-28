@@ -35,7 +35,7 @@ export default async function (t) {
   const core = createNetCore({ cfg: a.cfg, log: a.log, fetch: a.fetch, clock: a.clock });
   const r1 = await core.ask('relay', 'data', { sub: 'stations/43110.json' });
   const r1h = await core.ask('start', 'health', { sub: '' });
-  t.check('①', '고정 파일 판 — 비밀 값 파일 없이도 준비됨 · 자료 길은 고정 자리 + 파일 이름, 상태 길은 meta.json', '준비됨 · ../relay/stations/43110.json · ../relay/meta.json',
+  t.check('①', '고정 파일 판 — 비밀 값 파일 없이도 준비됨 · 자료 길은 고정 자리 + 파일 이름, 상태 길은 meta.json', '준비됨 · ' + gwStatic.static_base + 'stations/43110.json · ' + gwStatic.static_base + 'meta.json', // 고정 자리는 판 패치 설정에서 읽음(박지 않음)
     (core.ready() ? '준비됨' : '안 됨') + ' · ' + a.calls.map((c) => c.url).join(' · '),
     core.ready() && r1.ok && r1h.ok && a.calls.length === 2 && a.calls[0].url === gwStatic.static_base + 'stations/43110.json' && a.calls[1].url === gwStatic.static_base + 'meta.json');
   t.check('②', '고정 파일 판 — 비밀 머리를 보내지 않음(머리 0)', '머리 0 · 0', a.calls.map((c) => Object.keys(c.headers).length).join(' · '), a.calls.every((c) => Object.keys(c.headers).length === 0));

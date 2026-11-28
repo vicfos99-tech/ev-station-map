@@ -41,11 +41,17 @@ export function readWorkEnv(tc) {
   return out;
 }
 
+// 한국 시각 차이: 저장소 안 설정(time.kst_config 의 time.kst_field)에서 읽는다 — work.env 가 없는 깃허브 작업 기계에서도 빌드가 돌게.
+export function kstOffsetHours(tc) {
+  const file = path.join(appDir(tc), tc.time.kst_config);
+  const off = Number(JSON.parse(fs.readFileSync(file, 'utf8'))[tc.time.kst_field]);
+  if (!Number.isFinite(off)) throw new Error(tc.time.kst_config + ' 에 ' + tc.time.kst_field + ' 가 없음');
+  return off;
+}
+
 // UTC 에 설정 값만 더한 한국 시각 글(지역 시각 함수는 쓰지 않는다 — 설계 5-6)
 export function kstText(tc, ms) {
-  const env = readWorkEnv(tc);
-  const off = Number(env[tc.work_env.kst_key]);
-  if (!Number.isFinite(off)) throw new Error('work.env 에 ' + tc.work_env.kst_key + ' 가 없음');
+  const off = kstOffsetHours(tc);
   const d = new Date((ms === undefined ? Date.now() : ms) + off * tc.time.ms_per_hour);
   const parts = {
     YYYY: d.getUTCFullYear(), MM: d.getUTCMonth() + 1, DD: d.getUTCDate(),

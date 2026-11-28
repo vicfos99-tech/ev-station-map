@@ -1,7 +1,7 @@
 {
   "config_gateway": {
     "mode": "static",
-    "static_base": "../relay/",
+    "static_base": "https://raw.githubusercontent.com/vicfos99-tech/ev-station-map/relay-data/",
     "static_routes": {"health": "meta.json", "data": ""}
   },
   "config_relay_stations": {
